@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation de Rendez-vous</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .time-slot:hover {
+            transform: translateY(-2px);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 480px) {
+            .calendar-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
+        .reserved-slot {
+            background-color: #e5e7eb !important;
+            color: #6b7280 !important;
+            cursor: not-allowed !important;
+            position: relative;
+        }
+        .reserved-slot::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background-color: #6b7280;
+            transform: rotate(-5deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-indigo-700 mb-2">Prenez Rendez-vous</h1>
+            <p class="text-lg text-gray-600">le prix d'une consultation est de 250  GDES</p>
+        </header>
+
+        <div class="max-w-6xl mx-auto">
+            <!-- Navigation entre les mois -->
+            <div class="flex justify-between items-center mb-6">
+                <button id="prev-month" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fas fa-chevron-left mr-2"></i>Mois précédent
+                </button>
+                <h2 id="current-month" class="text-xl font-semibold text-gray-800">Juillet 2025</h2>
+                <button id="next-month" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                    Mois suivant<i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Calendrier -->
+            <div id="calendar" class="calendar-grid mb-8">
+                <!-- Les jours seront générés dynamiquement en JavaScript -->
+            </div>
+
+            <!-- Formulaire de réservation -->
+            <div id="booking-form-container" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div id="booking-form" class="bg-white rounded-lg p-6 w-full max-w-md transform scale-95 opacity-0">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-indigo-700">Réservation</h3>
+                        <button id="close-form" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <p id="selected-time" class="text-gray-600 mb-4">Vendredi 25 juillet à 10:00</p>
+                    <form id="appointment-form" class="space-y-4">
+                        <div>
+                            <label for="first-name" class="block text-sm font-medium text-gray-700">Prénom</label>
+                            <input type="text" id="first-name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="last-name" class="block text-sm font-medium text-gray-700">Nom</label>
+                            <input type="text" id="last-name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Téléphone</label>
+                            <input type="tel" id="phone" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div class="pt-2">
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Confirmer la réservation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Confirmation -->
+            <div id="confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-md text-center transform scale-95 opacity-0">
+                    <div class="mb-4 text-green-500 text-6xl">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Réservation confirmée !</h3>
+                    <p id="confirmation-message" class="text-gray-600 mb-4">Votre rendez-vous a été enregistré.</p>
+                    <p class="text-sm text-gray-500">Vous allez être redirigé vers WhatsApp...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyANd0tZl-6P6l84ab-FSRIX9ISPd_YCe6I",
+            authDomain: "cpieo-99bd5.firebaseapp.com",
+            projectId: "cpieo-99bd5",
+            storageBucket: "cpieo-99bd5.firebasestorage.app",
+            messagingSenderId: "405125968337",
+            appId: "1:405125968337:web:7d5f74b710cc23b84270f0"
+        };
+
+        // Initialisation Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Configuration de l'application
+        const config = {
+            whatsappNumber: "33612345678", // Remplacez par votre numéro WhatsApp
+            businessName: "Mon Entreprise",
+            workingHours: {
+                start: 9, // 9h
+                end: 18,   // 18h
+                interval: 30 // minutes
+            }
+        };
+
+        // Variables d'état
+        let currentDate = new Date();
+        currentDate.setDate(1); // Premier jour du mois
+        let selectedSlot = null;
+        let reservedSlots = [];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger les rendez-vous depuis Firestore
+            loadAppointments();
+            
+            // Configurer les écouteurs d'événements
+            setupEventListeners();
+        });
+
+        // Charge les rendez-vous depuis Firestore
+        function loadAppointments() {
+            db.collection("appointments").onSnapshot((snapshot) => {
+                reservedSlots = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    reservedSlots.push(data.timeSlot);
+                });
+                
+                // Générer le calendrier avec les créneaux mis à jour
+                generateCalendar();
+            });
+        }
+
+        // Enregistre un nouveau rendez-vous dans Firestore
+        async function saveAppointment(bookingDetails) {
+            try {
+                const [date, time] = selectedSlot.split(' ');
+                const appointmentData = {
+                    ...bookingDetails,
+                    timeSlot: selectedSlot,
+                    date: date,
+                    time: time,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection("appointments").add(appointmentData);
+                return true;
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement:", error);
+                return false;
+            }
+        }
+
+        // Génère le calendrier pour le mois en cours
+        function generateCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+
+            // Mettre à jour l'affichage du mois en cours
+            updateMonthDisplay();
+
+            // Obtenir le premier jour du mois
+            const firstDay = new Date(currentDate);
+            firstDay.setDate(1);
+            const firstDayIndex = firstDay.getDay(); // 0 (dimanche) à 6 (samedi)
+
+            // Obtenir le dernier jour du mois
+            const lastDay = new Date(
+                currentDate.getFullYear(),
+                currentDate.getMonth() + 1,
+                0
+            );
+            const daysInMonth = lastDay.getDate();
+
+            // Ajouter des jours vides pour le premier jour de la semaine
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'opacity-0';
+                calendarEl.appendChild(emptyDay);
+            }
+
+            // Générer les jours du mois
+            for (let i = 1; i <= daysInMonth; i++) {
+                const date = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    i
+                );
+                
+                // Ne pas afficher les samedis et dimanches
+                if (date.getDay() === 0 || date.getDay() === 6) continue;
+                
+                const dayEl = document.createElement('div');
+                dayEl.className = 'bg-white rounded-lg shadow overflow-hidden';
+                
+                // En-tête du jour
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'bg-indigo-600 text-white py-2 px-4 text-center font-medium';
+                
+                const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+                const dayNumber = date.getDate();
+                const monthName = date.toLocaleDateString('fr-FR', { month: 'long' });
+                
+                dayHeader.innerHTML = `
+                    <div class="text-lg">${dayName}</div>
+                    <div class="text-sm">${dayNumber} ${monthName}</div>
+                `;
+                
+                dayEl.appendChild(dayHeader);
+                
+                // Conteneur des créneaux horaires
+                const slotsContainer = document.createElement('div');
+                slotsContainer.className = 'p-4 space-y-2 max-h-60 overflow-y-auto';
+                
+                // Générer les créneaux horaires pour ce jour
+                generateTimeSlots(date, slotsContainer);
+                
+                dayEl.appendChild(slotsContainer);
+                calendarEl.appendChild(dayEl);
+            }
+        }
+
+        // Génère les créneaux horaires pour une journée donnée
+        function generateTimeSlots(date, container) {
+            const dateStr = formatDate(date);
+            let time = new Date(date);
+            time.setHours(config.workingHours.start, 0, 0, 0);
+            
+            const endTime = new Date(date);
+            endTime.setHours(config.workingHours.end, 0, 0, 0);
+            
+            while (time < endTime) {
+                const timeStr = formatTime(time);
+                const slotId = `${dateStr} ${timeStr}`;
+                const isReserved = reservedSlots.includes(slotId);
+                
+                const slotEl = document.createElement('button');
+                slotEl.id = `slot-${slotId.replace(/[: ]/g, '-')}`;
+                
+                // Appliquer des styles différents selon si le créneau est réservé ou non
+                if (isReserved) {
+                    slotEl.className = 'reserved-slot time-slot w-full py-2 px-3 rounded-md text-center transition';
+                    slotEl.disabled = true;
+                } else {
+                    slotEl.className = 'time-slot w-full py-2 px-3 rounded-md text-center transition bg-indigo-100 text-indigo-700 hover:bg-indigo-200';
+                    slotEl.addEventListener('click', () => selectTimeSlot(slotEl, slotId));
+                }
+                
+                slotEl.textContent = timeStr;
+                slotEl.dataset.time = slotId;
+                
+                container.appendChild(slotEl);
+                
+                // Passer au créneau suivant
+                time.setMinutes(time.getMinutes() + config.workingHours.interval);
+            }
+        }
+
+        // Sélection d'un créneau horaire
+        function selectTimeSlot(element, time) {
+            selectedSlot = time;
+            
+            // Animation de sélection
+            anime({
+                targets: element,
+                scale: [1, 0.95, 1.05, 1],
+                backgroundColor: ['#e0e7ff', '#c7d2fe', '#a5b4fc', '#818cf8'],
+                duration: 400,
+                easing: 'easeInOutQuad'
+            });
+            
+            // Afficher le formulaire
+            showBookingForm(time);
+        }
+
+        // Affiche le formulaire de réservation
+        function showBookingForm(time) {
+            const [date, hour] = time.split(' ');
+            const formatedDate = formatDateForDisplay(date);
+            
+            document.getElementById('selected-time').textContent = `${formatedDate} à ${hour}`;
+            document.getElementById('booking-form-container').classList.remove('hidden');
+            
+            // Animation d'apparition
+            anime({
+                targets: '#booking-form',
+                scale: [0.95, 1],
+                opacity: 1,
+                duration: 300,
+                easing: 'easeOutQuad'
+            });
+        }
+
+        // Ferme le formulaire de réservation
+        function closeBookingForm() {
+            anime({
+                targets: '#booking-form',
+                scale: 0.95,
+                opacity: 0,
+                duration: 200,
+                easing: 'easeInQuad',
+                complete: () => {
+                    document.getElementById('booking-form-container').classList.add('hidden');
+                    document.getElementById('booking-form').style.opacity = '0';
+                    document.getElementById('booking-form').style.transform = 'scale(0.95)';
+                }
+            });
+        }
+
+        // Affiche la confirmation
+        function showConfirmation(bookingDetails) {
+            document.getElementById('booking-form-container').classList.add('hidden');
+            document.getElementById('confirmation').classList.remove('hidden');
+            
+            const [date, hour] = selectedSlot.split(' ');
+            const formatedDate = formatDateForDisplay(date);
+            
+            document.getElementById('confirmation-message').textContent = 
+                `Votre rendez-vous le ${formatedDate} à ${hour} a été enregistré.`;
+            
+            // Animation d'apparition
+            anime({
+                targets: '#confirmation div',
+                scale: [0.95, 1],
+                opacity: 1,
+                duration: 300,
+                easing: 'easeOutQuad'
+            });
+            
+            // Jouer un son de confirmation
+            playConfirmationSound();
+            
+            // Redirection vers WhatsApp après 3 secondes
+            setTimeout(() => {
+                redirectToWhatsApp(bookingDetails);
+            }, 3000);
+        }
+
+        // Joue un son de confirmation
+        function playConfirmationSound() {
+            try {
+                const synth = new Tone.Synth().toDestination();
+                synth.volume.value = -10;
+                const now = Tone.now();
+                synth.triggerAttackRelease("C5", "8n", now);
+                synth.triggerAttackRelease("E5", "8n", now + 0.1);
+                synth.triggerAttackRelease("G5", "8n", now + 0.2);
+            } catch (e) {
+                console.log("Erreur de lecture audio", e);
+            }
+        }
+
+        // Redirige vers WhatsApp avec le message de confirmation
+        function redirectToWhatsApp(bookingDetails) {
+            const [date, hour] = selectedSlot.split(' ');
+            const formatedDate = formatDateForDisplay(date);
+            
+            const message = `Bonjour, une réservation a été faite pour le ${formatedDate} à ${hour} par ${bookingDetails.firstName} ${bookingDetails.lastName} (${bookingDetails.email} - ${bookingDetails.phone}).`;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/${config.whatsappNumber}/?text=${encodedMessage}`;
+            
+            window.location.href = whatsappUrl;
+        }
+
+        // Met à jour l'affichage du mois en cours
+        function updateMonthDisplay() {
+            const monthName = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            document.getElementById('current-month').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        }
+
+        // Configure les écouteurs d'événements
+        function setupEventListeners() {
+            // Navigation entre les mois
+            document.getElementById('prev-month').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                generateCalendar();
+            });
+            
+            document.getElementById('next-month').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                generateCalendar();
+            });
+            
+            // Fermeture du formulaire
+            document.getElementById('close-form').addEventListener('click', closeBookingForm);
+            
+            // Soumission du formulaire
+            document.getElementById('appointment-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const bookingDetails = {
+                    firstName: document.getElementById('first-name').value,
+                    lastName: document.getElementById('last-name').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value
+                };
+                
+                // Enregistrer le rendez-vous dans Firestore
+                const success = await saveAppointment(bookingDetails);
+                
+                if (success) {
+                    // Réinitialiser le formulaire
+                    this.reset();
+                    
+                    // Afficher la confirmation
+                    showConfirmation(bookingDetails);
+                } else {
+                    alert("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
+                }
+            });
+        }
+
+        // Fonctions utilitaires de formatage
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function formatDateForDisplay(dateStr) {
+            const date = new Date(dateStr);
+            const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+            const dayNumber = date.getDate();
+            const monthName = date.toLocaleDateString('fr-FR', { month: 'long' });
+            return `${dayName} ${dayNumber} ${monthName}`;
+        }
+    </script>
+</body>
+</html>

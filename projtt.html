@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brief Client - Studio Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .form-section {
+            transition: all 0.3s ease;
+        }
+        .form-section.collapsed {
+            opacity: 0.7;
+        }
+        .form-section.collapsed .section-content {
+            max-height: 0;
+            overflow: hidden;
+        }
+        .section-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        .progress-step {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #e9d5ff;
+            color: #6b21a8;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .progress-step.active {
+            background-color: #8b5cf6;
+            color: white;
+        }
+        .progress-step.completed {
+            background-color: #10b981;
+            color: white;
+        }
+        .progress-connector {
+            flex: 1;
+            height: 2px;
+            background-color: #e9d5ff;
+            margin: 0 5px;
+        }
+        .progress-connector.active {
+            background-color: #8b5cf6;
+        }
+        .progress-connector.completed {
+            background-color: #10b981;
+        }
+        @media (max-width: 640px) {
+            .progress-steps {
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            .progress-container {
+                min-width: 500px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-file-alt text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Brief Client</h1>
+            <p class="text-gray-600">Merci de remplir ce formulaire pour nous aider à mieux comprendre votre projet</p>
+        </header>
+
+        <!-- Progress Steps -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-8 overflow-hidden">
+            <div class="progress-steps">
+                <div class="progress-container flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="progress-step active" id="step-1">1</div>
+                        <div class="progress-connector active" id="connector-1-2"></div>
+                        <div class="progress-step" id="step-2">2</div>
+                        <div class="progress-connector" id="connector-2-3"></div>
+                        <div class="progress-step" id="step-3">3</div>
+                        <div class="progress-connector" id="connector-3-4"></div>
+                        <div class="progress-step" id="step-4">4</div>
+                        <div class="progress-connector" id="connector-4-5"></div>
+                        <div class="progress-step" id="step-5">5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Sections -->
+        <form id="clientBriefForm" class="space-y-6">
+            <!-- Section 1: Informations Entreprise -->
+            <div class="form-section bg-white rounded-xl shadow-md overflow-hidden" id="section-1">
+                <div class="section-header bg-gradient-to-r from-purple-50 to-pink-50 p-4 cursor-pointer" onclick="toggleSection(1)">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-building mr-3 text-purple-600"></i>
+                        Informations sur l'entreprise
+                    </h2>
+                </div>
+                <div class="section-content p-4 md:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">Nom de l'entreprise *</label>
+                            <input type="text" id="companyName" name="companyName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label for="sector" class="block text-sm font-medium text-gray-700 mb-1">Secteur d'activité *</label>
+                            <input type="text" id="sector" name="sector" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="ex: restauration, e-commerce, consulting...">
+                        </div>
+                        <div>
+                            <label for="creationYear" class="block text-sm font-medium text-gray-700 mb-1">Année de création</label>
+                            <input type="number" id="creationYear" name="creationYear" min="1900" max="2099" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label for="geoZone" class="block text-sm font-medium text-gray-700 mb-1">Zone géographique ciblée *</label>
+                            <select id="geoZone" name="geoZone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Sélectionnez...</option>
+                                <option value="locale">Locale</option>
+                                <option value="regionale">Régionale</option>
+                                <option value="nationale">Nationale</option>
+                                <option value="internationale">Internationale</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="productsServices" class="block text-sm font-medium text-gray-700 mb-1">Produits/services proposés *</label>
+                            <textarea id="productsServices" name="productsServices" required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Clientèle -->
+            <div class="form-section bg-white rounded-xl shadow-md overflow-hidden collapsed" id="section-2">
+                <div class="section-header bg-gradient-to-r from-purple-50 to-pink-50 p-4 cursor-pointer" onclick="toggleSection(2)">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-users mr-3 text-purple-600"></i>
+                        Votre clientèle
+                    </h2>
+                </div>
+                <div class="section-content p-4 md:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="clientType" class="block text-sm font-medium text-gray-700 mb-1">Type de clientèle *</label>
+                            <select id="clientType" name="clientType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Sélectionnez...</option>
+                                <option value="b2b">B2B (Entreprises)</option>
+                                <option value="b2c">B2C (Particuliers)</option>
+                                <option value="both">Les deux</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="clientAge" class="block text-sm font-medium text-gray-700 mb-1">Âge moyen de vos clients</label>
+                            <input type="text" id="clientAge" name="clientAge" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="ex: 25-45 ans">
+                        </div>
+                        <div>
+                            <label for="clientProfession" class="block text-sm font-medium text-gray-700 mb-1">Profession/statut de vos clients</label>
+                            <input type="text" id="clientProfession" name="clientProfession" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="ex: Cadres, artisans, étudiants...">
+                        </div>
+                        <div>
+                            <label for="clientDiscovery" class="block text-sm font-medium text-gray-700 mb-1">Comment vos clients vous trouvent-ils ?</label>
+                            <input type="text" id="clientDiscovery" name="clientDiscovery" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="ex: Réseaux sociaux, bouche-à-oreille...">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="clientProblems" class="block text-sm font-medium text-gray-700 mb-1">Besoins ou problèmes que votre offre résout *</label>
+                            <textarea id="clientProblems" name="clientProblems" required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Identité Visuelle -->
+            <div class="form-section bg-white rounded-xl shadow-md overflow-hidden collapsed" id="section-3">
+                <div class="section-header bg-gradient-to-r from-purple-50 to-pink-50 p-4 cursor-pointer" onclick="toggleSection(3)">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-palette mr-3 text-purple-600"></i>
+                        Identité visuelle
+                    </h2>
+                </div>
+                <div class="section-content p-4 md:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Avez-vous un logo ?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="hasLogo" value="yes" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Oui</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="hasLogo" value="no" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Non</span>
+                                </label>
+                            </div>
+                            <div id="logoUploadContainer" class="mt-3 hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Télécharger votre logo</label>
+                                <input type="file" id="logoUpload" name="logoUpload" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Avez-vous une charte graphique ?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="hasBrandGuidelines" value="yes" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Oui</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="hasBrandGuidelines" value="no" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Non</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="brandColors" class="block text-sm font-medium text-gray-700 mb-1">Couleurs de la marque (codes hexadécimaux ou noms)</label>
+                            <input type="text" id="brandColors" name="brandColors" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="ex: #8b5cf6, violet, rose...">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="brandSlogan" class="block text-sm font-medium text-gray-700 mb-1">Slogan (si existant)</label>
+                            <input type="text" id="brandSlogan" name="brandSlogan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ton préféré pour la communication *</label>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="radio" name="brandTone" value="formelle" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Formelle / Professionnelle</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="radio" name="brandTone" value="amicale" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Amicale / Détendue</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="radio" name="brandTone" value="innovante" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Innovante / Créative</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="radio" name="brandTone" value="autre" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Autre (précisez)</span>
+                                </label>
+                            </div>
+                            <input type="text" id="brandToneOther" name="brandToneOther" class="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hidden" placeholder="Précisez le ton souhaité...">
+                            <p id="toneError" class="text-red-500 text-sm mt-1 hidden">Veuillez sélectionner un ton de communication</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Site Web -->
+            <div class="form-section bg-white rounded-xl shadow-md overflow-hidden collapsed" id="section-4">
+                <div class="section-header bg-gradient-to-r from-purple-50 to-pink-50 p-4 cursor-pointer" onclick="toggleSection(4)">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-globe mr-3 text-purple-600"></i>
+                        Votre site web
+                    </h2>
+                </div>
+                <div class="section-content p-4 md:p-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Pages souhaitées *</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="accueil" class="h-4 w-4 text-purple-600 focus:ring-purple-500" checked>
+                                    <span class="ml-2">Accueil</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="apropos" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">À propos</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="services" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Services / Produits</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="portfolio" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Portfolio / Réalisations</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="temoignages" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Témoignages</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="blog" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Blog</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="contact" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Contact</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="faq" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">FAQ</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="pages" value="boutique" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Boutique en ligne</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Fonctionnalités souhaitées</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="formulaire" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Formulaire de contact</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="reservation" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Réservation en ligne</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="reseaux" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Intégration réseaux sociaux</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="newsletter" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Newsletter</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="chat" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Chat en ligne</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="paiement" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Paiement en ligne</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="multilingue" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Multilingue</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-purple-50 cursor-pointer">
+                                    <input type="checkbox" name="features" value="espace" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Espace membre/client</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="specificNeeds" class="block text-sm font-medium text-gray-700 mb-1">Autres besoins spécifiques</label>
+                            <textarea id="specificNeeds" name="specificNeeds" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Décrivez vos besoins particuliers..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Avez-vous déjà du contenu prêt ?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="hasContent" value="yes" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Oui (textes, images, vidéos)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="hasContent" value="no" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Non</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Souhaitez-vous une optimisation SEO ?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="wantsSEO" value="yes" class="h-4 w-4 text-purple-600 focus:ring-purple-500" checked>
+                                    <span class="ml-2">Oui</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="wantsSEO" value="no" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Non</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Réseaux & Finalisation -->
+            <div class="form-section bg-white rounded-xl shadow-md overflow-hidden collapsed" id="section-5">
+                <div class="section-header bg-gradient-to-r from-purple-50 to-pink-50 p-4 cursor-pointer" onclick="toggleSection(5)">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-share-alt mr-3 text-purple-600"></i>
+                        Réseaux sociaux & Finalisation
+                    </h2>
+                </div>
+                <div class="section-content p-4 md:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="socialLinks" class="block text-sm font-medium text-gray-700 mb-1">Liens vers vos réseaux sociaux</label>
+                            <textarea id="socialLinks" name="socialLinks" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Facebook, Instagram, LinkedIn..."></textarea>
+                        </div>
+                        <div>
+                            <label for="blogLinks" class="block text-sm font-medium text-gray-700 mb-1">Blog ou Google My Business</label>
+                            <input type="text" id="blogLinks" name="blogLinks" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="URL de votre blog ou page GMB">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Souhaitez-vous une formation ou accompagnement après livraison ?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="wantsTraining" value="yes" class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2">Oui</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="wantsTraining" value="no" class="h-4 w-4 text-purple-600 focus:ring-purple-500" checked>
+                                    <span class="ml-2">Non</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="additionalInfo" class="block text-sm font-medium text-gray-700 mb-1">Informations complémentaires</label>
+                            <textarea id="additionalInfo" name="additionalInfo" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Tout autre élément que vous souhaitez nous communiquer..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex flex-col md:flex-row justify-between space-y-4 md:space-y-0 md:space-x-4">
+                <button type="button" id="prevBtn" class="w-full md:w-auto px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors hidden" onclick="prevSection()">
+                    <i class="fas fa-arrow-left mr-2"></i> Précédent
+                </button>
+                <button type="button" id="nextBtn" class="w-full md:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors" onclick="nextSection()">
+                    Suivant <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+                <button type="submit" id="submitBtn" class="w-full md:w-auto px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors hidden">
+                    <i class="fas fa-paper-plane mr-2"></i> Envoyer le brief
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Gestion des sections
+        let currentSection = 1;
+        const totalSections = 5;
+
+        function toggleSection(sectionNumber) {
+            const section = document.getElementById(`section-${sectionNumber}`);
+            section.classList.toggle('collapsed');
+        }
+
+        function showSection(sectionNumber) {
+            // Masquer toutes les sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.add('collapsed');
+            });
+            
+            // Afficher la section courante
+            document.getElementById(`section-${sectionNumber}`).classList.remove('collapsed');
+            
+            // Mettre à jour la navigation
+            updateNavigation();
+            
+            // Mettre à jour la progression
+            updateProgress(sectionNumber);
+        }
+
+        function updateNavigation() {
+            document.getElementById('prevBtn').classList.toggle('hidden', currentSection === 1);
+            document.getElementById('nextBtn').classList.toggle('hidden', currentSection === totalSections);
+            document.getElementById('submitBtn').classList.toggle('hidden', currentSection !== totalSections);
+        }
+
+        function updateProgress(sectionNumber) {
+            // Réinitialiser toutes les étapes
+            for (let i = 1; i <= totalSections; i++) {
+                document.getElementById(`step-${i}`).classList.remove('active', 'completed');
+                if (i < totalSections) {
+                    document.getElementById(`connector-${i}-${i+1}`).classList.remove('active', 'completed');
+                }
+            }
+            
+            // Mettre à jour les étapes complétées et actives
+            for (let i = 1; i <= totalSections; i++) {
+                if (i < sectionNumber) {
+                    document.getElementById(`step-${i}`).classList.add('completed');
+                    if (i < totalSections) {
+                        document.getElementById(`connector-${i}-${i+1}`).classList.add('completed');
+                    }
+                } else if (i === sectionNumber) {
+                    document.getElementById(`step-${i}`).classList.add('active');
+                    if (i < totalSections) {
+                        document.getElementById(`connector-${i}-${i+1}`).classList.add('active');
+                    }
+                }
+            }
+        }
+
+        function nextSection() {
+            if (validateSection(currentSection)) {
+                if (currentSection < totalSections) {
+                    currentSection++;
+                    showSection(currentSection);
+                    // Faire défiler vers le haut de la section
+                    document.getElementById(`section-${currentSection}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        function prevSection() {
+            if (currentSection > 1) {
+                currentSection--;
+                showSection(currentSection);
+                // Faire défiler vers le haut de la section
+                document.getElementById(`section-${currentSection}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function validateSection(sectionNumber) {
+            let isValid = true;
+            
+            if (sectionNumber === 1) {
+                const requiredFields = ['companyName', 'sector', 'productsServices', 'geoZone'];
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (!field.value.trim()) {
+                        field.classList.add('border-red-500');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('border-red-500');
+                    }
+                });
+                
+                if (!isValid) {
+                    alert('Veuillez remplir tous les champs obligatoires marqués d\'un astérisque (*)');
+                }
+            }
+            
+            if (sectionNumber === 3) {
+                // Validation du ton de communication
+                if (!document.querySelector('input[name="brandTone"]:checked')) {
+                    document.getElementById('toneError').classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    document.getElementById('toneError').classList.add('hidden');
+                }
+                
+                if (!isValid) {
+                    // Faire défiler vers le haut des erreurs
+                    document.getElementById('section-3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            
+            return isValid;
+        }
+
+        // Gestion du ton "autre"
+        document.querySelectorAll('input[name="brandTone"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('brandToneOther').classList.toggle('hidden', this.value !== 'autre');
+                document.getElementById('toneError').classList.add('hidden');
+            });
+        });
+
+        // Gestion du logo upload
+        document.querySelectorAll('input[name="hasLogo"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('logoUploadContainer').classList.toggle('hidden', this.value !== 'yes');
+            });
+        });
+
+        // Fonction pour générer le message WhatsApp
+        function generateWhatsAppMessage(formData) {
+            let message = "📋 *NOUVEAU BRIEF CLIENT* 📋\n\n";
+            
+            // Informations entreprise
+            message += "🏢 *INFORMATIONS ENTREPRISE*\n";
+            message += `• Nom: ${formData.company.name}\n`;
+            message += `• Secteur: ${formData.company.sector}\n`;
+            message += `• Année création: ${formData.company.creationYear || 'Non précisé'}\n`;
+            message += `• Zone géographique: ${formData.company.geoZone}\n`;
+            message += `• Produits/services: ${formData.company.productsServices}\n\n`;
+            
+            // Clientèle
+            message += "👥 *CLIENTÈLE*\n";
+            message += `• Type: ${formData.clients.type}\n`;
+            message += `• Âge moyen: ${formData.clients.age || 'Non précisé'}\n`;
+            message += `• Profession: ${formData.clients.profession || 'Non précisé'}\n`;
+            message += `• Découverte: ${formData.clients.discovery || 'Non précisé'}\n`;
+            message += `• Problèmes résolus: ${formData.clients.problems}\n\n`;
+            
+            // Identité visuelle
+            message += "🎨 *IDENTITÉ VISUELLE*\n";
+            message += `• Logo: ${formData.branding.hasLogo === 'yes' ? 'Oui' : 'Non'}\n`;
+            message += `• Charte graphique: ${formData.branding.hasBrandGuidelines === 'yes' ? 'Oui' : 'Non'}\n`;
+            message += `• Couleurs: ${formData.branding.brandColors || 'Non précisé'}\n`;
+            message += `• Slogan: ${formData.branding.brandSlogan || 'Aucun'}\n`;
+            message += `• Ton: ${formData.branding.brandTone === 'autre' ? formData.branding.brandToneOther : formData.branding.brandTone}\n\n`;
+            
+            // Site web
+            message += "🌐 *SITE WEB*\n";
+            message += `• Pages souhaitées: ${formData.website.pages.join(', ')}\n`;
+            message += `• Fonctionnalités: ${formData.website.features.length > 0 ? formData.website.features.join(', ') : 'Aucune spécifiée'}\n`;
+            message += `• Contenu prêt: ${formData.website.hasContent === 'yes' ? 'Oui' : 'Non'}\n`;
+            message += `• SEO: ${formData.website.wantsSEO === 'yes' ? 'Oui' : 'Non'}\n`;
+            message += `• Besoins spécifiques: ${formData.website.specificNeeds || 'Aucun'}\n\n`;
+            
+            // Réseaux sociaux
+            message += "📱 *RÉSEAUX SOCIAUX*\n";
+            message += `• Liens réseaux: ${formData.social.socialLinks || 'Aucun'}\n`;
+            message += `• Blog/GMB: ${formData.social.blogLinks || 'Aucun'}\n`;
+            message += `• Formation souhaitée: ${formData.social.wantsTraining === 'yes' ? 'Oui' : 'Non'}\n`;
+            message += `• Infos complémentaires: ${formData.social.additionalInfo || 'Aucune'}\n`;
+            
+            return encodeURIComponent(message);
+        }
+
+        // Soumission du formulaire
+        document.getElementById('clientBriefForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateSection(totalSections)) {
+                const formData = getFormData();
+                const whatsappMessage = generateWhatsAppMessage(formData);
+                const phoneNumber = '50935601379'; // Votre numéro avec l'indicatif
+                
+                // Ouvrir WhatsApp avec le message pré-rempli
+                window.open(`https://wa.me/${phoneNumber}?text=${whatsappMessage}`, '_blank');
+                
+                // Réinitialiser le formulaire
+                this.reset();
+            }
+        });
+
+        function getFormData() {
+            const formData = {
+                company: {
+                    name: document.getElementById('companyName').value,
+                    sector: document.getElementById('sector').value,
+                    creationYear: document.getElementById('creationYear').value,
+                    geoZone: document.getElementById('geoZone').value,
+                    productsServices: document.getElementById('productsServices').value
+                },
+                clients: {
+                    type: document.querySelector('input[name="clientType"]:checked')?.value,
+                    age: document.getElementById('clientAge').value,
+                    profession: document.getElementById('clientProfession').value,
+                    discovery: document.getElementById('clientDiscovery').value,
+                    problems: document.getElementById('clientProblems').value
+                },
+                branding: {
+                    hasLogo: document.querySelector('input[name="hasLogo"]:checked')?.value,
+                    logoFile: document.getElementById('logoUpload')?.files[0]?.name || null,
+                    hasBrandGuidelines: document.querySelector('input[name="hasBrandGuidelines"]:checked')?.value,
+                    brandColors: document.getElementById('brandColors').value,
+                    brandSlogan: document.getElementById('brandSlogan').value,
+                    brandTone: document.querySelector('input[name="brandTone"]:checked')?.value,
+                    brandToneOther: document.getElementById('brandToneOther').value
+                },
+                website: {
+                    pages: Array.from(document.querySelectorAll('input[name="pages"]:checked')).map(cb => cb.value),
+                    features: Array.from(document.querySelectorAll('input[name="features"]:checked')).map(cb => cb.value),
+                    specificNeeds: document.getElementById('specificNeeds').value,
+                    hasContent: document.querySelector('input[name="hasContent"]:checked')?.value,
+                    wantsSEO: document.querySelector('input[name="wantsSEO"]:checked')?.value
+                },
+                social: {
+                    socialLinks: document.getElementById('socialLinks').value,
+                    blogLinks: document.getElementById('blogLinks').value,
+                    wantsTraining: document.querySelector('input[name="wantsTraining"]:checked')?.value,
+                    additionalInfo: document.getElementById('additionalInfo').value
+                }
+            };
+            return formData;
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection(1);
+        });
+    </script>
+</body>
+</html>

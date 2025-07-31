@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Toussaint Leo Vitch, entrepreneur haïtien et CEO de Vitch Web Studio. Spécialiste en création de sites web accessibles pour les PME en Haïti.">
+    <meta name="keywords" content="Toussaint Leo Vitch, Vitch Web Studio, création site web Haïti, développement web Haïti, entrepreneur numérique Haïti">
+    <meta name="author" content="Toussaint Leo Vitch">
+    <meta property="og:title" content="Toussaint Leo Vitch — CEO de Vitch Web Studio en Haïti">
+    <meta property="og:description" content="Entrepreneur numérique haïtien spécialisé dans la création de sites web accessibles pour les PME en Haïti.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vitchwebstudio.com">
+    <meta property="og:image" content="https://vitchwebstudio.com/images/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://vitchwebstudio.com">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <title>Toussaint Leo Vitch — CEO de Vitch Web Studio en Haïti | Développement Web Haïti</title>
+    
+    <!-- Google Fonts avec preload -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        secondary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS (Animate On Scroll) -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-primary: #0ea5e9;
+            --color-primary-dark: #0369a1;
+            --color-secondary: #8b5cf6;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+            scroll-behavior: smooth;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(14,165,233,0.1) 0%, rgba(139,92,246,0.1) 100%);
+        }
+        
+        .profile-img {
+            width: 220px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .skill-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: var(--color-primary);
+        }
+        
+        .contact-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .contact-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: var(--color-primary);
+            border-radius: 3px;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-primary);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        .testimonial-card {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+    
+    <!-- Schema.org markup for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Toussaint Leo Vitch",
+      "jobTitle": "CEO de Vitch Web Studio",
+      "url": "https://vitchwebstudio.com",
+      "sameAs": [
+        "https://linkedin.com/in/toussaintleovitch",
+        "https://wa.me/50935601379"
+      ],
+      "worksFor": {
+        "@type": "Organization",
+        "name": "Vitch Web Studio"
+      },
+      "description": "Entrepreneur numérique haïtien spécialisé dans la création de sites web accessibles pour les PME en Haïti."
+    }
+    </script>
+</head>
+<body class="font-sans antialiased">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm fixed w-full z-10">
+        <div class="container mx-auto px-6 py-3">
+            <div class="flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold text-primary-600 flex items-center">
+                    <span class="text-primary-700">Toussaint</span>
+                    <span class="text-secondary-600">Leo Vitch</span>
+                </a>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="#about" class="nav-link text-slate-700 hover:text-primary-600">À propos</a>
+                    <a href="#services" class="nav-link text-slate-700 hover:text-primary-600">Services</a>
+                    <a href="#skills" class="nav-link text-slate-700 hover:text-primary-600">Compétences</a>
+                    <a href="#contact" class="nav-link text-slate-700 hover:text-primary-600">Contact</a>
+                </div>
+                
+              
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-gradient pt-32 pb-20" itemscope itemtype="https://schema.org/Person">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0" data-aos="fade-right">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-800 mb-4" itemprop="name">
+                        <span class="text-primary-600">Toussaint</span>
+                        <span class="text-secondary-600">Leo Vitch</span>
+                    </h1>
+                    <h2 class="text-xl md:text-2xl text-slate-600 mb-6 font-medium" itemprop="jobTitle">Entrepreneur numérique & CEO de <span class="text-primary-600">Vitch Web Studio</span></h2>
+                    <p class="text-lg text-slate-600 mb-8 max-w-lg">Je crée des solutions web sur mesure pour aider les entreprises haïtiennes à prospérer à l'ère numérique.</p>
+                    <div class="flex space-x-4">
+                        <a href="#contact" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:-translate-y-1">
+                            Me contacter
+                        </a>
+                        <a href="#services" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                            Nos services
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 flex justify-center" data-aos="fade-left">
+                    <div class="relative">
+                        <img src="logoleo.png" 
+                             alt="Portrait de Toussaint Leo Vitch, CEO de Vitch Web Studio" 
+                             class="profile-img floating"
+                             itemprop="image">
+                        <div class="absolute -bottom-5 -right-5 bg-white p-3 rounded-full shadow-lg">
+                            <div class="bg-primary-100 p-3 rounded-full">
+                                <i class="fas fa-medal text-primary-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="section-title text-3xl font-bold text-slate-800 mb-4">À propos de moi</h2>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">Passionné par la technologie et l'entrepreneuriat, je mets mon expertise au service des entreprises haïtiennes.</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0" data-aos="fade-right">
+                    <div class="bg-primary-50 p-8 rounded-xl">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-4">Mon parcours</h3>
+                        <div class="space-y-4 text-slate-700 leading-relaxed" itemprop="description">
+                            <p>Toussaint Leo Vitch est un jeune entrepreneur haïtien passionné par la technologie et le développement web. Il a fondé Vitch Web Studio avec pour mission de rendre la création de sites web accessible aux petites entreprises en Haïti.</p>
+                            <p>Fort d'une formation en informatique, il a accompagné de nombreux commerçants, artistes, et PME dans leur visibilité en ligne.</p>
+                            <p>Son approche repose sur la simplicité, la rapidité et l'accessibilité, avec des tarifs adaptés au marché local.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 md:pl-12" data-aos="fade-left">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+                            <div class="text-primary-600 text-3xl mb-3">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-2">5+ ans</h4>
+                            <p class="text-slate-600">Expérience en développement web</p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+                            <div class="text-primary-600 text-3xl mb-3">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-2">50+</h4>
+                            <p class="text-slate-600">Projets réalisés</p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+                            <div class="text-primary-600 text-3xl mb-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-2">30+</h4>
+                            <p class="text-slate-600">Clients satisfaits</p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+                            <div class="text-primary-600 text-3xl mb-3">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-2">Innovation</h4>
+                            <p class="text-slate-600">Solutions adaptées au marché local</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vitch Web Studio Section -->
+    <section id="services" class="py-20 bg-slate-50" itemscope itemtype="https://schema.org/Organization">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="section-title text-3xl font-bold text-slate-800 mb-4">Vitch Web Studio</h2>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">Votre partenaire numérique pour une présence en ligne professionnelle et efficace.</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/2 mb-10 md:mb-0" data-aos="fade-right">
+                    <div class="bg-white p-8 rounded-xl shadow-md h-full">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-4" itemprop="name">Notre Mission</h3>
+                        <p class="text-slate-700 mb-6" itemprop="description">Vitch Web Studio est une agence web spécialisée dans la création de sites vitrines et e-commerce pour les petites et moyennes entreprises haïtiennes. Nous croyons que chaque entreprise mérite une présence en ligne professionnelle, quel que soit son budget.</p>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-slate-800 mb-3 flex items-center">
+                                <span class="bg-primary-100 text-primary-600 p-2 rounded-full mr-3">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                Notre approche
+                            </h4>
+                            <p class="text-slate-600 pl-11">Des solutions sur mesure, adaptées aux besoins spécifiques du marché haïtien, avec un accompagnement personnalisé.</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3 flex items-center">
+                                <span class="bg-primary-100 text-primary-600 p-2 rounded-full mr-3">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                Notre engagement
+                            </h4>
+                            <p class="text-slate-600 pl-11">Qualité, accessibilité et support continu pour garantir la réussite de votre projet numérique.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 md:pl-10" data-aos="fade-left">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-primary-500" itemprop="makesOffer">
+                            <div class="text-primary-600 text-3xl mb-4">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-3">Création de sites web</h4>
+                            <p class="text-slate-600">Sites vitrines, e-commerce et applications web sur mesure, optimisés pour tous les appareils.</p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-secondary-500" itemprop="makesOffer">
+                            <div class="text-secondary-600 text-3xl mb-4">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-3">Hébergement local</h4>
+                            <p class="text-slate-600">Solutions d'hébergement performantes et sécurisées, avec support technique en créole et français.</p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-primary-500" itemprop="makesOffer">
+                            <div class="text-primary-600 text-3xl mb-4">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-3">Maintenance</h4>
+                            <p class="text-slate-600">Mises à jour, sauvegardes et corrections pour garantir le bon fonctionnement de votre site.</p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-secondary-500" itemprop="makesOffer">
+                            <div class="text-secondary-600 text-3xl mb-4">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-3">Formation</h4>
+                            <p class="text-slate-600">Formation à la gestion de contenu pour une autonomie complète sur votre site web.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="section-title text-3xl font-bold text-slate-800 mb-4">Mes Compétences</h2>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">Un ensemble de compétences techniques et stratégiques pour répondre à tous vos besoins numériques.</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="skill-card bg-white p-6 rounded-xl text-center" itemprop="knowsAbout" itemscope itemtype="https://schema.org/Thing">
+                    <div class="bg-primary-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-code text-2xl text-primary-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800" itemprop="name">Développement Web</h3>
+                </div>
+                
+                <div class="skill-card bg-white p-6 rounded-xl text-center" itemprop="knowsAbout" itemscope itemtype="https://schema.org/Thing">
+                    <div class="bg-primary-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-mobile-alt text-2xl text-primary-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800" itemprop="name">Design Responsive</h3>
+                </div>
+                
+                <div class="skill-card bg-white p-6 rounded-xl text-center" itemprop="knowsAbout" itemscope itemtype="https://schema.org/Thing">
+                    <div class="bg-primary-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-search-dollar text-2xl text-primary-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800" itemprop="name">Optimisation SEO</h3>
+                </div>
+                
+                <div class="skill-card bg-white p-6 rounded-xl text-center" itemprop="knowsAbout" itemscope itemtype="https://schema.org/Thing">
+                    <div class="bg-primary-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-2xl text-primary-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800" itemprop="name">Stratégie Digitale</h3>
+                </div>
+                
+                <div class="skill-card bg-white p-6 rounded-xl text-center" itemprop="knowsAbout" itemscope itemtype="https://schema.org/Thing">
+                    <div class="bg-primary-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-2xl text-primary-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800" itemprop="name">Gestion de Projet</h3>
+                </div>
+                
+                <div class="skill-card bg-white p-6 rounded-xl text-center" itemprop="knowsAbout" itemscope itemtype="https://schema.org/Thing">
+                    <div class="bg-primary-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-comments text-2xl text-primary-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800" itemprop="name">Communication</h3>
+                </div>
+            </div>
+            
+            <div class="mt-16 grid md:grid-cols-2 gap-8">
+                <div class="bg-gradient-to-r from-primary-500 to-secondary-500 p-8 rounded-xl text-white" data-aos="fade-right">
+                    <h3 class="text-2xl font-bold mb-4">Technologies maîtrisées</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-white bg-opacity-20 p-3 rounded-lg text-center">
+                            <i class="fab fa-html5 text-2xl mb-2"></i>
+                            <span class="text-sm font-medium">HTML5</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-lg text-center">
+                            <i class="fab fa-css3-alt text-2xl mb-2"></i>
+                            <span class="text-sm font-medium">CSS3</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-lg text-center">
+                            <i class="fab fa-js text-2xl mb-2"></i>
+                            <span class="text-sm font-medium">JavaScript</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-lg text-center">
+                            <i class="fab fa-react text-2xl mb-2"></i>
+                            <span class="text-sm font-medium">React</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-lg text-center">
+                            <i class="fab fa-node-js text-2xl mb-2"></i>
+                            <span class="text-sm font-medium">Node.js</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-lg text-center">
+                            <i class="fas fa-database text-2xl mb-2"></i>
+                            <span class="text-sm font-medium">MongoDB</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-md" data-aos="fade-left">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Méthodologie de travail</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                                <i class="fas fa-check text-primary-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Analyse des besoins</h4>
+                                <p class="text-slate-600">Compréhension approfondie de vos objectifs et de votre public cible.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                                <i class="fas fa-check text-primary-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Conception sur mesure</h4>
+                                <p class="text-slate-600">Solutions personnalisées adaptées à votre secteur d'activité.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                                <i class="fas fa-check text-primary-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Développement agile</h4>
+                                <p class="text-slate-600">Itérations rapides avec feedback continu pour un résultat optimal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="section-title text-3xl font-bold text-slate-800 mb-4">Contactez-moi</h2>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">Prêt à donner vie à votre projet numérique? Discutons-en!</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/2 mb-10 md:mb-0" data-aos="fade-right">
+                    <div class="bg-slate-50 p-8 rounded-xl h-full">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6">Informations de contact</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="bg-primary-100 p-3 rounded-full mr-4">
+                                    <i class="fas fa-map-marker-alt text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">Localisation</h4>
+                                    <p class="text-slate-600">Port-au-Prince, Haïti</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-primary-100 p-3 rounded-full mr-4">
+                                    <i class="fas fa-envelope text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">Email</h4>
+                                    <p class="text-slate-600">vitchwebstudio@gmail.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-primary-100 p-3 rounded-full mr-4">
+                                    <i class="fas fa-phone-alt text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">Téléphone/WhatsApp</h4>
+                                    <p class="text-slate-600">+509 35601379</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-primary-100 p-3 rounded-full mr-4">
+                                    <i class="fas fa-clock text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">Heures d'ouverture</h4>
+                                    <p class="text-slate-600">Lundi - Vendredi: 9h - 17h</p>
+                                    <p class="text-slate-600">Samedi: 9h - 13h</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <h4 class="font-semibold text-slate-800 mb-4">Réseaux sociaux</h4>
+                            <div class="flex space-x-4">
+                                <a href="#" class="bg-slate-200 hover:bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-primary-600 transition-colors">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="#" class="bg-slate-200 hover:bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-primary-600 transition-colors">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="bg-slate-200 hover:bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-primary-600 transition-colors">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="#" class="bg-slate-200 hover:bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-primary-600 transition-colors">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 md:pl-10" data-aos="fade-left">
+                    <div class="bg-white p-8 rounded-xl shadow-md border border-slate-100">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6">Envoyez un message</h3>
+                        <form action="https://formspree.io/f/xrbqvwaw" method="POST">
+    <div class="mb-6">
+        <label for="name" class="block text-slate-700 font-medium mb-2">Nom complet</label>
+        <input type="text" id="name" name="name" required
+            class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="Votre nom">
+    </div>
+
+    <div class="mb-6">
+        <label for="email" class="block text-slate-700 font-medium mb-2">Adresse email</label>
+        <input type="email" id="email" name="email" required
+            class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="votre@email.com">
+    </div>
+
+    <div class="mb-6">
+        <label for="subject" class="block text-slate-700 font-medium mb-2">Sujet</label>
+        <input type="text" id="subject" name="subject"
+            class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="Objet de votre message">
+    </div>
+
+    <div class="mb-6">
+        <label for="message" class="block text-slate-700 font-medium mb-2">Message</label>
+        <textarea id="message" name="message" rows="5" required
+            class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholPortrait de Toussaint Leo Vitch, CEO de Vitch Web Studio
+der="Décrivez votre projet ou posez vos questions..."></textarea>
+    </div>
+
+    <button type="submit"
+        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 transform hover:-translate-y-1">
+        Envoyer le message
+    </button>
+</form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-gradient-to-r from-primary-600 to-secondary-600">
+        <div class="container mx-auto px-6 text-center">
+            <div class="max-w-3xl mx-auto" data-aos="fade-up">
+                <h2 class="text-3xl font-bold text-white mb-6">Prêt à démarrer votre projet?</h2>
+                <p class="text-xl text-white opacity-90 mb-8">Contactez-moi dès aujourd'hui pour discuter de votre vision et voir comment je peux vous aider à la concrétiser.</p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="https://wa.me/50935601379" target="_blank" rel="noopener noreferrer" class="bg-white text-primary-600 hover:bg-slate-100 px-8 py-4 rounded-lg font-bold transition-all duration-300 transform hover:-translate-y-1">
+                        <i class="fab fa-whatsapp mr-2"></i> Discuter sur WhatsApp
+                    </a>
+                    <a href="#contact" class="bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 px-8 py-4 rounded-lg font-bold transition-all duration-300 transform hover:-translate-y-1">
+                        <i class="fas fa-envelope mr-2"></i> Envoyer un email
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <a href="#" class="text-2xl font-bold flex items-center">
+                        <span class="text-primary-400">Toussaint</span>
+                        <span class="text-secondary-400">Leo Vitch</span>
+                    </a>
+                    <p class="mt-2 text-slate-400">Entrepreneur numérique & CEO de Vitch Web Studio</p>
+                </div>
+                
+                <div class="flex flex-col items-center md:items-end">
+                    <div class="flex space-x-6 mb-4">
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="text-center md:text-right">
+                        <p class="text-slate-400 text-sm">© 2025 Toussaint Leo Vitch. Tous droits réservés.</p>
+                        <p class="text-slate-500 text-sm mt-1">Conçu avec passion en Haïti.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-primary-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 100
+        });
+        
+        // Back to Top Button
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+                backToTopButton.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopButton.classList.remove('opacity-100', 'visible');
+                backToTopButton.classList.add('opacity-0', 'invisible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Mobile Menu Toggle (would need implementation)
+        document.querySelector('.md\\:hidden').addEventListener('click', function() {
+            // This would toggle a mobile menu - needs additional HTML/CSS
+            console.log('Mobile menu toggled - implementation needed');
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

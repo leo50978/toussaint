@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitch Web Studio - Suivi de Projets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; }
+        .progress-bar { height: 8px; border-radius: 4px; background-color: #e2e8f0; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.5s ease; }
+        .project-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .project-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); }
+        .status-paused { background-color: #fef3c7; color: #92400e; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-active { background-color: #dbeafe; color: #1e40af; }
+        .progress-animation { animation: progressAnimation 1s linear infinite; }
+        @keyframes progressAnimation {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 0; }
+        }
+        .whatsapp-link { color: #25D366; }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-600 mb-2">Vitch Web Studio</h1>
+            <p class="text-gray-600">Suivi de l'avancement de vos projets</p>
+        </header>
+        
+        <div class="flex justify-center mb-8">
+            <button id="addProjectBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center">
+                <i class="fas fa-plus-circle mr-2"></i> Ajouter un projet
+            </button>
+        </div>
+        
+        <div id="projectsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        
+        <div id="noProjectsMessage" class="text-center py-12">
+            <i class="fas fa-folder-open text-4xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl text-gray-500">Aucun projet pour le moment</h3>
+            <p class="text-gray-400">Cliquez sur "Ajouter un projet" pour commencer</p>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addProjectModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Nouveau Projet</h3>
+                    <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="projectForm" class="space-y-4">
+                    <div>
+                        <label for="projectName" class="block text-sm font-medium text-gray-700 mb-1">Nom du projet</label>
+                        <input type="text" id="projectName" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="projectPlan" class="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                        <select id="projectPlan" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Sélectionnez un plan</option>
+                            <option value="basic">Basic (2 semaines)</option>
+                            <option value="standard">Standard (1 semaines)</option>
+                            <option value="premium">Premium (3 jours)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="whatsappNumber" class="block text-sm font-medium text-gray-700 mb-1">Numéro WhatsApp</label>
+                        <input type="tel" id="whatsappNumber" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 509 3456-3456">
+                        <p class="text-xs text-gray-500 mt-1">Format international recommandé (avec + ou 00)</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date de fin estimée</label>
+                        <p id="endDateDisplay" class="text-blue-600 font-medium">-</p>
+                    </div>
+                    <div class="pt-4">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                            Enregistrer le projet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de détails du projet -->
+    <div id="projectDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="detailsProjectName" class="text-xl font-bold text-gray-800"></h3>
+                    <button id="closeDetailsModalBtn" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Plan</p>
+                        <p id="detailsProjectPlan" class="font-medium"></p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Statut</p>
+                        <p id="detailsProjectStatus" class="font-medium"></p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Dates</p>
+                        <p id="detailsProjectDates" class="font-medium"></p>
+                    </div>
+                    
+                    <div id="whatsappInfoContainer" class="hidden">
+                        <p class="text-sm text-gray-500">Contact WhatsApp</p>
+                        <a id="whatsappLink" href="#" target="_blank" class="font-medium whatsapp-link">
+                            <i class="fab fa-whatsapp mr-2"></i><span id="whatsappNumberDisplay"></span>
+                        </a>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Progression</p>
+                        <div class="progress-bar mt-2">
+                            <div id="detailsProjectProgress" class="progress-fill"></div>
+                        </div>
+                        <p id="detailsProjectProgressText" class="text-sm text-gray-600 mt-1"></p>
+                    </div>
+                    
+                    <div class="pt-4 grid grid-cols-2 gap-3">
+                        <button id="pauseProjectBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                            <i class="fas fa-pause mr-2"></i>Pause
+                        </button>
+                        <button id="completeProjectBtn" class="bg-green-100 hover:bg-green-200 text-green-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                            <i class="fas fa-check mr-2"></i>Terminer
+                        </button>
+                        <button id="editProjectBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                            <i class="fas fa-edit mr-2"></i>Modifier
+                        </button>
+                        <button id="deleteProjectBtn" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                            <i class="fas fa-trash mr-2"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de code admin -->
+    <div id="adminCodeModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Code Admin Requis</h3>
+                    <button id="closeAdminModalBtn" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="space-y-4">
+                    <p class="text-gray-600">Veuillez entrer le code admin pour cette action.</p>
+                    
+                    <div>
+                        <label for="adminCodeInput" class="block text-sm font-medium text-gray-700 mb-1">Code Admin</label>
+                        <input type="password" id="adminCodeInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button id="submitAdminCodeBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                            Valider
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de modification -->
+    <div id="editProjectModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Modifier le projet</h3>
+                    <button id="closeEditModalBtn" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <form id="editProjectForm" class="space-y-4">
+                    <div>
+                        <label for="editProjectName" class="block text-sm font-medium text-gray-700 mb-1">Nom du projet</label>
+                        <input type="text" id="editProjectName" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="editProjectPlan" class="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                        <select id="editProjectPlan" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="basic">Basic (2 semaines)</option>
+                            <option value="standard">Standard (1 semaines)</option>
+                            <option value="premium">Premium (3 jours)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="editWhatsappNumber" class="block text-sm font-medium text-gray-700 mb-1">Numéro WhatsApp</label>
+                        <input type="tel" id="editWhatsappNumber" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 509 3560-1379">
+                    </div>
+                    
+                    <div>
+                        <label for="editProjectStatus" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                        <select id="editProjectStatus" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="active">Actif</option>
+                            <option value="paused">En pause</option>
+                            <option value="completed">Terminé</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyANd0tZl-6P6l84ab-FSRIX9ISPd_YCe6I",
+            authDomain: "cpieo-99bd5.firebaseapp.com",
+            projectId: "cpieo-99bd5",
+            storageBucket: "cpieo-99bd5.appspot.com",
+            messagingSenderId: "405125968337",
+            appId: "1:405125968337:web:7d5f74b710cc23b84270f0"
+        };
+        
+        // Initialisation Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Variables globales
+        let projects = [];
+        let currentProjectId = null;
+        const ADMIN_CODE = "2222";
+        let progressIntervals = {};
+        let isAdmin = false;
+        
+        // Éléments DOM
+        const elements = {
+            addProjectBtn: document.getElementById('addProjectBtn'),
+            closeModalBtn: document.getElementById('closeModalBtn'),
+            addProjectModal: document.getElementById('addProjectModal'),
+            projectForm: document.getElementById('projectForm'),
+            projectNameInput: document.getElementById('projectName'),
+            projectPlanSelect: document.getElementById('projectPlan'),
+            whatsappNumberInput: document.getElementById('whatsappNumber'),
+            endDateDisplay: document.getElementById('endDateDisplay'),
+            projectsContainer: document.getElementById('projectsContainer'),
+            noProjectsMessage: document.getElementById('noProjectsMessage'),
+            projectDetailsModal: document.getElementById('projectDetailsModal'),
+            closeDetailsModalBtn: document.getElementById('closeDetailsModalBtn'),
+            detailsProjectName: document.getElementById('detailsProjectName'),
+            detailsProjectPlan: document.getElementById('detailsProjectPlan'),
+            detailsProjectStatus: document.getElementById('detailsProjectStatus'),
+            detailsProjectDates: document.getElementById('detailsProjectDates'),
+            whatsappInfoContainer: document.getElementById('whatsappInfoContainer'),
+            whatsappLink: document.getElementById('whatsappLink'),
+            whatsappNumberDisplay: document.getElementById('whatsappNumberDisplay'),
+            detailsProjectProgress: document.getElementById('detailsProjectProgress'),
+            detailsProjectProgressText: document.getElementById('detailsProjectProgressText'),
+            pauseProjectBtn: document.getElementById('pauseProjectBtn'),
+            completeProjectBtn: document.getElementById('completeProjectBtn'),
+            editProjectBtn: document.getElementById('editProjectBtn'),
+            deleteProjectBtn: document.getElementById('deleteProjectBtn'),
+            adminCodeModal: document.getElementById('adminCodeModal'),
+            closeAdminModalBtn: document.getElementById('closeAdminModalBtn'),
+            adminCodeInput: document.getElementById('adminCodeInput'),
+            submitAdminCodeBtn: document.getElementById('submitAdminCodeBtn'),
+            editProjectModal: document.getElementById('editProjectModal'),
+            closeEditModalBtn: document.getElementById('closeEditModalBtn'),
+            editProjectForm: document.getElementById('editProjectForm'),
+            editProjectName: document.getElementById('editProjectName'),
+            editProjectPlan: document.getElementById('editProjectPlan'),
+            editWhatsappNumber: document.getElementById('editWhatsappNumber'),
+            editProjectStatus: document.getElementById('editProjectStatus')
+        };
+
+        // Écouteurs d'événements
+        function setupEventListeners() {
+            elements.addProjectBtn.addEventListener('click', () => {
+                elements.projectForm.reset();
+                elements.endDateDisplay.textContent = '-';
+                elements.addProjectModal.classList.remove('hidden');
+            });
+
+            elements.closeModalBtn.addEventListener('click', () => {
+                elements.addProjectModal.classList.add('hidden');
+            });
+
+            elements.projectPlanSelect.addEventListener('change', (e) => {
+                if (e.target.value) calculateEndDate(e.target.value);
+                else elements.endDateDisplay.textContent = '-';
+            });
+
+            elements.projectForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveProject();
+            });
+
+            elements.closeDetailsModalBtn.addEventListener('click', () => {
+                elements.projectDetailsModal.classList.add('hidden');
+                isAdmin = false; // Réinitialiser le statut admin après fermeture
+            });
+
+            elements.pauseProjectBtn.addEventListener('click', () => {
+                showAdminModal('pause');
+            });
+
+            elements.completeProjectBtn.addEventListener('click', () => {
+                showAdminModal('complete');
+            });
+
+            elements.editProjectBtn.addEventListener('click', () => {
+                showAdminModal('edit');
+            });
+
+            elements.deleteProjectBtn.addEventListener('click', () => {
+                showAdminModal('delete');
+            });
+
+            elements.closeAdminModalBtn.addEventListener('click', () => {
+                elements.adminCodeModal.classList.add('hidden');
+            });
+
+            elements.submitAdminCodeBtn.addEventListener('click', () => {
+                verifyAdminCode();
+            });
+
+            elements.closeEditModalBtn.addEventListener('click', () => {
+                elements.editProjectModal.classList.add('hidden');
+            });
+
+            elements.editProjectForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                updateProject();
+            });
+        }
+
+        // Fonctions utilitaires
+        function calculateEndDate(plan) {
+            const startDate = new Date();
+            let endDate = new Date();
+            
+            switch(plan) {
+                case 'basic': endDate.setDate(startDate.getDate() + 14); break;
+                case 'standard': endDate.setDate(startDate.getDate() + 21); break;
+                case 'premium': endDate.setDate(startDate.getDate() + 3); break;
+            }
+            
+            elements.endDateDisplay.textContent = formatDate(endDate);
+        }
+
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('fr-FR', options);
+        }
+
+        function formatShortDate(date) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return date.toLocaleDateString('fr-FR', options);
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return 'Actif';
+                case 'paused': return 'En pause';
+                case 'completed': return 'Terminé';
+                default: return 'Inconnu';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'active': return 'status-active';
+                case 'paused': return 'status-paused';
+                case 'completed': return 'status-completed';
+                default: return '';
+            }
+        }
+
+        function calculateProgress(startDate, endDate, status) {
+            const now = new Date();
+            let progress = 0;
+            
+            if (status === 'completed') {
+                progress = 100;
+            } else if (status === 'active') {
+                const totalDuration = endDate - startDate;
+                const elapsedDuration = now - startDate;
+                progress = Math.max(0, Math.min(100, (elapsedDuration / totalDuration) * 100));
+            }
+            
+            return progress;
+        }
+
+        function getProgressBarStyle(progress, status) {
+            let style = `width: ${progress}%;`;
+            
+            if (status === 'active') {
+                style += ` background: linear-gradient(90deg, #3b82f6 ${progress}%, #93c5fd 100%);`;
+                style += ` background-size: 40px 100%;`;
+                style += ` animation: progressAnimation 1s linear infinite;`;
+            } else if (status === 'completed') {
+                style += ` background-color: #10b981;`;
+            } else if (status === 'paused') {
+                style += ` background-color: #f59e0b;`;
+            }
+            
+            return style;
+        }
+
+        function formatWhatsAppNumber(number) {
+            if (!number) return '';
+            // Supprime tous les caractères non numériques sauf le +
+            const cleaned = number.replace(/[^\d+]/g, '');
+            // Formatte avec des espaces pour une meilleure lisibilité
+            return cleaned.replace(/(\+\d{1,3})(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
+        }
+
+        function prepareWhatsAppNumber(number) {
+            if (!number) return '';
+            // Nettoie le numéro pour le stockage
+            const cleaned = number.replace(/[^\d+]/g, '');
+            // Si commence par 00, remplace par +
+            if (cleaned.startsWith('00')) {
+                return '+' + cleaned.substring(2);
+            }
+            return cleaned;
+        }
+
+        // Fonctions Firebase
+        async function saveProject() {
+            const name = elements.projectNameInput.value.trim();
+            const plan = elements.projectPlanSelect.value;
+            const whatsappNumber = prepareWhatsAppNumber(elements.whatsappNumberInput.value.trim());
+            
+            if (!name || !plan || !whatsappNumber) {
+                alert("Veuillez remplir tous les champs");
+                return;
+            }
+
+            // Validation minimale du numéro (au moins 8 chiffres)
+            if (!/[\d+]{8,}/.test(whatsappNumber)) {
+                alert("Veuillez entrer un numéro WhatsApp valide (au moins 8 chiffres)");
+                return;
+            }
+
+            const startDate = new Date();
+            let endDate = new Date();
+            
+            switch(plan) {
+                case 'basic': endDate.setDate(startDate.getDate() + 14); break;
+                case 'standard': endDate.setDate(startDate.getDate() + 21); break;
+                case 'premium': endDate.setDate(startDate.getDate() + 3); break;
+            }
+
+            try {
+                const submitBtn = elements.projectForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enregistrement...';
+
+                await db.collection('projects').add({
+                    name,
+                    plan,
+                    whatsappNumber,
+                    status: 'active',
+                    startDate: firebase.firestore.Timestamp.fromDate(startDate),
+                    endDate: firebase.firestore.Timestamp.fromDate(endDate),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                elements.addProjectModal.classList.add('hidden');
+                loadProjects();
+            } catch (error) {
+                console.error("Erreur Firebase:", error);
+                alert(`Erreur lors de l'enregistrement: ${error.message}`);
+            } finally {
+                const submitBtn = elements.projectForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Enregistrer le projet';
+                }
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                // Nettoyer les intervalles précédents
+                Object.values(progressIntervals).forEach(interval => clearInterval(interval));
+                progressIntervals = {};
+                
+                const querySnapshot = await db.collection('projects').orderBy('createdAt', 'desc').get();
+                projects = [];
+                
+                querySnapshot.forEach((doc) => {
+                    projects.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                renderProjects();
+                
+                if (projects.length === 0) {
+                    elements.noProjectsMessage.classList.remove('hidden');
+                    elements.projectsContainer.classList.add('hidden');
+                } else {
+                    elements.noProjectsMessage.classList.add('hidden');
+                    elements.projectsContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Error loading projects: ", error);
+                alert("Erreur lors du chargement des projets");
+            }
+        }
+
+        function renderProjects() {
+            elements.projectsContainer.innerHTML = '';
+            
+            projects.forEach(project => {
+                const startDate = project.startDate.toDate();
+                const endDate = project.endDate.toDate();
+                const progress = calculateProgress(startDate, endDate, project.status);
+                
+                // Texte et couleur du plan
+                let planText = '';
+                let planColor = '';
+                switch(project.plan) {
+                    case 'basic':
+                        planText = 'Basic (2 semaines)';
+                        planColor = 'bg-blue-100 text-blue-800';
+                        break;
+                    case 'standard':
+                        planText = 'Standard (3 semaines)';
+                        planColor = 'bg-purple-100 text-purple-800';
+                        break;
+                    case 'premium':
+                        planText = 'Premium (3 jours)';
+                        planColor = 'bg-amber-100 text-amber-800';
+                        break;
+                }
+                
+                // Création de la carte de projet
+                const projectCard = document.createElement('div');
+                projectCard.className = `project-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 ${getStatusClass(project.status)}`;
+                projectCard.innerHTML = `
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-lg font-bold text-gray-800 truncate">${project.name}</h3>
+                            <span class="text-xs px-2 py-1 rounded-full ${planColor}">${planText}</span>
+                        </div>
+                        
+                        <div class="text-xs px-2 py-1 rounded-full inline-block ${getStatusClass(project.status)} mb-2">
+                            ${getStatusText(project.status)}
+                        </div>
+                        
+                        <div class="text-sm text-gray-600 mb-4">
+                            <p><span class="font-medium">Début:</span> ${formatShortDate(startDate)}</p>
+                            <p><span class="font-medium">Fin estimée:</span> ${formatShortDate(endDate)}</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>Progression</span>
+                                <span>${Math.round(progress)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="${getProgressBarStyle(progress, project.status)}"></div>
+                            </div>
+                        </div>
+                        
+                        <button class="view-details-btn w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-md transition duration-300" data-id="${project.id}">
+                            <i class="fas fa-eye mr-2"></i>Voir plus
+                        </button>
+                    </div>
+                `;
+                
+                elements.projectsContainer.appendChild(projectCard);
+                
+                // Pour les projets actifs, démarrer un intervalle pour mettre à jour la progression
+                if (project.status === 'active') {
+                    const intervalId = setInterval(() => {
+                        updateProjectProgress(projectCard, project.id, startDate, endDate);
+                    }, 60000); // Mise à jour toutes les minutes
+                    
+                    progressIntervals[project.id] = intervalId;
+                }
+            });
+            
+            // Ajout des écouteurs d'événements pour les boutons "Voir plus"
+            document.querySelectorAll('.view-details-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const projectId = e.currentTarget.getAttribute('data-id');
+                    showProjectDetails(projectId);
+                });
+            });
+        }
+
+        function updateProjectProgress(projectCard, projectId, startDate, endDate) {
+            const now = new Date();
+            const totalDuration = endDate - startDate;
+            const elapsedDuration = now - startDate;
+            const progress = Math.max(0, Math.min(100, (elapsedDuration / totalDuration) * 100));
+            
+            const progressFill = projectCard.querySelector('.progress-fill');
+            const progressText = projectCard.querySelector('.flex.justify-between.text-sm.text-gray-600.mb-1 span:last-child');
+            
+            if (progressFill) {
+                progressFill.style = getProgressBarStyle(progress, 'active');
+            }
+            
+            if (progressText) {
+                progressText.textContent = `${Math.round(progress)}%`;
+            }
+        }
+
+        function showProjectDetails(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            currentProjectId = projectId;
+            const startDate = project.startDate.toDate();
+            const endDate = project.endDate.toDate();
+            const progress = calculateProgress(startDate, endDate, project.status);
+            
+            // Mise à jour du contenu de la modal
+            elements.detailsProjectName.textContent = project.name;
+            elements.detailsProjectPlan.textContent = {
+                'basic': 'Basic (2 semaines)',
+                'standard': 'Standard (3 semaines)',
+                'premium': 'Premium (3 jours)'
+            }[project.plan];
+            
+            elements.detailsProjectStatus.textContent = getStatusText(project.status);
+            elements.detailsProjectDates.textContent = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+            elements.detailsProjectProgress.style = getProgressBarStyle(progress, project.status);
+            
+            // Afficher le numéro WhatsApp seulement si admin
+            if (isAdmin && project.whatsappNumber) {
+                elements.whatsappInfoContainer.classList.remove('hidden');
+                elements.whatsappNumberDisplay.textContent = formatWhatsAppNumber(project.whatsappNumber);
+                // Créer le lien WhatsApp (supprime tous les caractères non numériques sauf le +)
+                const cleanNumber = project.whatsappNumber.replace(/[^\d+]/g, '');
+                elements.whatsappLink.href = `https://wa.me/${cleanNumber.replace('+', '')}`;
+            } else {
+                elements.whatsappInfoContainer.classList.add('hidden');
+            }
+            
+            if (project.status === 'completed') {
+                elements.detailsProjectProgressText.textContent = "Projet terminé";
+            } else if (project.status === 'paused') {
+                elements.detailsProjectProgressText.textContent = "Projet en pause";
+            } else {
+                const totalDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+                const elapsedDays = Math.round((new Date() - startDate) / (1000 * 60 * 60 * 24));
+                elements.detailsProjectProgressText.textContent = `Progression: ${Math.round(progress)}% (${elapsedDays} jours sur ${totalDays})`;
+            }
+            
+            // Affichage de la modal
+            elements.projectDetailsModal.classList.remove('hidden');
+        }
+
+        function showAdminModal(action) {
+            elements.adminCodeModal.dataset.action = action;
+            elements.adminCodeInput.value = '';
+            elements.projectDetailsModal.classList.add('hidden');
+            elements.adminCodeModal.classList.remove('hidden');
+        }
+
+        function verifyAdminCode() {
+            if (elements.adminCodeInput.value === ADMIN_CODE) {
+                isAdmin = true;
+                const action = elements.adminCodeModal.dataset.action;
+                
+                if (action === 'edit') {
+                    prepareEditModal();
+                } else if (action === 'delete') {
+                    confirmDeleteProject();
+                } else if (action === 'pause') {
+                    updateProjectStatus('paused');
+                } else if (action === 'complete') {
+                    updateProjectStatus('completed');
+                }
+                
+                elements.adminCodeModal.classList.add('hidden');
+                // Recharger les détails du projet pour afficher le numéro WhatsApp
+                showProjectDetails(currentProjectId);
+            } else {
+                alert("Code admin incorrect. Veuillez réessayer.");
+                elements.adminCodeInput.value = '';
+            }
+        }
+
+        async function updateProjectStatus(newStatus) {
+            try {
+                await db.collection('projects').doc(currentProjectId).update({
+                    status: newStatus
+                });
+                
+                loadProjects();
+            } catch (error) {
+                console.error("Error updating project status:", error);
+                alert("Une erreur est survenue lors de la mise à jour du statut");
+            }
+        }
+
+        function prepareEditModal() {
+            const project = projects.find(p => p.id === currentProjectId);
+            if (!project) return;
+            
+            elements.editProjectName.value = project.name;
+            elements.editProjectPlan.value = project.plan;
+            elements.editWhatsappNumber.value = project.whatsappNumber || '';
+            elements.editProjectStatus.value = project.status;
+            elements.editProjectModal.classList.remove('hidden');
+        }
+
+        async function updateProject() {
+            try {
+                const updates = {
+                    name: elements.editProjectName.value.trim(),
+                    plan: elements.editProjectPlan.value,
+                    whatsappNumber: prepareWhatsAppNumber(elements.editWhatsappNumber.value.trim()),
+                    status: elements.editProjectStatus.value
+                };
+                
+                // Validation minimale du numéro
+                if (!updates.whatsappNumber || !/[\d+]{8,}/.test(updates.whatsappNumber)) {
+                    alert("Veuillez entrer un numéro WhatsApp valide (au moins 8 chiffres)");
+                    return;
+                }
+                
+                await db.collection('projects').doc(currentProjectId).update(updates);
+                
+                elements.editProjectModal.classList.add('hidden');
+                loadProjects();
+            } catch (error) {
+                console.error("Error updating project:", error);
+                alert("Une erreur est survenue lors de la mise à jour du projet");
+            }
+        }
+
+        async function confirmDeleteProject() {
+            if (confirm("Êtes-vous sûr de vouloir supprimer définitivement ce projet ?")) {
+                try {
+                    await db.collection('projects').doc(currentProjectId).delete();
+                    loadProjects();
+                } catch (error) {
+                    console.error("Error deleting project:", error);
+                    alert("Une erreur est survenue lors de la suppression du projet");
+                }
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            loadProjects();
+        });
+    </script>
+</body>
+</html>

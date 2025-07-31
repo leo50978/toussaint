@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Projet | Vitch Web Studio</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .step-card {
+            transition: all 0.3s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .completed-card {
+            border-color: var(--secondary);
+            background-color: #f0fdf4;
+        }
+        
+        .completed-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--secondary);
+            color: white;
+            border-radius: 9999px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .completed-badge {
+                top: 5px;
+                right: 5px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-indigo-600">Vitch web studio</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Hero Section -->
+        <section class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Bienvenue dans votre Espace Projet</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Suivez chaque étape de votre projet de site web avec clarté et transparence.</p>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">chak fwa ou fini on etape, svp fe back pou tounen la</p>
+        </section>
+
+        <!-- Progress Indicator -->
+        <section class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Progression de votre projet</h2>
+                <div class="text-indigo-600 font-medium">
+                    <span id="completed-steps">0</span>/6 étapes complétées
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                    <div id="progress-bar" class="progress-bar bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                
+                <!-- Steps Container -->
+                <div class="space-y-6">
+                    <!-- Step 1 -->
+                    <div class="step-card bg-white p-6 rounded-lg shadow border border-gray-100 relative" id="step-1-container">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-indigo-600 text-xl">👔</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-1">Découvrir qui nous sommes</h3>
+                                <p class="text-gray-600 mb-4">Présentation de notre agence et méthodologie.</p>
+                                <a href="http://www.vitchwebstudio.it.com/acceuil" class="complete-step text-indigo-600 font-medium hover:text-indigo-800 inline-flex items-center" data-step="1">
+                                    Commencer cette étape
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="step-card bg-white p-6 rounded-lg shadow border border-gray-100 relative" id="step-2-container">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-indigo-600 text-xl">🎯</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-1">Définissez votre projet</h3>
+                                <p class="text-gray-600 mb-4">Formulaire pour comprendre vos besoins.</p>
+                                <a href="projtt.html" class="complete-step text-indigo-600 font-medium hover:text-indigo-800 inline-flex items-center" data-step="2">
+                                    Commencer cette étape
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="step-card bg-white p-6 rounded-lg shadow border border-gray-100 relative" id="step-3-container">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-indigo-600 text-xl">📞</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-1">Planifiez un appel de 20 min</h3>
+                                <p class="text-gray-600 mb-4">Clarifiez vos idées avec un appel de consultation.</p>
+                                <a href="shedule.html" class="complete-step text-indigo-600 font-medium hover:text-indigo-800 inline-flex items-center" data-step="3">
+                                    Commencer cette étape
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4 -->
+                    <div class="step-card bg-white p-6 rounded-lg shadow border border-gray-100 relative" id="step-4-container">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-indigo-600 text-xl">📋</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-1">Choisissez une offre adaptée</h3>
+                                <p class="text-gray-600 mb-4">Sélectionnez le plan correspondant à vos besoins.</p>
+                                <a href="offre.html" class="complete-step text-indigo-600 font-medium hover:text-indigo-800 inline-flex items-center" data-step="4">
+                                    Commencer cette étape
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5 -->
+                    <div class="step-card bg-white p-6 rounded-lg shadow border border-gray-100 relative" id="step-5-container">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-indigo-600 text-xl">🖋️</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-1">Confirmez officiellement le projet</h3>
+                                <p class="text-gray-600 mb-4">Signez le contrat pour lancer la réalisation.</p>
+                                <a href="https://leo50978.github.io/contract/" class="complete-step text-indigo-600 font-medium hover:text-indigo-800 inline-flex items-center" data-step="5">
+                                    Commencer cette étape
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 6 -->
+                    <div class="step-card bg-white p-6 rounded-lg shadow border border-gray-100 relative" id="step-6-container">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-indigo-600 text-xl">📊</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-1">Suivi et avancement</h3>
+                                <p class="text-gray-600 mb-4">Visualisez l'avancement de votre projet.</p>
+                                <a href="prjt.html" class="complete-step text-indigo-600 font-medium hover:text-indigo-800 inline-flex items-center" data-step="6">
+                                    Commencer cette étape
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="bg-indigo-50 rounded-lg p-8 text-center">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Besoin d'aide ?</h2>
+            <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Notre équipe est disponible pour répondre à vos questions.</p>
+            <a href="https:wa.me/50935601379" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200 inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Contacter le support
+            </a>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm">© 2025 Vitch web studio. Tous droits réservés.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-indigo-600">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-600">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-600">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize project steps
+            const projectSteps = JSON.parse(localStorage.getItem('projectSteps')) || {
+                step1: { completed: false },
+                step2: { completed: false },
+                step3: { completed: false },
+                step4: { completed: false },
+                step5: { completed: false },
+                step6: { completed: false }
+            };
+            
+            // Update UI
+            updateProgressUI(projectSteps);
+            
+            // Handle step completion
+            document.querySelectorAll('.complete-step').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const stepNumber = this.getAttribute('data-step');
+                    const isCompleted = projectSteps[`step${stepNumber}`]?.completed;
+                    
+                    if (!isCompleted) {
+                        e.preventDefault();
+                        projectSteps[`step${stepNumber}`] = { completed: true };
+                        localStorage.setItem('projectSteps', JSON.stringify(projectSteps));
+                        
+                        // Update UI immediately
+                        const stepContainer = document.getElementById(`step-${stepNumber}-container`);
+                        if (stepContainer) {
+                            stepContainer.classList.add('completed-card');
+                            
+                            // Add badge
+                            const badge = document.createElement('div');
+                            badge.className = 'completed-badge';
+                            badge.innerHTML = '<i class="fas fa-check mr-1"></i>Terminé';
+                            stepContainer.appendChild(badge);
+                            
+                            // Update progress
+                            updateProgressUI(projectSteps);
+                            
+                            // Navigate after short delay
+                            setTimeout(() => {
+                                window.location.href = this.getAttribute('href');
+                            }, 800);
+                        }
+                    }
+                    // If already completed, normal link behavior
+                });
+            });
+            
+            // Update progress function
+            function updateProgressUI(steps) {
+                const completedCount = Object.values(steps).filter(step => step.completed).length;
+                document.getElementById('completed-steps').textContent = completedCount;
+                
+                const progressPercentage = Math.round((completedCount / 6) * 100);
+                document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+            }
+        });
+    </script>
+</body>
+</html>
