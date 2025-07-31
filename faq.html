@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitch Web Studio - FAQ</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .faq-item {
+            transition: all 0.3s ease;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+        .faq-item.active .faq-question i {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+    <div class="container mx-auto px-4 py-12 max-w-3xl">
+        <!-- En-tête -->
+        <header class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-indigo-700 mb-2">Vitch Web Studio – Foire Aux Questions (FAQ)</h1>
+            <p class="text-gray-600">Trouvez les réponses aux questions les plus fréquentes sur nos services web.</p>
+        </header>
+
+        <!-- FAQ -->
+        <div class="space-y-4">
+            <!-- Question 1 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-question-circle text-indigo-500 text-xl mr-4 transition-transform"></i>
+                    <h3 class="font-semibold text-lg flex-1">Pourquoi avoir un site web ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        Un site web est essentiel pour toute entreprise moderne. Il vous permet d'établir une présence en ligne professionnelle, d'attirer de nouveaux clients, de présenter vos produits/services 24h/24, et de renforcer votre crédibilité.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-laptop-code text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">Quels types de sites web puis-je commander ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        Nous créons divers types de sites : vitrines pour présenter votre entreprise, sites e-commerce pour vendre en ligne, blogs, portfolios, sites institutionnels, et solutions web sur mesure adaptées à vos besoins spécifiques.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-tags text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">Pourquoi c'est si peu cher ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                      Nous optimisons nos processus pour offrir des sites web de qualité à des prix accessibles aux entrepreneurs haïtiens. Notre objectif est de démocratiser l'accès au web pour toutes les entreprises, sans jamais compromettre la qualité.
+
+C’est également une approche marketing stratégique : en rendant nos services accessibles et en offrant une expérience utilisateur agréable dès le départ, nous construisons une relation de confiance avec nos clients. Nous investissons dans l’avenir en misant sur la satisfaction et la fidélisation. Un client satisfait est non seulement plus enclin à revenir, mais devient aussi un ambassadeur qui nous recommande à d’autres.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-globe text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">C'est quoi un nom de domaine ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        C'est l'adresse de votre site sur internet (ex: votresociete.com). C'est comme votre adresse physique mais pour le web. Nous pouvons vous aider à enregistrer le vôtre et le configurer.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-server text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">C'est quoi un hébergement ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        L'hébergement est l'espace où les fichiers de votre site sont stockés pour être accessibles sur internet. Nous proposons des solutions d'hébergement fiables et adaptées à la taille de votre site.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-user-edit text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">Est-ce que je peux gérer mon site moi-même ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        Absolument ! Nous créons des sites faciles à gérer avec des interfaces intuitives. Nous vous formons également à la gestion de votre contenu si nécessaire.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 7 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-clock text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">Combien de temps ça prend ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        Le délai dépend de la complexité de votre projet. Un site vitrine simple peut être livré en 1-2 semaines, tandis qu'un site e-commerce complexe peut prendre 3-6 semaines. Nous établissons un calendrier précis dès le début.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 8 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-shopping-cart text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">Comment commander ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        Contactez-nous via WhatsApp, email ou téléphone pour discuter de votre projet. Nous établissons un devis personnalisé, et une fois validé, nous commençons le travail après réception d'un acompte.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 9 -->
+            <div class="faq-item bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="faq-question flex items-center p-4 cursor-pointer" onclick="toggleFAQ(this)">
+                    <i class="fas fa-hands-helping text-indigo-500 text-xl mr-4"></i>
+                    <h3 class="font-semibold text-lg flex-1">Est-ce que vous offrez de l'aide après la livraison ?</h3>
+                    <i class="fas fa-chevron-right text-indigo-500 ml-2"></i>
+                </div>
+                <div class="faq-answer px-4 pb-0">
+                    <div class="pb-4 pl-10 pr-2 text-gray-700">
+                        Oui, tous nos projets incluent une période de support post-livraison. Nous restons disponibles pour répondre à vos questions et vous aider à résoudre tout problème technique.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pied de page -->
+        <footer class="mt-16 text-center text-gray-600 text-sm">
+            <p class="mb-2">Vitch Web Studio © 2025 – Tous droits réservés</p>
+            <p class="mb-2"><i class="fas fa-phone-alt mr-2"></i> WhatsApp : +509 35601379</p>
+            <p><i class="fas fa-envelope mr-2"></i> Email : vitchwebstudio@gmail.com</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleFAQ(element) {
+            const faqItem = element.closest('.faq-item');
+            faqItem.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
