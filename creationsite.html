@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apprendre à créer un site web - Guide complet débutant</title>
+    <meta name="description" content="Formation complète pour créer son premier site web étape par étape. Tout ce que vous devez savoir pour démarrer.">
+    <meta property="og:title" content="Apprendre à créer un site web - Guide complet débutant">
+    <meta property="og:description" content="Formation complète pour créer son premier site web étape par étape. Tout ce que vous devez savoir pour démarrer.">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#3B82F6',
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            300: '#93C5FD',
+                            400: '#60A5FA',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                            800: '#1E40AF',
+                            900: '#1E3A8A',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .prose {
+            max-width: 65ch;
+        }
+        .prose h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: #1E3A8A;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            position: relative;
+            display: inline-block;
+        }
+        .prose h2:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, #3B82F6, #60A5FA);
+            border-radius: 3px;
+        }
+        .prose a {
+            color: #3B82F6;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid transparent;
+        }
+        .prose a:hover {
+            color: #1D4ED8;
+            border-bottom-color: #93C5FD;
+        }
+        .prose ul li {
+            position: relative;
+            padding-left: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .prose ul li:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.6em;
+            width: 0.6em;
+            height: 0.6em;
+            background-color: #3B82F6;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+        .prose ul li:hover:before {
+            transform: scale(1.2);
+        }
+        .prose ol {
+            counter-reset: list-counter;
+        }
+        .prose ol li {
+            position: relative;
+            padding-left: 1.75rem;
+            margin-bottom: 0.5rem;
+            counter-increment: list-counter;
+        }
+        .prose ol li:before {
+            content: counter(list-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #3B82F6;
+            font-weight: 600;
+            font-size: 0.875em;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(219, 234, 254, 0.3) 100%);
+            border-left: 4px solid #3B82F6;
+        }
+        .step-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4), 0 4px 6px -2px rgba(59, 130, 246, 0.3);
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        .scroll-indicator {
+            width: 30px;
+            height: 50px;
+            border: 2px solid #3B82F6;
+            border-radius: 15px;
+            position: relative;
+        }
+        .scroll-indicator:before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #3B82F6;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            animation: scrollDown 2s infinite;
+        }
+        @keyframes scrollDown {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(-50%);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(20px) translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased text-gray-800">
+    <!-- Hero Section -->
+    <header class="relative bg-gradient-to-br from-primary-900 to-primary-700 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="container mx-auto px-4 py-24 relative z-10">
+            <div class="max-w-3xl mx-auto text-center fade-in">
+                <h1 class="text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight">Apprendre à créer un site web</h1>
+                <p class="text-xl md:text-2xl text-primary-100 mb-8">MADE IN VITCH WEB STUDIO</p>
+                <p class="text-lg text-primary-200 mb-10">De l'idée à la mise en ligne, maîtrisez toutes les étapes pour créer votre premier site web professionnel.</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="#start" class="btn-primary text-white font-semibold py-3 px-8 rounded-full inline-flex items-center justify-center">
+                        Commencer maintenant <i class="fas fa-arrow-down ml-2"></i>
+                    </a>
+                    <a href="#steps" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white font-semibold py-3 px-8 rounded-full inline-flex items-center justify-center border border-white border-opacity-20 transition">
+                        Voir les étapes <i class="fas fa-list-ol ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 flex justify-center pb-8">
+            <div class="scroll-indicator"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-16">
+        <!-- Introduction -->
+        <section id="start" class="max-w-4xl mx-auto mb-20 fade-in">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="md:flex">
+                    <div class="md:flex-shrink-0 md:w-1/3 bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center p-8">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1055/1055687.png" alt="Création de site web" class="w-40 h-40 object-contain floating">
+                    </div>
+                    <div class="p-8 md:p-10">
+                        <h2 class="text-2xl font-heading font-bold text-gray-900 mb-4">Pourquoi apprendre à créer un site web ?</h2>
+                        <p class="text-gray-600 mb-6">Dans notre ère numérique, avoir une présence en ligne est essentiel. Que ce soit pour un blog personnel, un portfolio professionnel ou une boutique en ligne, comprendre les bases de la création web vous donne un avantage considérable.</p>
+                        <div class="highlight-box rounded-lg p-4 mb-6">
+                            <p class="text-primary-800 font-medium"><i class="fas fa-lightbulb text-primary-500 mr-2"></i> <strong>Saviez-vous ?</strong> Plus de 60% des petites entreprises n'ont pas de site web. En créant le vôtre, vous vous démarquez immédiatement !</p>
+                        </div>
+                        <p class="text-gray-600">Cette formation vous guide pas à pas à travers les concepts fondamentaux, les outils essentiels et les bonnes pratiques pour créer un site web efficace et professionnel.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Steps Overview -->
+        <section id="steps" class="max-w-6xl mx-auto mb-20">
+            <h2 class="text-3xl font-heading font-bold text-center text-gray-900 mb-12">Les 5 étapes clés pour créer votre site web</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <!-- Step 1 -->
+                <div class="step-card bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-primary-600 font-bold text-xl">1</span>
+                    </div>
+                    <h3 class="font-heading font-bold text-lg text-gray-900 mb-3">Comprendre les bases</h3>
+                    <p class="text-gray-600 text-sm">Découvrez les éléments fondamentaux qui composent un site web et le vocabulaire essentiel.</p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="step-card bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-primary-600 font-bold text-xl">2</span>
+                    </div>
+                    <h3 class="font-heading font-bold text-lg text-gray-900 mb-3">Préparer son projet</h3>
+                    <p class="text-gray-600 text-sm">Définissez vos objectifs, votre public cible et structurez votre contenu.</p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="step-card bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-primary-600 font-bold text-xl">3</span>
+                    </div>
+                    <h3 class="font-heading font-bold text-lg text-gray-900 mb-3">Choisir sa méthode</h3>
+                    <p class="text-gray-600 text-sm">Sélectionnez l'approche qui correspond à vos besoins et compétences.</p>
+                </div>
+                
+                <!-- Step 4 -->
+                <div class="step-card bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-primary-600 font-bold text-xl">4</span>
+                    </div>
+                    <h3 class="font-heading font-bold text-lg text-gray-900 mb-3">Concevoir et publier</h3>
+                    <p class="text-gray-600 text-sm">Créez votre site et mettez-le en ligne pour qu'il soit accessible à tous.</p>
+                </div>
+                
+                <!-- Step 5 -->
+                <div class="step-card bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-primary-600 font-bold text-xl">5</span>
+                    </div>
+                    <h3 class="font-heading font-bold text-lg text-gray-900 mb-3">Maintenir et évoluer</h3>
+                    <p class="text-gray-600 text-sm">Faites vivre votre site avec des mises à jour régulières et des améliorations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Content -->
+        <section class="max-w-4xl mx-auto prose prose-lg">
+            <!-- Step 1 Details -->
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-12 fade-in" id="step1">
+                <h2 class="text-3xl font-heading font-bold text-gray-900 mb-6">1. Comprendre les bases d'un site web</h2>
+                <div class="mb-6">
+                    <p>Avant de se lancer dans la création, il est essentiel de savoir de quoi est composé un site web. Un site web est en réalité un ensemble de fichiers et de données hébergés sur un serveur, accessibles via un navigateur grâce à une adresse (URL).</p>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Les éléments clés à connaître :</h3>
+                <ul class="space-y-3 mb-6">
+                    <li><strong class="text-primary-600">Nom de domaine</strong> : l'adresse unique de votre site (ex. monsite.com). C'est comme l'adresse postale de votre maison sur internet.</li>
+                    <li><strong class="text-primary-600">Hébergement</strong> : l'endroit où sont stockés les fichiers du site. C'est le "terrain" où votre maison (site web) est construite.</li>
+                    <li><strong class="text-primary-600">Contenu</strong> : textes, images, vidéos, et éléments interactifs. Ce sont les meubles et décorations qui rendent votre maison unique.</li>
+                    <li><strong class="text-primary-600">Technologies</strong> : HTML (structure), CSS (mise en forme), JavaScript (interactivité). Ce sont les matériaux et outils de construction.</li>
+                </ul>
+                
+                <div class="highlight-box rounded-lg p-6 mb-6">
+                    <h4 class="font-semibold text-lg text-primary-800 mb-3"><i class="fas fa-tip"></i> Astuce pratique</h4>
+                    <p class="text-gray-700">Pour bien comprendre ces concepts, imaginez que votre site web est une maison : le nom de domaine est son adresse, l'hébergement est le terrain, le contenu est le mobilier, et les technologies sont les matériaux de construction.</p>
+                </div>
+                
+                <p>En comprenant ce vocabulaire de base, vous aurez déjà une vision claire du "langage" du web et pourrez mieux communiquer avec les professionnels ou suivre des tutoriels techniques.</p>
+            </div>
+
+            <!-- Step 2 Details -->
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-12 fade-in" id="step2">
+                <h2 class="text-3xl font-heading font-bold text-gray-900 mb-6">2. Préparer et structurer son projet</h2>
+                <div class="mb-6">
+                    <p>La création d'un site commence bien avant de toucher à la technique. Une bonne préparation vous fera gagner un temps précieux et vous évitera de nombreux allers-retours.</p>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Les étapes préalables :</h3>
+                <ol class="space-y-4 mb-6 list-decimal pl-6">
+                    <li>
+                        <strong class="text-primary-600">Définir l'objectif</strong> : 
+                        <ul class="mt-2 pl-4 space-y-2 list-disc">
+                            <li>Site vitrine (présenter votre activité)</li>
+                            <li>Blog (partager des articles)</li>
+                            <li>Portfolio (montrer vos réalisations)</li>
+                            <li>Boutique en ligne (vendre des produits)</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong class="text-primary-600">Identifier votre public cible</strong> :
+                        <p class="mt-2 text-gray-600">Qui va visiter votre site ? Quels sont leurs besoins ? Quelles informations recherchent-ils ?</p>
+                    </li>
+                    <li>
+                        <strong class="text-primary-600">Lister le contenu nécessaire</strong> :
+                        <p class="mt-2 text-gray-600">Pages principales (Accueil, À propos, Contact), articles, galeries, formulaires, etc.</p>
+                    </li>
+                    <li>
+                        <strong class="text-primary-600">Créer une arborescence</strong> :
+                        <p class="mt-2 text-gray-600">Un schéma qui montre comment les pages sont organisées et reliées entre elles.</p>
+                    </li>
+                </ol>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 mb-2"><i class="fas fa-check-circle text-primary-500 mr-2"></i> Bonne pratique</h4>
+                        <p class="text-sm text-gray-600">Commencez par un site simple avec 3-5 pages essentielles. Vous pourrez toujours l'enrichir plus tard.</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 mb-2"><i class="fas fa-exclamation-triangle text-primary-500 mr-2"></i> À éviter</h4>
+                        <p class="text-sm text-gray-600">Ne créez pas trop de pages dès le début. Mieux vaut un site simple mais bien organisé.</p>
+                    </div>
+                </div>
+                
+                <p>Une bonne structure dès le départ facilite la navigation pour vos visiteurs et améliore le référencement (SEO) de votre site sur les moteurs de recherche comme Google.</p>
+            </div>
+
+            <!-- Step 3 Details -->
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-12 fade-in" id="step3">
+                <h2 class="text-3xl font-heading font-bold text-gray-900 mb-6">3. Choisir la méthode de création</h2>
+                <div class="mb-6">
+                    <p>Il existe plusieurs manières de créer un site web, du plus simple au plus technique. Voici les principales options avec leurs avantages et inconvénients.</p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <!-- Option 1 -->
+                    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                        <div class="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-magic text-primary-600"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg text-gray-900 mb-2">Constructeurs de sites</h3>
+                        <p class="text-sm text-gray-600 mb-4">Wix, Squarespace, WordPress.com</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Facile à utiliser, pas besoin de coder</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Hébergement inclus</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times text-red-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Personnalisation limitée</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Option 2 -->
+                    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                        <div class="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-puzzle-piece text-primary-600"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg text-gray-900 mb-2">CMS</h3>
+                        <p class="text-sm text-gray-600 mb-4">WordPress.org, Joomla, Drupal</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Flexible avec des milliers de plugins</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Grande communauté d'utilisateurs</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times text-red-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Nécessite un peu de configuration</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Option 3 -->
+                    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                        <div class="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-code text-primary-600"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg text-gray-900 mb-2">Développement sur mesure</h3>
+                        <p class="text-sm text-gray-600 mb-4">HTML, CSS, JavaScript</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Personnalisation totale</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Performances optimales</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times text-red-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Nécessite des compétences techniques</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="highlight-box rounded-lg p-6">
+                    <h3 class="font-semibold text-lg text-primary-800 mb-3"><i class="fas fa-question-circle text-primary-500 mr-2"></i> Comment choisir ?</h3>
+                    <p class="text-gray-700 mb-3">Votre choix dépend de trois critères principaux :</p>
+                    <ol class="list-decimal pl-6 space-y-2">
+                        <li><strong>Vos compétences techniques</strong> : Débutant ? Optez pour un constructeur. À l'aise avec l'informatique ? Un CMS pourrait vous convenir.</li>
+                        <li><strong>Votre budget</strong> : Les constructeurs ont des abonnements mensuels, les CMS nécessitent un hébergement (environ 5-10€/mois).</li>
+                        <li><strong>Vos besoins en personnalisation</strong> : Besoin d'un design unique ou de fonctionnalités spécifiques ? Le développement sur mesure est idéal.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Step 4 Details -->
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-12 fade-in" id="step4">
+                <h2 class="text-3xl font-heading font-bold text-gray-900 mb-6">4. Concevoir et mettre en ligne</h2>
+                <div class="mb-6">
+                    <p>Une fois l'outil choisi, il est temps de passer à la réalisation concrète de votre site web. Voici les points clés à ne pas négliger.</p>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Conception : les bonnes pratiques</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-mobile-alt text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Design responsive</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Votre site doit s'adapter à tous les écrans (ordinateur, tablette, smartphone). Plus de 50% du trafic web vient désormais des mobiles.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-eye text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Lisibilité</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Polices claires (minimum 16px pour le texte), contrastes suffisants, espacement aéré. Évitez les paragraphes trop longs.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-tachometer-alt text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Performance</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Optimisez les images (compression), minimisez le code, utilisez un hébergement de qualité. Un site qui charge en moins de 3 secondes est idéal.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-search text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">SEO de base</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Titres et descriptions clairs, URLs simples, balises alt pour les images. Ces éléments aident votre site à être mieux référencé.</p>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Mise en ligne : étape par étape</h3>
+                <ol class="space-y-4 mb-6 list-decimal pl-6">
+                    <li>
+                        <strong class="text-primary-600">Acheter un nom de domaine</strong> :
+                        <p class="mt-2 text-gray-600">Comparez les prix sur des registrars comme OVH, Namecheap ou Google Domains. Un .com ou .fr coûte généralement entre 10-15€/an.</p>
+                    </li>
+                    <li>
+                        <strong class="text-primary-600">Choisir un hébergeur</strong> :
+                        <p class="mt-2 text-gray-600">Pour un CMS comme WordPress, des hébergeurs spécialisés comme SiteGround, Bluehost ou OVH proposent des solutions optimisées.</p>
+                    </li>
+                    <li>
+                        <strong class="text-primary-600">Transférer ou publier vos fichiers</strong> :
+                        <p class="mt-2 text-gray-600">Via FTP ou l'interface de votre hébergeur. Les constructeurs de sites gèrent cette étape automatiquement.</p>
+                    </li>
+                    <li>
+                        <strong class="text-primary-600">Tester votre site</strong> :
+                        <p class="mt-2 text-gray-600">Sur différents navigateurs (Chrome, Firefox, Safari) et appareils. Vérifiez que tous les liens fonctionnent et que le design s'affiche correctement.</p>
+                    </li>
+                </ol>
+                
+                <div class="highlight-box rounded-lg p-6">
+                    <h4 class="font-semibold text-lg text-primary-800 mb-3"><i class="fas fa-rocket text-primary-500 mr-2"></i> Prêt pour le lancement ?</h4>
+                    <p class="text-gray-700">Avant de rendre votre site public, faites-le tester par quelques personnes de confiance. Un regard extérieur peut repérer des problèmes que vous n'auriez pas remarqués.</p>
+                </div>
+            </div>
+
+            <!-- Step 5 Details -->
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-12 fade-in" id="step5">
+                <h2 class="text-3xl font-heading font-bold text-gray-900 mb-6">5. Maintenir et faire évoluer le site</h2>
+                <div class="mb-6">
+                    <p>Un site web n'est pas figé : il doit vivre et évoluer avec votre activité. Voici comment le garder performant et sécurisé dans le temps.</p>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Les tâches essentielles de maintenance</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-sync-alt text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Mises à jour</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">CMS, plugins et thèmes doivent être régulièrement mis à jour pour la sécurité et les nouvelles fonctionnalités.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-database text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Sauvegardes</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Configurez des sauvegardes automatiques (hebdomadaires idéalement) pour protéger vos données.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-chart-line text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Analyse du trafic</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Utilisez Google Analytics pour comprendre vos visiteurs et adapter votre contenu.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-shield-alt text-primary-600 text-sm"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800">Sécurité</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Mots de passe forts, certificat SSL (https), protection contre le spam et les attaques.</p>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Faire évoluer votre site</h3>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary-500 mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-primary-600">Contenu frais</strong> : Ajoutez régulièrement de nouveaux articles, produits ou actualités pour fidéliser vos visiteurs.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary-500 mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-primary-600">Améliorations UX</strong> : Simplifiez la navigation en fonction des retours utilisateurs et des analyses.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary-500 mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-primary-600">Nouvelles fonctionnalités</strong> : Formulaires, chat en ligne, système de réservation... Ajoutez des outils utiles à votre public.</span>
+                    </li>
+                </ul>
+                
+                <div class="highlight-box rounded-lg p-6">
+                    <h4 class="font-semibold text-lg text-primary-800 mb-3"><i class="fas fa-calendar-alt text-primary-500 mr-2"></i> Routine de maintenance</h4>
+                    <p class="text-gray-700 mb-3">Pour ne rien oublier, établissez un calendrier de maintenance :</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Quotidien</strong> : Répondre aux commentaires/messages, vérifier que le site est accessible</li>
+                        <li><strong>Hebdomadaire</strong> : Publier du nouveau contenu, vérifier les statistiques</li>
+                        <li><strong>Mensuel</strong> : Faire les mises à jour, tester les sauvegardes, analyser les performances</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Conclusion -->
+            <div class="bg-gradient-to-br from-primary-900 to-primary-700 rounded-xl shadow-sm p-8 mb-12 text-white fade-in">
+                <h2 class="text-3xl font-heading font-bold mb-6">Conclusion</h2>
+                <p class="text-lg mb-6">Créer un site web, c'est combiner préparation, choix techniques et un peu de créativité. En comprenant les bases et en suivant un processus structuré, vous pouvez transformer une idée en un espace en ligne professionnel et efficace.</p>
+                <div class="bg-white bg-opacity-20 rounded-lg p-6">
+                    <h3 class="text-xl font-heading font-bold mb-4">Prochaines étapes</h3>
+                    <ol class="space-y-3 list-decimal pl-6">
+                        <li>Choisissez votre méthode de création en fonction de vos besoins</li>
+                        <li>Créez un plan simple pour votre premier site (3-5 pages)</li>
+                        <li>Lancez-vous avec une version simple que vous améliorerez avec le temps</li>
+                    </ol>
+                </div>
+                <p class="mt-6 text-primary-100 font-medium"><i class="fas fa-lightbulb mr-2"></i> Rappelez-vous : même les plus grands sites ont commencé modestement. L'important est de commencer !</p>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="max-w-2xl mx-auto text-center my-20 fade-in">
+            <div class="bg-white rounded-xl shadow-md p-8 md:p-10">
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-gray-900 mb-4">Prêt à créer votre site web ?</h2>
+                <p class="text-lg text-gray-600 mb-8">Maintenant que vous connaissez les étapes clés, il est temps de passer à l'action !</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="#step1" class="btn-primary text-white font-semibold py-3 px-8 rounded-full inline-flex items-center justify-center">
+                        Revoir les étapes <i class="fas fa-redo ml-2"></i>
+                    </a>
+                    <a href="#" class="hidden  hover:bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full inline-flex items-center justify-center transition">
+                        Télécharger le guide PDF <i class="fas fa-file-pdf ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <h3 class="font-heading font-bold text-lg mb-4">Formation</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Contenu</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Auteur</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Méthodologie</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-lg mb-4">Ressources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Outils recommandés</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Tutoriels</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-lg mb-4">Légal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Mentions légales</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Confidentialité</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">CGU</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-lg mb-4">Contact</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope text-gray-400 mr-2"></i>
+                            <a href="mailto:contact@example.com" class="text-gray-400 hover:text-white transition">contact@vitchwebstudio.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone-alt text-gray-400 mr-2"></i>
+                            <span class="text-gray-400">+(509) 3560-1379</span>
+                        </li>
+                    </ul>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2025 Formation Création de Site Web. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Action Button (Mobile) -->
+    <div class="fixed bottom-6 right-6 z-50 md:hidden">
+        <a href="#" class="w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center text-white hover:bg-primary-700 transition transform hover:scale-110">
+            <i class="fas fa-arrow-up text-xl"></i>
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Show/hide back to top button
+            const backToTopButton = document.querySelector('.fixed.bottom-6.right-6 a');
+            if (backToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTopButton.classList.remove('opacity-0', 'invisible');
+                        backToTopButton.classList.add('opacity-100', 'visible');
+                    } else {
+                        backToTopButton.classList.remove('opacity-100', 'visible');
+                        backToTopButton.classList.add('opacity-0', 'invisible');
+                    }
+                });
+            }
+
+            // Add animation to elements when they come into view
+            const animateOnScroll = function() {
+                const elements = document.querySelectorAll('.fade-in');
+                
+                elements.forEach(element => {
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    
+                    if (elementPosition < windowHeight - 100) {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }
+                });
+            };
+
+            // Set initial state for fade-in elements
+            document.querySelectorAll('.fade-in').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            });
+
+            // Run once on load
+            animateOnScroll();
+            
+            // Then on scroll
+            window.addEventListener('scroll', animateOnScroll);
+        });
+    </script>
+</body>
+</html>
