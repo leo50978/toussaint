@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactez-nous | Agence Premium</title>
+    <meta name="description" content="Contactez notre équipe pour discuter de votre projet digital">
+    
+    <!-- CDN Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CDN Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CDN Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #007BFF;
+            --dark-blue: #0056b3;
+            --darker-blue: #003366;
+            --light-blue: #E6F0FF;
+            --white: #FFFFFF;
+            --light-gray: #F8F9FA;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            overflow-x: hidden;
+            background-color: var(--light-gray);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--white) 100%);
+        }
+        
+        .section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        .confirmation {
+            display: none;
+        }
+        
+        .header-transition {
+            transition: background 0.4s ease;
+        }
+        
+        .clip-path-hero {
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        }
+        
+        @media (min-width: 768px) {
+            .clip-path-hero {
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            }
+        }
+        
+        .faq-item {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .faq-question {
+            cursor: pointer;
+            padding: 1.5rem 0;
+            position: relative;
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-blue);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class=" hidden header-transition fixed w-full z-50 py-4 px-6 lg:px-12">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-white">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-white">Vitch web studio</span>
+            </div>
+            
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="text-white hover:text-blue-300 transition-colors">Accueil</a>
+                <a href="#" class="text-white hover:text-blue-300 transition-colors">Services</a>
+                <a href="#" class="text-white hover:text-blue-300 transition-colors">Blog</a>
+                <a href="#" class="text-blue-800 font-semibold underline underline-offset-4">Contact</a>
+            </nav>
+            
+            <button class="bg-white text-blue-700 px-5 py-2 rounded-full font-semibold hover:bg-blue-50 transition-all transform hover:-translate-y-0.5 shadow-md">
+                Demander un devis
+            </button>
+            
+            <button class="md:hidden text-white">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section clip-path-hero pt-32 pb-24 px-6">
+        <div class="container mx-auto">
+            <div class="flex flex-col lg:flex-row items-center">
+                <div class="w-full lg:w-1/2 mb-16 lg:mb-0 lg:pr-12 section">
+                    <h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
+                        Inscrivez-vous des maintenant
+                    </h1>
+                    <p class="text-lg text-gray-700 mb-8 max-w-lg">
+                        Remplissez le formulaire ou contactez-nous directement. Nous vous répondons sous 24h.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-full p-3 mr-4">
+                                <i class="fas fa-map-marker-alt text-blue-700 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Localisation</h3>
+                                <p class="text-gray-600">P-A-P, Haiti</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-full p-3 mr-4">
+                                <i class="fas fa-phone text-blue-700 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Téléphone</h3>
+                                <p class="text-gray-600">+509 0000-0000</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-full p-3 mr-4">
+                                <i class="fas fa-envelope text-blue-700 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Email direct</h3>
+                                <p class="text-gray-600">contact@agence.ht</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="w-full lg:w-1/2 flex justify-center section">
+                    <div class="relative floating">
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500 rounded-full opacity-20"></div>
+                        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-400 rounded-full opacity-20"></div>
+                        <div class="bg-white p-8 rounded-3xl shadow-xl transform rotate-3 relative z-10">
+                            <div class="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64 flex items-center justify-center">
+                                <i class="fas fa-paper-plane text-6xl text-blue-500"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formulaire principal -->
+    <section class="py-20 px-6">
+        <div class="container mx-auto max-w-4xl">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden section">
+                <div class="p-8 md:p-12">
+                    <h2 class="text-3xl font-bold text-center text-blue-900 mb-2">Formulaire d'inscription</h2>
+                    <p class="text-center text-gray-600 mb-10"></p>
+                    
+                    <div class="flex mb-8 justify-center">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm mr-2">1</div>
+                            <div class="text-sm font-medium text-blue-600 mr-6">Informations</div>
+                        </div>
+                        
+                        <div class="h-px bg-gray-300 w-16 mt-4"></div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-sm mr-2">2</div>
+                            <div class="text-sm font-medium text-gray-500 mr-6">Message</div>
+                        </div>
+                        
+                        <div class="h-px bg-gray-300 w-16 mt-4"></div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-sm mr-2">3</div>
+                            <div class="text-sm font-medium text-gray-500">Contact</div>
+                        </div>
+                    </div>
+                    
+                    <form id="contact-form">
+                        <!-- Étape 1 -->
+                        <div class="form-step active" id="step-1">
+                            <div class="space-y-6">
+                                <div class="relative">
+                                    <i class="fas fa-user absolute left-4 top-4 text-gray-400"></i>
+                                    <input type="text" placeholder="Votre nom complet" class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                </div>
+                                
+                                <div class="relative">
+                                    <i class="fas fa-envelope absolute left-4 top-4 text-gray-400"></i>
+                                    <input type="email" placeholder="Votre email" class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                </div>
+                                
+                                <div class="relative">
+                                    <i class="fas fa-tag absolute left-4 top-4 text-gray-400"></i>
+                                    <input type="text" placeholder="Sujet du message" class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                </div>
+                                
+                                <div class="pt-4">
+                                    <button type="button" class="next-step bg-gradient-to-r from-blue-600 to-blue-800 text-white w-full py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                                        Continuer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Étape 2 -->
+                        <div class="form-step" id="step-2">
+                            <div class="space-y-6">
+                                <div class="relative">
+                                    <i class="fas fa-comment-alt absolute left-4 top-4 text-gray-400"></i>
+                                    <textarea placeholder="Votre message" rows="5" class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+                                </div>
+                                
+                                <div class="flex justify-between pt-4">
+                                    <button type="button" class="prev-step bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                                        Retour
+                                    </button>
+                                    <button type="button" class="next-step bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                                        Continuer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Étape 3 -->
+                        <div class="form-step" id="step-3">
+                            <div class="space-y-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Comment préférez-vous être contacté ?</h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <label class="contact-option flex flex-col items-center justify-center p-6 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
+                                        <i class="fas fa-envelope text-3xl text-blue-600 mb-3"></i>
+                                        <span>Email</span>
+                                        <input type="radio" name="contact-method" value="email" class="hidden">
+                                    </label>
+                                    
+                                    <label class="contact-option flex flex-col items-center justify-center p-6 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
+                                        <i class="fas fa-phone text-3xl text-blue-600 mb-3"></i>
+                                        <span>Téléphone</span>
+                                        <input type="radio" name="contact-method" value="phone" class="hidden">
+                                    </label>
+                                    
+                                    <label class="contact-option flex flex-col items-center justify-center p-6 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
+                                        <i class="fab fa-whatsapp text-3xl text-blue-600 mb-3"></i>
+                                        <span>WhatsApp</span>
+                                        <input type="radio" name="contact-method" value="whatsapp" class="hidden">
+                                    </label>
+                                </div>
+                                
+                                <div class="flex justify-between pt-4">
+                                    <button type="button" class="prev-step bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                                        Retour
+                                    </button>
+                                    <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center">
+                                        <span id="submit-text">Envoyer le message</span>
+                                        <span id="submit-loader" class="ml-2 hidden">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Confirmation -->
+                    <div class="confirmation text-center py-10" id="confirmation">
+                        <div class="relative inline-block mb-6">
+                            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                <i class="fas fa-check text-4xl text-green-500"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-blue-900 mb-4">Merci <span class="text-blue-500">💙</span></h3>
+                        <p class="text-lg text-gray-700 max-w-xl mx-auto">
+                            Votre message est bien parti, nous revenons vers vous sous 24h.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Infos & Engagement -->
+    <section class="py-20 px-6 bg-blue-50">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-16 section">
+                <h2 class="text-3xl font-bold text-blue-900">Notre engagement</h2>
+                <div class="w-24 h-1 bg-blue-500 mx-auto mt-4"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform transition-all duration-500 hover:scale-105 section">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-clock text-3xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-blue-900 mb-4">Réponse sous 24h max</h3>
+                    <p class="text-gray-600">Nous nous engageons à vous répondre dans les 24 heures, jours ouvrables.</p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform transition-all duration-500 hover:scale-105 section delay-200">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-hands-helping text-3xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-blue-900 mb-4">Équipe à l'écoute</h3>
+                    <p class="text-gray-600">Notre équipe est disponible et à votre écoute pour répondre à vos besoins.</p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center transform transition-all duration-500 hover:scale-105 section delay-400">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-lock text-3xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-blue-900 mb-4">Données protégées</h3>
+                    <p class="text-gray-600">Vos informations sont sécurisées et protégées conformément au RGPD.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="py-20 px-6">
+        <div class="container mx-auto max-w-4xl">
+            <div class="text-center mb-16 section">
+                <h2 class="text-3xl font-bold text-blue-900">Questions fréquentes</h2>
+                <div class="w-24 h-1 bg-blue-500 mx-auto mt-4"></div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden section">
+                <div class="faq-item">
+                    <div class="faq-question p-6 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Combien de temps pour avoir une réponse ?</h3>
+                        <i class="fas fa-chevron-down text-blue-600"></i>
+                    </div>
+                    <div class="faq-answer px-6">
+                        <p class="py-4 text-gray-600">Nous nous engageons à répondre à toutes les demandes dans un délai maximum de 24 heures durant les jours ouvrables. Pour les demandes urgentes, vous pouvez nous appeler directement au numéro indiqué.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question p-6 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Puis-je vous appeler directement ?</h3>
+                        <i class="fas fa-chevron-down text-blue-600"></i>
+                    </div>
+                    <div class="faq-answer px-6">
+                        <p class="py-4 text-gray-600">Absolument ! Vous pouvez nous appeler au +33 1 23 45 67 89 du lundi au vendredi, de 9h à 18h. Pour les demandes en dehors de ces horaires, privilégiez le formulaire de contact ou l'email.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question p-6 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Mes informations sont-elles sécurisées ?</h3>
+                        <i class="fas fa-chevron-down text-blue-600"></i>
+                    </div>
+                    <div class="faq-answer px-6">
+                        <p class="py-4 text-gray-600">La sécurité de vos données est notre priorité. Toutes les informations transmises via notre formulaire sont chiffrées et traitées conformément à la réglementation RGPD. Nous ne partageons jamais vos données avec des tiers sans votre consentement explicite.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-blue-900 text-white pt-16 pb-8 px-6">
+        <div class="container mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-white">Vitch web studio</span>
+                    </h3>
+                    <p class="text-blue-200 mb-4 max-w-xs">
+                        Nous transformons vos idées en solutions digitales innovantes et performantes.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Navigation</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Accueil</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Services</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Réalisations</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Légal</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Mentions légales</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Politique de confidentialité</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Conditions d'utilisation</a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-white transition">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-blue-800 text-center">
+                <p class="text-blue-300">&copy; 2025 Vitch web studio - Tous droits réservés</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animation au défilement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Observer pour les animations des sections
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        
+                        // Animation personnalisée avec anime.js
+                        anime({
+                            targets: entry.target,
+                            translateY: [30, 0],
+                            opacity: [0, 1],
+                            duration: 800,
+                            easing: 'easeOutCubic'
+                        });
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Animation du header au scroll
+            const header = document.querySelector('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.classList.add('bg-gradient-to-r', 'from-blue-700', 'to-blue-900');
+                    header.classList.remove('bg-transparent');
+                } else {
+                    header.classList.remove('bg-gradient-to-r', 'from-blue-700', 'to-blue-900');
+                    header.classList.add('bg-transparent');
+                }
+            });
+            
+            // Gestion du formulaire
+            const formSteps = document.querySelectorAll('.form-step');
+            const nextButtons = document.querySelectorAll('.next-step');
+            const prevButtons = document.querySelectorAll('.prev-step');
+            const form = document.getElementById('contact-form');
+            const confirmation = document.getElementById('confirmation');
+            const submitText = document.getElementById('submit-text');
+            const submitLoader = document.getElementById('submit-loader');
+            
+            let currentStep = 0;
+            
+            // Navigation dans le formulaire
+            nextButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    formSteps[currentStep].classList.remove('active');
+                    currentStep++;
+                    formSteps[currentStep].classList.add('active');
+                    updateStepIndicator();
+                });
+            });
+            
+            prevButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    formSteps[currentStep].classList.remove('active');
+                    currentStep--;
+                    formSteps[currentStep].classList.add('active');
+                    updateStepIndicator();
+                });
+            });
+            
+            // Mise à jour de l'indicateur d'étape
+            function updateStepIndicator() {
+                const indicators = document.querySelectorAll('.flex.items-center div:first-child');
+                indicators.forEach((indicator, index) => {
+                    if (index < currentStep) {
+                        indicator.classList.remove('bg-gray-200', 'text-gray-500');
+                        indicator.classList.add('bg-blue-600', 'text-white');
+                    } else if (index === currentStep) {
+                        indicator.classList.remove('bg-gray-200', 'text-gray-500');
+                        indicator.classList.add('bg-blue-600', 'text-white');
+                    } else {
+                        indicator.classList.remove('bg-blue-600', 'text-white');
+                        indicator.classList.add('bg-gray-200', 'text-gray-500');
+                    }
+                });
+            }
+            
+            // Soumission du formulaire
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Simulation d'envoi
+                submitText.classList.add('hidden');
+                submitLoader.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    // Masquer le formulaire et afficher la confirmation
+                    form.style.display = 'none';
+                    confirmation.style.display = 'block';
+                    
+                    // Animation de confetti
+                    createConfetti();
+                }, 1500);
+            });
+            
+            // Création de confetti
+            function createConfetti() {
+                const container = document.querySelector('.confirmation .relative');
+                const colors = ['#007BFF', '#0056b3', '#003366', '#E6F0FF'];
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = Math.random() * 100 + '%';
+                    container.appendChild(confetti);
+                    
+                    anime({
+                        targets: confetti,
+                        translateY: [0, -100 + Math.random() * 200 - 100],
+                        translateX: [0, Math.random() * 100 - 50],
+                        opacity: [0, 1, 0],
+                        duration: 2000 + Math.random() * 1000,
+                        easing: 'easeOutQuad',
+                        complete: () => confetti.remove()
+                    });
+                }
+            }
+            
+            // Gestion de la FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                question.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+                    
+                    // Fermer tous les autres éléments
+                    faqItems.forEach(otherItem => {
+                        if (otherItem !== item) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+                    
+                    // Ouvrir/fermer l'élément actuel
+                    item.classList.toggle('active', !isActive);
+                    
+                    // Animation de l'icône
+                    const icon = question.querySelector('i');
+                    if (item.classList.contains('active')) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    } else {
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    }
+                });
+            });
+            
+            // Sélection des options de contact
+            const contactOptions = document.querySelectorAll('.contact-option');
+            contactOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Retirer la sélection de toutes les options
+                    contactOptions.forEach(opt => {
+                        opt.classList.remove('border-blue-500', 'bg-blue-50');
+                    });
+                    
+                    // Ajouter la sélection à l'option cliquée
+                    option.classList.add('border-blue-500', 'bg-blue-50');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
