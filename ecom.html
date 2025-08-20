@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Shop - Expérience d'achat futuriste</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                        accent: '#8B5CF6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.7s ease-out forwards',
+                        'scale-in': 'scaleIn 0.7s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.9)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Anime.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <style>
+        /* Styles CSS personnalisés */
+        :root {
+            --primary: #3B82F6;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --accent: #8B5CF6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            background-color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+        
+        /* Formes CSS avancées avec fallbacks */
+        .premium-shape {
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        
+        @supports (clip-path: circle(50% at 50% 50%)) or (-webkit-clip-path: circle(50% at 50% 50%)) {
+            .circle-shape {
+                -webkit-clip-path: circle(50% at 50% 50%);
+                clip-path: circle(50% at 50% 50%);
+            }
+            
+            .polygon-shape {
+                -webkit-clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            }
+            
+            .ellipse-shape {
+                -webkit-clip-path: ellipse(75% 100% at 50% 0%);
+                clip-path: ellipse(75% 100% at 50% 0%);
+            }
+        }
+        
+        /* Animation d'entrée pour les sections */
+        .section-hidden {
+            opacity: 0;
+            transform: translateY(8rem) scale(0.95);
+            transition: all 1s;
+        }
+        
+        .section-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Animation pour le header */
+        .header-hidden {
+            transform: translateY(-100%);
+        }
+        
+        .header-visible {
+            transform: translateY(0);
+        }
+        
+        /* Styles pour le panier */
+        .cart-notification {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+        
+        .cart-notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Styles pour les modals */
+        .modal {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.9);
+            transition: all 0.3s ease-out;
+        }
+        
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        
+        /* Styles d'accessibilité */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Focus styles pour l'accessibilité */
+        button:focus,
+        a:focus,
+        input:focus,
+        textarea:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        
+        /* Animation de pulse pour les éléments importants */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Animation de chargement */
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Header / Navigation -->
+    <header class="fixed w-full bg-white/90 backdrop-blur-sm shadow-md z-50 transition-transform duration-300 header-visible" id="main-header">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <!-- Logo animé -->
+                <a href="#" class="flex items-center space-x-2">
+    
+                    <span class="text-xl font-heading font-bold text-dark">Shop</span>
+                </a>
+                
+                <!-- Menu desktop -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#accueil" class="text-dark hover:text-primary transition-colors">Accueil</a>
+                    <a href="#produits" class="text-dark hover:text-primary transition-colors">Produits</a>
+                    <a href="#avantages" class="text-dark hover:text-primary transition-colors">Avantages</a>
+                    <a href="#paiement" class="text-dark hover:text-primary transition-colors">Paiement</a>
+                    <a href="#temoignages" class="text-dark hover:text-primary transition-colors">Témoignages</a>
+                    <a href="#contact" class="text-dark hover:text-primary transition-colors">Contact</a>
+                </nav>
+                
+                <!-- Panier et menu mobile -->
+                <div class="flex items-center space-x-4">
+                    <!-- Panier avec compteur -->
+                    <button class="relative p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Ouvrir le panier">
+                        <i class="fas fa-shopping-cart text-xl text-dark"></i>
+                        <span class="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" id="cart-count">0</span>
+                    </button>
+                    
+                    <!-- Menu mobile -->
+                    <button class="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Ouvrir le menu" id="mobile-menu-button">
+                        <i class="fas fa-bars text-xl text-dark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu mobile (caché par défaut) -->
+        <div class="md:hidden bg-white shadow-lg hidden" id="mobile-menu">
+            <div class="container mx-auto px-4 py-4 flex flex-col space-y-3">
+                <a href="#accueil" class="py-2 text-dark hover:text-primary transition-colors">Accueil</a>
+                <a href="#produits" class="py-2 text-dark hover:text-primary transition-colors">Produits</a>
+                <a href="#avantages" class="py-2 text-dark hover:text-primary transition-colors">Avantages</a>
+                <a href="#paiement" class="py-2 text-dark hover:text-primary transition-colors">Paiement</a>
+                <a href="#temoignages" class="py-2 text-dark hover:text-primary transition-colors">Témoignages</a>
+                <a href="#contact" class="py-2 text-dark hover:text-primary transition-colors">Contact</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+   <section id="accueil" class="relative min-h-screen flex items-center justify-center overflow-hidden text-white">
+    <!-- Image de fond floue -->
+    <div class="absolute inset-0">
+        <img src="aif3.jpg" alt="Background" class="w-full h-full object-cover filter blur/2 brightness-50">
+    </div>
+
+    <!-- Overlay léger pour accentuer le contraste -->
+    <div class="absolute inset-0 bg-black/30"></div>
+
+    <!-- Contenu principal -->
+    <div class="relative z-10 container mx-auto px-6 md:px-20 text-center flex flex-col items-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight animate-fade-in opacity-0 [animation-delay:0.2s]">
+            Expérience d'achat <span class="text-secondary">révolutionnaire</span>
+        </h1>
+        <p class="text-lg md:text-2xl mb-10 max-w-3xl animate-fade-in opacity-0 [animation-delay:0.5s]">
+            Découvrez nos produits exclusifs avec paiement sécurisé via MonCash et NatCash
+        </p>
+        <div class="flex flex-col sm:flex-row gap-5 animate-fade-in opacity-0 [animation-delay:0.8s]">
+            <a href="#produits" class="px-8 py-3 rounded-full bg-white text-primary font-semibold shadow-lg hover:bg-gray-100 transition-all duration-300">
+                Voir nos produits
+            </a>
+            <button id="order-now-btn" class="px-8 py-3 rounded-full bg-secondary text-white font-semibold shadow-lg hover:bg-green-500 transition-all duration-300">
+                Commander maintenant
+            </button>
+        </div>
+    </div>
+
+    <!-- Cercles décoratifs flous -->
+    <div class="absolute inset-0 overflow-hidden z-0">
+        <div class="absolute top-20 left-1/4 w-72 h-72 bg-white/10 rounded-full filter blur-3xl animate-pulse-slow"></div>
+        <div class="absolute bottom-20 right-1/4 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl animate-pulse-slow"></div>
+    </div>
+</section>
+
+
+
+    <!-- Section Produits -->
+   <section class="py-12 md:py-20 bg-gray-50" id="produits">
+    <div class="container mx-auto px-4 md:px-6">
+        <!-- En-tête de section -->
+        <div class="text-center mb-12 md:mb-16">
+            <span class="text-primary font-semibold text-sm uppercase tracking-wider mb-2 block">Collection Exclusive</span>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Nos produits exclusifs</h2>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Découvrez une sélection de produits premium soigneusement choisis pour sublimer votre quotidien</p>
+        </div>
+        
+        <!-- Grille de produits -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <!-- Produit 1 -->
+            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
+                <div class="relative overflow-hidden">
+                    <div class="h-60 md:h-72 bg-gray-100 relative overflow-hidden">
+                        <img src="aif2.webp" alt="Produit premium 1" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                    </div>
+                    <div class="absolute top-4 right-4">
+                        <span class="bg-secondary text-white text-xs font-medium px-3 py-1.5 rounded-full">Nouveau</span>
+                    </div>
+                    <div class="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button class="bg-white p-2.5 rounded-full shadow-md hover:bg-gray-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-5 md:p-6">
+                    <div class="flex items-center mb-2">
+                        <div class="flex text-yellow-400">
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-gray-500 ml-1">(42)</span>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Produit Premium 1</h3>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-2">Description concise du produit et de ses avantages principaux pour le consommateur.</p>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-2xl font-bold text-primary">49,99 $</span>
+                            <span class="text-sm text-gray-500 line-through ml-2">59,99 $</span>
+                        </div>
+                        <button class="bg-primary hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg transition-colors duration-200 flex items-center add-to-cart" data-product="Produit Premium 1" data-price="49.99">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Produit 2 -->
+            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
+                <div class="relative overflow-hidden">
+                    <div class="h-60 md:h-72 bg-gray-100 relative overflow-hidden">
+                        <img src="img2.webp" alt="Produit premium 2" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                    </div>
+                    <div class="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button class="bg-white p-2.5 rounded-full shadow-md hover:bg-gray-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-5 md:p-6">
+                    <div class="flex items-center mb-2">
+                        <div class="flex text-yellow-400">
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-gray-500 ml-1">(128)</span>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Produit Premium 2</h3>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-2">Description concise du produit et de ses avantages principaux pour le consommateur.</p>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-primary">79,99 $</span>
+                        <button class="bg-primary hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg transition-colors duration-200 flex items-center add-to-cart" data-product="Produit Premium 2" data-price="79.99">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Produit 3 -->
+            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
+                <div class="relative overflow-hidden">
+                    <div class="h-60 md:h-72 bg-gray-100 relative overflow-hidden">
+                        <img src="img2.jpeg" alt="Produit premium 3" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                    </div>
+                    <div class="absolute top-4 right-4">
+                        <span class="bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-full">-15%</span>
+                    </div>
+                    <div class="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button class="bg-white p-2.5 rounded-full shadow-md hover:bg-gray-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-5 md:p-6">
+                    <div class="flex items-center mb-2">
+                        <div class="flex text-yellow-400">
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <svg class="w-4 h-4 fill-current text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-gray-500 ml-1">(76)</span>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Produit Premium 3</h3>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-2">Description concise du produit et de ses avantages principaux pour le consommateur.</p>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-2xl font-bold text-primary">64,99 $</span>
+                            <span class="text-sm text-gray-500 line-through ml-2">76,99 $</span>
+                        </div>
+                        <button class="bg-primary hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg transition-colors duration-200 flex items-center add-to-cart" data-product="Produit Premium 3" data-price="64.99">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Call to Action -->
+        <div class="text-center mt-12 md:mt-16">
+            <a href="#" class="inline-flex items-center text-primary font-semibold hover:text-blue-700 transition-colors">
+                Voir toute la collection
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.group:hover .group-hover\:scale-105 {
+    transform: scale(1.05);
+}
+</style>
+
+    <!-- Section Avantages -->
+    <section class="py-20 bg-white" id="avantages">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-heading font-bold text-center mb-4 section-hidden">Pourquoi nous choisir</h2>
+            <p class="text-xl text-center text-gray-600 mb-12 max-w-2xl mx-auto section-hidden">Une expérience d'achat simplifiée, sécurisée et premium</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Avantage 1 -->
+                <div class="text-center p-6 rounded-xl bg-light hover:shadow-lg transition-shadow duration-300 section-hidden">
+                    <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shield-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Paiement sécurisé</h3>
+                    <p class="text-gray-600">Transactions cryptées et protégées avec MonCash et NatCash</p>
+                </div>
+                
+                <!-- Avantage 2 -->
+                <div class="text-center p-6 rounded-xl bg-light hover:shadow-lg transition-shadow duration-300 section-hidden">
+                    <div class="w-16 h-16 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shipping-fast text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Livraison rapide</h3>
+                    <p class="text-gray-600">Recevez vos produits en 24-48h partout en Haïti</p>
+                </div>
+                
+                <!-- Avantage 3 -->
+                <div class="text-center p-6 rounded-xl bg-light hover:shadow-lg transition-shadow duration-300 section-hidden">
+                    <div class="w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-headset text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Support 7j/7</h3>
+                    <p class="text-gray-600">Notre équipe est disponible pour vous aider à tout moment</p>
+                </div>
+                
+                <!-- Avantage 4 -->
+                <div class="text-center p-6 rounded-xl bg-light hover:shadow-lg transition-shadow duration-300 section-hidden">
+                    <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-undo text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Retours faciles</h3>
+                    <p class="text-gray-600">30 jours pour changer d'avis, sans justification</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+  
+
+    <!-- Section FAQ -->
+    <section class="py-20 bg-white" id="faq">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-heading font-bold text-center mb-4 section-hidden">Questions fréquentes</h2>
+            <p class="text-xl text-center text-gray-600 mb-12 max-w-2xl mx-auto section-hidden">Toutes les réponses aux questions que vous pourriez vous poser</p>
+            
+            <div class="max-w-3xl mx-auto">
+                <!-- Question 1 -->
+                <div class="mb-4 border-b border-gray-200 pb-4 section-hidden">
+                    <button class="flex justify-between items-center w-full text-left font-semibold text-lg focus:outline-none faq-toggle">
+                        <span>Comment fonctionne le paiement avec MonCash/NatCash ?</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden faq-content">
+                        <p>Le processus est simple : sélectionnez vos produits, choisissez MonCash ou NatCash à la caisse, suivez les instructions pour effectuer le transfert, puis téléchargez la preuve de paiement. Notre système vérifie automatiquement votre paiement.</p>
+                    </div>
+                </div>
+                
+                <!-- Question 2 -->
+                <div class="mb-4 border-b border-gray-200 pb-4 section-hidden">
+                    <button class="flex justify-between items-center w-full text-left font-semibold text-lg focus:outline-none faq-toggle">
+                        <span>Quels sont les délais de livraison ?</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden faq-content">
+                        <p>Nous livrons partout en Haïti en 24 à 48 heures pour les zones métropolitaines, et 3 à 5 jours pour les zones plus éloignées. Vous recevrez un suivi de commande par SMS dès que votre colis sera en route.</p>
+                    </div>
+                </div>
+                
+                <!-- Question 3 -->
+                <div class="mb-4 border-b border-gray-200 pb-4 section-hidden">
+                    <button class="flex justify-between items-center w-full text-left font-semibold text-lg focus:outline-none faq-toggle">
+                        <span>Puis-je retourner un produit ?</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden faq-content">
+                        <p>Oui, nous acceptons les retours sous 30 jours après réception. Les produits doivent être dans leur état d'origine, non utilisés et dans leur emballage d'origine. Contactez notre service client pour initier un retour.</p>
+                    </div>
+                </div>
+                
+                <!-- Question 4 -->
+                <div class="mb-4 border-b border-gray-200 pb-4 section-hidden">
+                    <button class="flex justify-between items-center w-full text-left font-semibold text-lg focus:outline-none faq-toggle">
+                        <span>Comment contacter le service client ?</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden faq-content">
+                        <p>Notre service client est disponible 7j/7 de 8h à 20h au (+509) 34 00 0000 ou par email à support@Shop.ht. Vous pouvez également utiliser le chat en direct sur notre site web.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Contact
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="text-xl font-heading font-semibold mb-4">Shop</h4>
+                    <p class="text-gray-400">Votre destination pour des produits premium avec des paiements simplifiés via MonCash et NatCash.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-heading font-semibold mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#accueil" class="text-gray-400 hover:text-white transition-colors">Accueil</a></li>
+                        <li><a href="#produits" class="text-gray-400 hover:text-white transition-colors">Produits</a></li>
+                        <li><a href="#avantages" class="text-gray-400 hover:text-white transition-colors">Avantages</a></li>
+                        <li><a href="#temoignages" class="text-gray-400 hover:text-white transition-colors">Témoignages</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-heading font-semibold mb-4">Moyens de paiement</h4>
+                    <div class="flex space-x-2">
+                        <div class="bg-white p-2 rounded">
+                            <span class="text-dark font-bold">MonCash</span>
+                        </div>
+                        <div class="bg-white p-2 rounded">
+                            <span class="text-dark font-bold">NatCash</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-heading font-semibold mb-4">Newsletter</h4>
+                    <p class="text-gray-400 mb-4">Inscrivez-vous pour recevoir nos offres exclusives</p>
+                    <form class="flex">
+                        <input type="email" placeholder="Votre email" class="px-4 py-2 rounded-l-lg w-full text-dark focus:outline-none">
+                        <button type="submit" class="bg-primary px-4 py-2 rounded-r-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400">© 2025 Shop. Tous droits réservés.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">Conditions générales</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">Politique de confidentialité</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Modal Panier -->
+    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 modal" id="cart-modal">
+        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-2xl font-semibold">Votre panier</h3>
+                <button class="text-gray-500 hover:text-dark" id="close-cart-modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6" id="cart-items">
+                <p class="text-gray-500 text-center py-8">Votre panier est vide</p>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-lg font-semibold">Total</span>
+                    <span class="text-2xl font-bold text-primary" id="cart-total">0,00 $</span>
+                </div>
+                
+                <button class="bg-primary text-white w-full py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors" id="checkout-btn">Passer au paiement</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Paiement -->
+    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 modal" id="payment-modal">
+        <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-2xl font-semibold">Paiement sécurisé</h3>
+                <button class="text-gray-500 hover:text-dark" id="close-payment-modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Stepper -->
+                <div class="flex justify-between mb-12 relative">
+                    <div class="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+                    
+                    <div class="flex flex-col items-center relative z-10">
+                        <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold">1</div>
+                        <span class="mt-2 text-sm font-medium">Vérification</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center relative z-10">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-semibold">2</div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">Instructions</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center relative z-10">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-semibold">3</div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">Preuve</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center relative z-10">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-semibold">4</div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">Reçu</span>
+                    </div>
+                </div>
+                
+                <!-- Étape 1: Vérification -->
+                <div id="payment-step-1">
+                    <h4 class="text-xl font-semibold mb-4">Vérifiez votre solde</h4>
+                    <p class="text-gray-600 mb-6">Assurez-vous d'avoir suffisamment de fonds sur votre compte MonCash/NatCash pour effectuer le paiement.</p>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-400 text-xl"></i>
+                            </div>
+                            <div class="ml-3 hidden">
+                                <p class="text-blue-700">Le montant total à payer est de <span class="font-semibold" id="payment-amount">0,00 $</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors next-step" data-next="2">Continuer</button>
+                    </div>
+                </div>
+                
+                <!-- Étape 2: Instructions (cachée par défaut) -->
+                <div id="payment-step-2" class="hidden">
+                    <h4 class="text-xl font-semibold mb-4">Instructions de paiement</h4>
+                    <p class="text-gray-600 mb-6">Effectuez le transfert vers le numéro suivant ou scannez le QR code :</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                        <div>
+                            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                                <p class="text-center text-2xl font-mono font-bold">509 48 00 0000</p>
+                            </div>
+                            <button class="bg-gray-200 text-dark w-full py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center">
+                                <i class="fas fa-copy mr-2"></i> Copier le numéro
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col items-center">
+                            <div class="bg-white p-4 border border-gray-200 rounded-lg mb-4">
+                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22150%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20150%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17befc9b6b8%20text%20%7B%20fill%3A%23999%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17befc9b6b8%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23f8f9fa%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2250%22%20y%3D%2285%22%3EQR%20Code%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" alt="QR Code" class="w-32 h-32 mx-auto">
+                            </div>
+                            <button class="bg-gray-200 text-dark w-full py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center">
+                                <i class="fas fa-download mr-2"></i> Télécharger QR code
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button class="bg-gray-200 text-dark px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors prev-step" data-prev="1">Retour</button>
+                        <button class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors next-step" data-next="3">J'ai effectué le paiement</button>
+                    </div>
+                </div>
+                
+                <!-- Étape 3: Preuve (cachée par défaut) -->
+                <div id="payment-step-3" class="hidden">
+                    <h4 class="text-xl font-semibold mb-4">Téléversez votre preuve de paiement</h4>
+                    <p class="text-gray-600 mb-6">Ajoutez une capture d'écran ou photo de la confirmation de transfert :</p>
+                    
+                    <div class="mb-6">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-500">Glissez-déposez votre fichier ici ou <label for="proof-upload" class="text-primary cursor-pointer">parcourir</label></p>
+                            <input type="file" id="proof-upload" class="hidden">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label for="phone" class="block text-gray-700 mb-2">Numéro de téléphone utilisé</label>
+                            <input type="text" id="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        
+                        <div>
+                            <label for="amount" class="block text-gray-700 mb-2">Montant envoyé</label>
+                            <input type="text" id="amount" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button class="bg-gray-200 text-dark px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors prev-step" data-prev="2">Retour</button>
+                        <button class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors next-step" data-next="4">Valider et continuer</button>
+                    </div>
+                </div>
+                
+                <!-- Étape 4: Reçu (cachée par défaut) -->
+                <div id="payment-step-4" class="hidden">
+                    <h4 class="text-xl font-semibold mb-4">Votre reçu de paiement</h4>
+                    <p class="text-gray-600 mb-6">Votre paiement a été enregistré avec succès. Téléchargez votre reçu :</p>
+                    
+                    <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                        <div class="flex justify-between mb-3">
+                            <span class="text-gray-600">Référence:</span>
+                            <span class="font-mono">#PS2023-04872</span>
+                        </div>
+                        <div class="flex justify-between mb-3">
+                            <span class="text-gray-600">Date:</span>
+                            <span>25 Oct. 2023, 14:32</span>
+                        </div>
+                        <div class="flex justify-between mb-3">
+                            <span class="text-gray-600">Montant:</span>
+                            <span class="font-semibold">149,97 $</span>
+                        </div>
+                        <div class="flex justify-between mb-3">
+                            <span class="text-gray-600">Méthode:</span>
+                            <span>MonCash</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Statut:</span>
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Confirmé</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button class="bg-gray-200 text-dark px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors prev-step" data-prev="3">Retour</button>
+                        <button class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors">Télécharger le reçu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification d'ajout au panier -->
+    <div class="fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 max-w-sm cart-notification z-50" id="cart-notification">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-gray-800 font-medium">Produit ajouté au panier</p>
+                <p class="text-gray-600 text-sm mt-1">Le produit a été ajouté avec succès à votre panier.</p>
+            </div>
+            <button class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500" id="close-cart-notification">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Configuration globale
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialisation des composants
+            initMobileMenu();
+            initScrollAnimations();
+            initCartSystem();
+            initModals();
+            initFAQ();
+            initPaymentStepper();
+        });
+        
+        // Menu mobile
+        function initMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Fermer le menu en cliquant à l'extérieur
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('#mobile-menu') && !event.target.closest('#mobile-menu-button') && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Animations au défilement
+        function initScrollAnimations() {
+            const sections = document.querySelectorAll('.section-hidden');
+            const header = document.getElementById('main-header');
+            
+            // Observer pour les animations des sections
+            const sectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('section-visible');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            });
+            
+            sections.forEach(section => {
+                sectionObserver.observe(section);
+            });
+            
+            // Observer pour le header sticky
+            const headerObserver = new IntersectionObserver(([entry]) => {
+                if (!entry.isIntersecting) {
+                    header.classList.remove('header-hidden');
+                    header.classList.add('shadow-md');
+                } else {
+                    header.classList.add('header-hidden');
+                    header.classList.remove('shadow-md');
+                }
+            }, {
+                threshold: 0,
+                rootMargin: '-100px 0px 0px 0px'
+            });
+            
+            // Observer le premier élément après le header
+            const firstSection = document.querySelector('section');
+            if (firstSection) {
+                headerObserver.observe(firstSection);
+            }
+            
+            // Animation avec Anime.js pour certains éléments
+            const heroTitle = document.querySelector('.animate-fade-in');
+            if (heroTitle) {
+                // Animation déjà gérée par Tailwind, mais on peut ajouter des animations supplémentaires
+            }
+        }
+        
+        // Système de panier
+        function initCartSystem() {
+            let cart = [];
+            const cartCount = document.getElementById('cart-count');
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+            const cartNotification = document.getElementById('cart-notification');
+            const closeCartNotification = document.getElementById('close-cart-notification');
+            
+            // Ajouter au panier
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const product = this.getAttribute('data-product');
+                    const price = parseFloat(this.getAttribute('data-price'));
+                    
+                    // Ajouter au panier
+                    addToCart(product, price);
+                    
+                    // Afficher la notification
+                    showCartNotification();
+                });
+            });
+            
+            // Fonction pour ajouter au panier
+            function addToCart(product, price) {
+                // Vérifier si le produit est déjà dans le panier
+                const existingProduct = cart.find(item => item.product === product);
+                
+                if (existingProduct) {
+                    existingProduct.quantity += 1;
+                } else {
+                    cart.push({
+                        product: product,
+                        price: price,
+                        quantity: 1
+                    });
+                }
+                
+                // Mettre à jour l'interface
+                updateCartUI();
+            }
+            
+            // Mettre à jour l'interface du panier
+            function updateCartUI() {
+                // Mettre à jour le compteur
+                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+                cartCount.textContent = totalItems;
+                
+                // Mettre à jour le total
+                const totalAmount = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+                cartTotal.textContent = totalAmount.toFixed(2) + ' $';
+                
+                // Mettre à jour la liste des produits (si le modal est ouvert)
+                if (cartItems) {
+                    if (cart.length === 0) {
+                        cartItems.innerHTML = '<p class="text-gray-500 text-center py-8">Votre panier est vide</p>';
+                    } else {
+                        cartItems.innerHTML = '';
+                        cart.forEach(item => {
+                            const cartItem = document.createElement('div');
+                            cartItem.className = 'flex justify-between items-center mb-4 pb-4 border-b border-gray-200';
+                            cartItem.innerHTML = `
+                                <div>
+                                    <h4 class="font-semibold">${item.product}</h4>
+                                    <p class="text-gray-600">${item.price.toFixed(2)} $</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <button class="w-8 h-8 bg-gray-200 rounded-l-md decrease-quantity" data-product="${item.product}">-</button>
+                                    <span class="w-10 h-8 bg-gray-100 flex items-center justify-center">${item.quantity}</span>
+                                    <button class="w-8 h-8 bg-gray-200 rounded-r-md increase-quantity" data-product="${item.product}">+</button>
+                                    <button class="ml-4 text-red-500 delete-item" data-product="${item.product}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            `;
+                            cartItems.appendChild(cartItem);
+                        });
+                        
+                        // Ajouter les événements pour les boutons de quantité
+                        document.querySelectorAll('.increase-quantity').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const product = this.getAttribute('data-product');
+                                const item = cart.find(item => item.product === product);
+                                if (item) {
+                                    item.quantity += 1;
+                                    updateCartUI();
+                                }
+                            });
+                        });
+                        
+                        document.querySelectorAll('.decrease-quantity').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const product = this.getAttribute('data-product');
+                                const item = cart.find(item => item.product === product);
+                                if (item) {
+                                    item.quantity -= 1;
+                                    if (item.quantity === 0) {
+                                        cart = cart.filter(i => i.product !== product);
+                                    }
+                                    updateCartUI();
+                                }
+                            });
+                        });
+                        
+                        document.querySelectorAll('.delete-item').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const product = this.getAttribute('data-product');
+                                cart = cart.filter(item => item.product !== product);
+                                updateCartUI();
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Afficher la notification
+            function showCartNotification() {
+                if (cartNotification) {
+                    cartNotification.classList.add('show');
+                    
+                    // Cacher automatiquement après 3 secondes
+                    setTimeout(() => {
+                        cartNotification.classList.remove('show');
+                    }, 3000);
+                }
+            }
+            
+            // Fermer la notification
+            if (closeCartNotification) {
+                closeCartNotification.addEventListener('click', function() {
+                    cartNotification.classList.remove('show');
+                });
+            }
+            
+            // Initialiser l'UI du panier
+            updateCartUI();
+        }
+        
+        // Système de modals
+        function initModals() {
+            const cartModal = document.getElementById('cart-modal');
+            const paymentModal = document.getElementById('payment-modal');
+            const openCartButton = document.querySelector('button[aria-label="Ouvrir le panier"]');
+            const closeCartButton = document.getElementById('close-cart-modal');
+            const closePaymentButton = document.getElementById('close-payment-modal');
+            const checkoutButton = document.getElementById('checkout-btn');
+            const orderNowButton = document.getElementById('order-now-btn');
+            
+            // Ouvrir le modal panier
+            if (openCartButton) {
+                openCartButton.addEventListener('click', function() {
+                    cartModal.classList.add('show');
+                });
+            }
+            
+            // Fermer le modal panier
+            if (closeCartButton) {
+                closeCartButton.addEventListener('click', function() {
+                    cartModal.classList.remove('show');
+                });
+            }
+            
+            // Fermer le modal paiement
+            if (closePaymentButton) {
+                closePaymentButton.addEventListener('click', function() {
+                    paymentModal.classList.remove('show');
+                });
+            }
+            
+            // Ouvrir le modal paiement depuis le panier
+            if (checkoutButton) {
+                checkoutButton.addEventListener('click', function() {
+                    cartModal.classList.remove('show');
+                    setTimeout(() => {
+                        paymentModal.classList.add('show');
+                    }, 300);
+                });
+            }
+            
+            // Ouvrir le modal paiement depuis le bouton "Commander maintenant"
+            if (orderNowButton) {
+                orderNowButton.addEventListener('click', function() {
+                    paymentModal.classList.add('show');
+                });
+            }
+            
+            // Fermer les modals en cliquant à l'extérieur
+            document.addEventListener('click', function(event) {
+                if (event.target === cartModal) {
+                    cartModal.classList.remove('show');
+                }
+                if (event.target === paymentModal) {
+                    paymentModal.classList.remove('show');
+                }
+            });
+            
+            // Fermer les modals avec la touche Échap
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    cartModal.classList.remove('show');
+                    paymentModal.classList.remove('show');
+                }
+            });
+        }
+        
+        // Système FAQ (accordéon)
+        function initFAQ() {
+            const faqToggles = document.querySelectorAll('.faq-toggle');
+            
+            faqToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    // Basculer l'affichage du contenu
+                    content.classList.toggle('hidden');
+                    
+                    // Animer l'icône
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                });
+            });
+        }
+        
+        // Système de stepper de paiement
+        function initPaymentStepper() {
+            const nextSteps = document.querySelectorAll('.next-step');
+            const prevSteps = document.querySelectorAll('.prev-step');
+            
+            nextSteps.forEach(button => {
+                button.addEventListener('click', function() {
+                    const nextStep = this.getAttribute('data-next');
+                    const currentStep = this.closest('[id^="payment-step-"]');
+                    
+                    // Masquer l'étape actuelle
+                    currentStep.classList.add('hidden');
+                    
+                    // Afficher l'étape suivante
+                    document.getElementById(`payment-step-${nextStep}`).classList.remove('hidden');
+                    
+                    // Mettre à jour le stepper
+                    updateStepper(nextStep);
+                });
+            });
+            
+            prevSteps.forEach(button => {
+                button.addEventListener('click', function() {
+                    const prevStep = this.getAttribute('data-prev');
+                    const currentStep = this.closest('[id^="payment-step-"]');
+                    
+                    // Masquer l'étape actuelle
+                    currentStep.classList.add('hidden');
+                    
+                    // Afficher l'étape précédente
+                    document.getElementById(`payment-step-${prevStep}`).classList.remove('hidden');
+                    
+                    // Mettre à jour le stepper
+                    updateStepper(prevStep);
+                });
+            });
+            
+            function updateStepper(activeStep) {
+                const steps = document.querySelectorAll('.flex.flex-col.items-center.relative.z-10');
+                
+                steps.forEach((step, index) => {
+                    const number = step.querySelector('div');
+                    const text = step.querySelector('span');
+                    
+                    if (index < activeStep - 1) {
+                        // Étapes complétées
+                        number.classList.remove('bg-gray-200', 'text-gray-500');
+                        number.classList.add('bg-primary', 'text-white');
+                        text.classList.remove('text-gray-500');
+                    } else if (index == activeStep - 1) {
+                        // Étape active
+                        number.classList.remove('bg-gray-200', 'text-gray-500');
+                        number.classList.add('bg-primary', 'text-white');
+                        text.classList.remove('text-gray-500');
+                    } else {
+                        // Étapes futures
+                        number.classList.remove('bg-primary', 'text-white');
+                        number.classList.add('bg-gray-200', 'text-gray-500');
+                        text.classList.add('text-gray-500');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
