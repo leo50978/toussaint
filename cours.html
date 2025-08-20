@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitch web studio Marketing - Cours Premium</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Anime.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <style>
+        /* Styles personnalisés */
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            overflow-x: hidden;
+            background-color: var(--light);
+        }
+        
+        /* Animation d'ouverture */
+        .opening-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--dark) 0%, #111827 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .opening-text {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @media (max-width: 768px) {
+            .opening-text {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animation des sections */
+        .section-hidden {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s;
+        }
+        
+        .section-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Effets de survol sur les cartes de cours */
+        .course-card {
+            transition: all 0.3s ease;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Animation du bouton CTA */
+        .cta-button {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .cta-button:hover::after {
+            left: 100%;
+        }
+        
+        /* Animation de la barre de progression */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+        
+        /* Animation des icônes de bénéfices */
+        .benefit-icon {
+            transition: all 0.5s ease;
+        }
+        
+        .benefit-item:hover .benefit-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        /* Animation du formulaire */
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Animation du footer */
+        .social-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Barre de progression -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Écran d'ouverture -->
+    <div class="opening-screen" id="openingScreen">
+        <div class="opening-content">
+            <h1 class="opening-text font-serif">Cours Marketing</h1>
+            <button class="skip-button absolute top-6 right-6 bg-white bg-opacity-10 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm" id="skipButton">
+                Skip <i class="ml-1 fas fa-forward"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed bottom-4 left-0 right-0 z-50 md:relative md:top-0 md:bg-white md:shadow-sm" id="navbar">
+        <div class="container mx-auto px-4">
+            <div class="bg-white rounded-xl shadow-lg p-2 flex justify-between items-center md:bg-transparent md:shadow-none md:rounded-none">
+                <div class="hidden md:block">
+                    <h2 class="text-xl font-bold text-primary">Vitch web studio </h2>
+                </div>
+                
+                <div class="flex w-full justify-between md:justify-end md:space-x-10">
+                    <a href="#hero" class="nav-item flex flex-col items-center text-xs md:flex-row md:text-base">
+                        <i class="fas fa-home text-primary mb-1 md:mr-2 md:mb-0"></i>
+                        <span>Accueil</span>
+                    </a>
+                    <a href="#courses" class="nav-item flex flex-col items-center text-xs md:flex-row md:text-base">
+                        <i class="fas fa-shopping-cart text-gray-500 mb-1 md:mr-2 md:mb-0"></i>
+                        <span>Payer</span>
+                    </a>
+                    <a href="#contact" class="nav-item flex flex-col items-center text-xs md:flex-row md:text-base">
+                        <i class="fas fa-envelope text-gray-500 mb-1 md:mr-2 md:mb-0"></i>
+                        <span>Contact</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="min-h-screen flex items-center pt-20 pb-32 md:pt-32">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="w-full md:w-1/2 mb-10 md:mb-0 section-hidden">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-6">Vitch web studio <span class="text-primary">Marketing</span></h1>
+                    <p class="text-lg text-gray-600 mb-6">Apprenez les stratégies marketing les plus avancées des meilleurs experts du secteur.</p>
+                    
+                    <div class="flex items-center mb-8">
+                        <div class="flex -space-x-3 mr-4">
+                            <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-200"></div>
+                            <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-300"></div>
+                            <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-xs text-white">+998</div>
+                        </div>
+                        <p class="text-gray-600"><span class="font-semibold">+1000 étudiants</span> déjà inscrits</p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <button class="cta-button bg-primary text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:bg-primary-dark transition duration-300">
+                            Commencer le cours
+                        </button>
+                        <button class="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition duration-300">
+                            Voir le programme
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="w-full md:w-1/2 section-hidden">
+                    <div class="relative">
+                        <div class="bg-primary h-80 w-80 rounded-full absolute -z-10 top-10 right-10 opacity-10"></div>
+                        <div class="bg-secondary h-64 w-64 rounded-full absolute -z-10 bottom-10 left-10 opacity-10"></div>
+                        
+                        <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+                            <div class="bg-gradient-to-br from-blue-100 to-green-100 h-96 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="w-32 h-32 rounded-full bg-gray-200 mx-auto mb-6 overflow-hidden">
+                                        <!-- Placeholder pour l'image du professeur -->
+                                        <div class="w-full h-full bg-gray-300 flex items-center justify-center">
+                                             <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                             alt="Notre histoire" 
+                             class="absolute inset-0 w-full h-full object-cover rounded-xl shadow-lg">
+                                        </div>
+                                    </div>
+                                    <h3 class="text-xl font-bold">Dr. Sophie Martin</h3>
+                                    <p class="text-gray-600">Expert en Marketing Digital</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Cours -->
+    <section id="courses" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-serif font-bold text-center mb-16 section-hidden">Nos Cours</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Cours 1 -->
+                <div class="course-card bg-white rounded-2xl overflow-hidden shadow-md section-hidden">
+                    <div class="h-48 bg-gradient-to-r from-blue-400 to-blue-600 relative overflow-hidden">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-play-circle text-white text-5xl opacity-80"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Stratégies de Marque</h3>
+                        <p class="text-gray-600 mb-4">Découvrez comment construire une marque forte et reconnaissable en 10 étapes simples.</p>
+                        <button class="text-primary font-semibold flex items-center">
+                            Voir plus <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cours 2 -->
+                <div class="course-card bg-white rounded-2xl overflow-hidden shadow-md section-hidden">
+                    <div class="h-48 bg-gradient-to-r from-green-400 to-green-600 relative overflow-hidden">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-play-circle text-white text-5xl opacity-80"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Marketing Digital</h3>
+                        <p class="text-gray-600 mb-4">Maîtrisez les canaux digitaux pour maximiser votre visibilité en ligne et vos conversions.</p>
+                        <button class="text-primary font-semibold flex items-center">
+                            Voir plus <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cours 3 -->
+                <div class="course-card bg-white rounded-2xl overflow-hidden shadow-md section-hidden">
+                    <div class="h-48 bg-gradient-to-r from-purple-400 to-purple-600 relative overflow-hidden">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-play-circle text-white text-5xl opacity-80"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Analytics & Data</h3>
+                        <p class="text-gray-600 mb-4">Apprenez à analyser les données pour prendre des décisions marketing éclairées.</p>
+                        <button class="text-primary font-semibold flex items-center">
+                            Voir plus <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12 section-hidden">
+                <button class="bg-white text-primary border border-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary hover:text-white transition duration-300">
+                    Voir tous les cours
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Bienfaits -->
+    <section id="benefits" class="py-20">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-serif font-bold text-center mb-16 section-hidden">Pourquoi ce cours ?</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Bénéfice 1 -->
+                <div class="benefit-item text-center p-6 section-hidden">
+                    <div class="benefit-icon w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-gem text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Compétences concrètes</h3>
+                    <p class="text-gray-600">Acquérez des compétences applicables immédiatement dans le monde professionnel.</p>
+                </div>
+                
+                <!-- Bénéfice 2 -->
+                <div class="benefit-item text-center p-6 section-hidden">
+                    <div class="benefit-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hand-holding-usd text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Approche pratique</h3>
+                    <p class="text-gray-600">Apprentissage basé sur des études de cas réels et des projets concrets.</p>
+                </div>
+                
+                <!-- Bénéfice 3 -->
+                <div class="benefit-item text-center p-6 section-hidden">
+                    <div class="benefit-icon w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clock text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Accès flexible</h3>
+                    <p class="text-gray-600">Apprenez à votre rythme, où que vous soyez, avec un accès à vie au contenu.</p>
+                </div>
+                
+                <!-- Bénéfice 4 -->
+                <div class="benefit-item text-center p-6 section-hidden">
+                    <div class="benefit-icon w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-headset text-yellow-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Support dédié</h3>
+                    <p class="text-gray-600">Bénéficiez d'un accompagnement personnalisé par nos experts tout au long de votre formation.</p>
+                </div>
+            </div>
+            
+            <!-- Statistiques -->
+            <div class="mt-20 bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-white text-center section-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">95%</div>
+                        <p>de satisfaction</p>
+                    </div>
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">1000+</div>
+                        <p>étudiants inscrits</p>
+                    </div>
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">24h</div>
+                        <p>support réponse</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Contact -->
+    <section id="contact" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-serif font-bold text-center mb-16 section-hidden">Contactez-nous</h2>
+            
+            <div class="flex flex-col md:flex-row">
+                <div class="w-full md:w-1/2 md:pr-8 mb-10 md:mb-0 section-hidden">
+                    <form class="bg-white rounded-2xl p-8 shadow-md">
+                        <div class="mb-6">
+                            <label for="name" class="block text-gray-700 mb-2">Nom complet</label>
+                            <input type="text" id="name" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="email" class="block text-gray-700 mb-2">Adresse email</label>
+                            <input type="email" id="email" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="message" class="block text-gray-700 mb-2">Message</label>
+                            <textarea id="message" rows="5" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="cta-button bg-primary text-white px-8 py-4 rounded-lg font-semibold text-lg w-full hover:bg-primary-dark transition duration-300">
+                            Envoyer
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="w-full md:w-1/2 md:pl-8 section-hidden">
+                    <div class="bg-white rounded-2xl p-8 shadow-md h-full">
+                        <h3 class="text-xl font-bold mb-6">Informations de contact</h3>
+                        
+                        <div class="flex items-start mb-6">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Adresse</h4>
+                                <p class="text-gray-600">P-A-P</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start mb-6">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-phone text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Téléphone</h4>
+                                <p class="text-gray-600">+509 0000-0000</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start mb-6">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-envelope text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Email</h4>
+                                <p class="text-gray-600">contact@Vitch web studio.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-10">
+                            <h4 class="font-semibold mb-4">Questions fréquentes</h4>
+                            <div class="space-y-3">
+                                <div class="border-l-4 border-primary pl-4 py-1">
+                                    <p class="font-medium">Quand puis-je commencer le cours ?</p>
+                                    <p class="text-gray-600 text-sm">Immédiatement après votre inscription !</p>
+                                </div>
+                                <div class="border-l-4 border-primary pl-4 py-1">
+                                    <p class="font-medium">Y a-t-il un remboursement ?</p>
+                                    <p class="text-gray-600 text-sm">Oui, dans les 30 jours sans condition.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section CTA -->
+    <section id="cta" class="py-20 bg-gradient-to-r from-primary to-secondary">
+        <div class="container mx-auto px-4 text-center text-white section-hidden">
+            <h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">Prêt à commencer ?</h2>
+            <p class="text-xl opacity-90 mb-10 max-w-2xl mx-auto">Rejoignez notre cours dès maintenant et transformez votre carrière dans le marketing digital !</p>
+            
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <button class="cta-button bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:bg-gray-100 transition duration-300">
+                    S'inscrire maintenant
+                </button>
+                <button class="border border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:bg-opacity-10 transition duration-300">
+                    Demander un essai gratuit
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-xl font-serif font-bold mb-4">Vitch web studio </h3>
+                    <p class="text-gray-400">Formations marketing d'exception pour professionnels ambitieux.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#hero" class text-gray-400 hover:text-white transition">Accueil</a></li>
+                        <li><a href="#courses" class text-gray-400 hover:text-white transition">Cours</a></li>
+                        <li><a href="#contact" class text-gray-400 hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Ressources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class text-gray-400 hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class text-gray-400 hover:text-white transition">Tutoriels</a></li>
+                        <li><a href="#" class text-gray-400 hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Suivez-nous</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="social-icon w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">© 2025 Vitch web studio  . Tous droits réservés.</p>
+                <div class="mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm mr-4">Mentions légales</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm">Politique de confidentialité</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bouton scroll to top -->
+        <button id="scrollToTop" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </footer>
+
+    <script>
+        // Animation d'ouverture
+        document.addEventListener('DOMContentLoaded', function() {
+            const openingScreen = document.getElementById('openingScreen');
+            const openingText = document.querySelector('.opening-text');
+            const skipButton = document.getElementById('skipButton');
+            let skipped = false;
+            
+            // Animation d'entrée
+            anime({
+                targets: openingText,
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 1500,
+                easing: 'easeOutQuad'
+            });
+            
+            // Animation de pulsation
+            setInterval(() => {
+                if (!skipped) {
+                    anime({
+                        targets: openingText,
+                        scale: [1, 1.05, 1],
+                        duration: 2000,
+                        easing: 'easeInOutQuad'
+                    });
+                }
+            }, 2500);
+            
+            // Skip de l'animation
+            skipButton.addEventListener('click', function() {
+                skipped = true;
+                anime({
+                    targets: openingScreen,
+                    opacity: [1, 0],
+                    duration: 800,
+                    easing: 'easeInOutQuad',
+                    complete: function() {
+                        openingScreen.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            });
+            
+            // Disparition automatique après 5 secondes
+            setTimeout(function() {
+                if (!skipped) {
+                    anime({
+                        targets: openingScreen,
+                        opacity: [1, 0],
+                        duration: 800,
+                        easing: 'easeInOutQuad',
+                        complete: function() {
+                            openingScreen.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        }
+                    });
+                }
+            }, 5000);
+            
+            // Barre de progression
+            window.addEventListener('scroll', function() {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                document.getElementById('progressBar').style.width = scrolled + '%';
+                
+                // Afficher/masquer le bouton scroll to top
+                const scrollToTopBtn = document.getElementById('scrollToTop');
+                if (winScroll > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'invisible');
+                    scrollToTopBtn.classList.add('opacity-100', 'visible');
+                } else {
+                    scrollToTopBtn.classList.remove('opacity-100', 'visible');
+                    scrollToTopBtn.classList.add('opacity-0', 'invisible');
+                }
+            });
+            
+            // Scroll to top
+            document.getElementById('scrollToTop').addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Animation au scroll des sections
+            const sections = document.querySelectorAll('.section-hidden');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('section-visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Animation des éléments de la navbar
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetSection.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Mise à jour de l'icône active
+                    navItems.forEach(navItem => {
+                        navItem.querySelector('i').classList.remove('text-primary');
+                        navItem.querySelector('i').classList.add('text-gray-500');
+                    });
+                    
+                    this.querySelector('i').classList.remove('text-gray-500');
+                    this.querySelector('i').classList.add('text-primary');
+                });
+            });
+            
+            // Animation des chiffres statistiques
+            const statsSection = document.querySelector('#benefits .rounded-2xl');
+            const statsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const stats = document.querySelectorAll('#benefits .text-4xl');
+                        
+                        stats.forEach(stat => {
+                            const target = parseInt(stat.textContent);
+                            let current = 0;
+                            const increment = Math.ceil(target / 50);
+                            
+                            const timer = setInterval(() => {
+                                current += increment;
+                                if (current >= target) {
+                                    stat.textContent = target + (stat.textContent.includes('%') ? '%' : '');
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = current + (stat.textContent.includes('%') ? '%' : '');
+                                }
+                            }, 30);
+                        });
+                        
+                        statsObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            if (statsSection) {
+                statsObserver.observe(statsSection);
+            }
+        });
+    </script>
+</body>
+</html>
