@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Financière</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF et SheetJS (pour l'exportation) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            padding-bottom: 80px; /* Pour éviter que le contenu soit caché par la navbar fixe */
+        }
+        .active-tab {
+            color: #3b82f6;
+            transform: scale(1.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Section principale dynamique -->
+        <div id="main-content">
+            <!-- Le contenu sera chargé ici dynamiquement -->
+        </div>
+    </div>
+
+    <!-- Navbar fixe en bas -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4 flex justify-around items-center">
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="dashboard">
+            <i class="fas fa-chart-pie text-2xl"></i>
+            <span class="text-xs mt-1">Tableau de bord</span>
+        </button>
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="revenues">
+            <i class="fas fa-money-bill-wave text-2xl"></i>
+            <span class="text-xs mt-1">Revenus</span>
+        </button>
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="expenses">
+            <i class="fas fa-credit-card text-2xl"></i>
+            <span class="text-xs mt-1">Dépenses</span>
+        </button>
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="reports">
+            <i class="fas fa-file-export text-2xl"></i>
+            <span class="text-xs mt-1">Rapports</span>
+        </button>
+    </nav>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyANd0tZl-6P6l84ab-FSRIX9ISPd_YCe6I",
+            authDomain: "cpieo-99bd5.firebaseapp.com",
+            projectId: "cpieo-99bd5",
+            storageBucket: "cpieo-99bd5.firebasestorage.app",
+            messagingSenderId: "405125968337",
+            appId: "1:405125968337:web:7d5f74b710cc23b84270f0"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Variables globales
+        let currentTab = 'dashboard';
+        let revenuesChart = null;
+        let expensesChart = null;
+        let dashboardChart = null;
+
+        // Types de revenus et catégories de dépenses
+        const revenueTypes = ['jeu', 'snack', 'abonnement', 'événement'];
+        const expenseCategories = ['salaires', 'maintenance', 'marketing', 'fournitures', 'loyer', 'autres'];
+
+        // Initialiser l'application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser les écouteurs d'événements
+            initEventListeners();
+            
+            // Charger le tableau de bord par défaut
+            loadTab('dashboard');
+        });
+
+        // Initialiser les écouteurs d'événements
+        function initEventListeners() {
+            // Navigation
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tab = this.getAttribute('data-tab');
+                    loadTab(tab);
+                });
+            });
+
+            // Déléguation d'événements pour les formulaires dynamiques
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('#add-revenue-btn')) {
+                    e.preventDefault();
+                    addRevenue();
+                }
+                
+                if (e.target.matches('#add-expense-btn')) {
+                    e.preventDefault();
+                    addExpense();
+                }
+
+                if (e.target.matches('.export-pdf')) {
+                    e.preventDefault();
+                    exportToPDF();
+                }
+
+                if (e.target.matches('.export-excel')) {
+                    e.preventDefault();
+                    exportToExcel();
+                }
+
+                if (e.target.matches('.export-word')) {
+                    e.preventDefault();
+                    exportToWord();
+                }
+            });
+        }
+
+        // Charger l'onglet sélectionné
+        function loadTab(tabName) {
+            currentTab = tabName;
+            
+            // Mettre à jour l'onglet actif
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.classList.add('active-tab');
+                } else {
+                    btn.classList.remove('active-tab');
+                }
+            });
+
+            // Charger le contenu approprié
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'revenues':
+                    loadRevenues();
+                    break;
+                case 'expenses':
+                    loadExpenses();
+                    break;
+                case 'reports':
+                    loadReports();
+                    break;
+            }
+        }
+
+        // Charger le tableau de bord
+        async function loadDashboard() {
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            try {
+                // Récupérer les revenus du jour
+                const revenuesSnapshot = await db.collection('revenues')
+                    .where('date', '==', todayStr)
+                    .get();
+                
+                let totalRevenues = 0;
+                revenuesSnapshot.forEach(doc => {
+                    totalRevenues += parseFloat(doc.data().montant);
+                });
+
+                // Récupérer les dépenses du jour
+                const expensesSnapshot = await db.collection('expenses')
+                    .where('date', '==', todayStr)
+                    .get();
+                
+                let totalExpenses = 0;
+                expensesSnapshot.forEach(doc => {
+                    totalExpenses += parseFloat(doc.data().montant);
+                });
+
+                const netProfit = totalRevenues - totalExpenses;
+
+                // Afficher les données
+                const content = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Tableau de bord - ${todayStr}</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h3 class="text-lg font-semibold text-green-800">Revenus</h3>
+                                <p class="text-2xl font-bold text-green-600">${totalRevenues.toFixed(2)} GDS</p>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                                <h3 class="text-lg font-semibold text-red-800">Dépenses</h3>
+                                <p class="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)} GDS</p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h3 class="text-lg font-semibold text-blue-800">Bénéfice net</h3>
+                                <p class="text-2xl font-bold ${netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}">${netProfit.toFixed(2)} GDS</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4">Revenus vs Dépenses</h3>
+                            <div class="chart-container">
+                                <canvas id="dashboard-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Alertes</h3>
+                                <div class="space-y-3">
+                                    ${totalExpenses > 500 ? `
+                                        <div class="bg-red-50 p-3 rounded-lg border border-red-200 flex items-start">
+                                            <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+                                            <p class="text-red-700">Vos dépenses dépassent le seuil de 500GDS aujourd'hui.</p>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${totalRevenues < 300 ? `
+                                        <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex items-start">
+                                            <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
+                                            <p class="text-yellow-700">Vos revenus sont inférieurs à la moyenne quotidienne.</p>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${netProfit < 0 ? `
+                                        <div class="bg-red-50 p-3 rounded-lg border border-red-200 flex items-start">
+                                            <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                                            <p class="text-red-700">Vous êtes en perte aujourd'hui.</p>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${!totalRevenues && !totalExpenses ? `
+                                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                            <p class="text-blue-700">Aucune donnée enregistrée aujourd'hui.</p>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Dernières transactions</h3>
+                                <div class="space-y-3">
+                                    ${await getRecentTransactions()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('main-content').innerHTML = content;
+                
+                // Créer le graphique
+                createDashboardChart(totalRevenues, totalExpenses);
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement du tableau de bord:", error);
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Tableau de bord</h2>
+                        <p class="text-red-500">Erreur lors du chargement des données: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Créer le graphique du tableau de bord
+        function createDashboardChart(revenues, expenses) {
+            const ctx = document.getElementById('dashboard-chart').getContext('2d');
+            
+            if (dashboardChart) {
+                dashboardChart.destroy();
+            }
+            
+            dashboardChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Revenus', 'Dépenses'],
+                    datasets: [{
+                        label: 'Montant (GDS)',
+                        data: [revenues, expenses],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Obtenir les transactions récentes
+        async function getRecentTransactions() {
+            try {
+                // Récupérer les 5 dernières revenus
+                const revenuesSnapshot = await db.collection('revenues')
+                    .orderBy('date', 'desc')
+                    .limit(3)
+                    .get();
+                
+                // Récupérer les 5 dernières dépenses
+                const expensesSnapshot = await db.collection('expenses')
+                    .orderBy('date', 'desc')
+                    .limit(2)
+                    .get();
+                
+                let transactions = [];
+                
+                revenuesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    transactions.push({
+                        type: 'revenue',
+                        montant: data.montant,
+                        description: data.type,
+                        date: data.date
+                    });
+                });
+                
+                expensesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    transactions.push({
+                        type: 'expense',
+                        montant: data.montant,
+                        description: data.categorie,
+                        date: data.date
+                    });
+                });
+                
+                // Trier par date (plus récent en premier)
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Générer le HTML
+                if (transactions.length === 0) {
+                    return '<p class="text-gray-500">Aucune transaction récente.</p>';
+                }
+                
+                return transactions.map(transaction => `
+                    <div class="flex justify-between items-center p-3 border-b">
+                        <div>
+                            <p class="font-medium">${transaction.description}</p>
+                            <p class="text-sm text-gray-500">${transaction.date}</p>
+                        </div>
+                        <span class="${transaction.type === 'revenue' ? 'text-green-600' : 'text-red-600'} font-semibold">
+                            ${transaction.type === 'revenue' ? '+' : '-'}${transaction.montant} GDS
+                        </span>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error("Erreur lors de la récupération des transactions:", error);
+                return '<p class="text-red-500">Erreur lors du chargement des transactions.</p>';
+            }
+        }
+
+        // Charger la section des revenus
+        async function loadRevenues() {
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            try {
+                // Récupérer les revenus du jour
+                const revenuesSnapshot = await db.collection('revenues')
+                    .where('date', '==', todayStr)
+                    .get();
+                
+                let revenues = [];
+                let totalRevenues = 0;
+                
+                revenuesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    revenues.push({
+                        id: doc.id,
+                        ...data
+                    });
+                    totalRevenues += parseFloat(data.montant);
+                });
+                
+                // Afficher les données
+                const content = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des revenus - ${todayStr}</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Ajouter un revenu</h3>
+                                <form id="revenue-form" class="space-y-4">
+                                    <div>
+                                        <label for="revenue-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
+                                        <input type="number" step="0.01" id="revenue-amount" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="revenue-type" class="block text-sm font-medium text-gray-700">Type</label>
+                                        <select id="revenue-type" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez un type</option>
+                                            ${revenueTypes.map(type => `
+                                                <option value="${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="revenue-date" class="block text-sm font-medium text-gray-700">Date</label>
+                                        <input type="date" id="revenue-date" value="${todayStr}" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <button type="submit" id="add-revenue-btn" 
+                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Ajouter le revenu
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Revenus du jour</h3>
+                                <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                    <p class="text-lg font-semibold text-blue-800">Total: ${totalRevenues.toFixed(2)} GDS</p>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-medium mb-2">Liste des revenus</h4>
+                                    <div class="max-h-60 overflow-y-auto">
+                                        ${revenues.length > 0 ? 
+                                            revenues.map(revenue => `
+                                                <div class="flex justify-between items-center p-3 border-b">
+                                                    <div>
+                                                        <p class="font-medium">${revenue.type}</p>
+                                                        <p class="text-sm text-gray-500">${revenue.date}</p>
+                                                    </div>
+                                                    <span class="text-green-600 font-semibold">+${revenue.montant} GDS</span>
+                                                </div>
+                                            `).join('') : 
+                                            '<p class="text-gray-500 p-3">Aucun revenu enregistré aujourd\'hui.</p>'
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-2">Répartition par type</h4>
+                                    <div class="chart-container">
+                                        <canvas id="revenues-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('main-content').innerHTML = content;
+                
+                // Créer le graphique des revenus
+                createRevenuesChart(revenues);
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des revenus:", error);
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des revenus</h2>
+                        <p class="text-red-500">Erreur lors du chargement des données: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Créer le graphique des revenus par type
+        function createRevenuesChart(revenues) {
+            const ctx = document.getElementById('revenues-chart').getContext('2d');
+            
+            if (revenuesChart) {
+                revenuesChart.destroy();
+            }
+            
+            // Calculer le total par type
+            const revenueByType = {};
+            revenueTypes.forEach(type => {
+                revenueByType[type] = 0;
+            });
+            
+            revenues.forEach(revenue => {
+                if (revenueByType.hasOwnProperty(revenue.type)) {
+                    revenueByType[revenue.type] += parseFloat(revenue.montant);
+                }
+            });
+            
+            // Filtrer les types sans revenus
+            const labels = [];
+            const data = [];
+            const backgroundColors = [
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)'
+            ];
+            
+            let colorIndex = 0;
+            for (const type in revenueByType) {
+                if (revenueByType[type] > 0) {
+                    labels.push(type.charAt(0).toUpperCase() + type.slice(1));
+                    data.push(revenueByType[type]);
+                    colorIndex = (colorIndex + 1) % backgroundColors.length;
+                }
+            }
+            
+            // Si aucun revenu, afficher un message
+            if (data.length === 0) {
+                document.getElementById('revenues-chart').parentElement.innerHTML = 
+                    '<p class="text-gray-500 text-center p-4">Aucune donnée à afficher.</p>';
+                return;
+            }
+            
+            revenuesChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Ajouter un revenu
+        async function addRevenue() {
+            const amount = document.getElementById('revenue-amount').value;
+            const type = document.getElementById('revenue-type').value;
+            const date = document.getElementById('revenue-date').value;
+            
+            if (!amount || !type || !date) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            
+            try {
+                await db.collection('revenues').add({
+                    montant: parseFloat(amount),
+                    type: type,
+                    date: date
+                });
+                
+                // Réinitialiser le formulaire
+                document.getElementById('revenue-amount').value = '';
+                document.getElementById('revenue-type').value = '';
+                
+                // Recharger les données
+                loadRevenues();
+                
+            } catch (error) {
+                console.error("Erreur lors de l'ajout du revenu:", error);
+                alert("Erreur lors de l'ajout du revenu: " + error.message);
+            }
+        }
+
+        // Charger la section des dépenses
+        async function loadExpenses() {
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            try {
+                // Récupérer les dépenses du jour
+                const expensesSnapshot = await db.collection('expenses')
+                    .where('date', '==', todayStr)
+                    .get();
+                
+                let expenses = [];
+                let totalExpenses = 0;
+                
+                expensesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    expenses.push({
+                        id: doc.id,
+                        ...data
+                    });
+                    totalExpenses += parseFloat(data.montant);
+                });
+                
+                // Afficher les données
+                const content = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des dépenses - ${todayStr}</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Ajouter une dépense</h3>
+                                <form id="expense-form" class="space-y-4">
+                                    <div>
+                                        <label for="expense-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
+                                        <input type="number" step="0.01" id="expense-amount" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="expense-category" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                                        <select id="expense-category" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez une catégorie</option>
+                                            ${expenseCategories.map(category => `
+                                                <option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="expense-date" class="block text-sm font-medium text-gray-700">Date</label>
+                                        <input type="date" id="expense-date" value="${todayStr}" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <button type="submit" id="add-expense-btn" 
+                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Ajouter la dépense
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Dépenses du jour</h3>
+                                <div class="bg-red-50 p-4 rounded-lg mb-4">
+                                    <p class="text-lg font-semibold text-red-800">Total: ${totalExpenses.toFixed(2)} GDS</p>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-medium mb-2">Liste des dépenses</h4>
+                                    <div class="max-h-60 overflow-y-auto">
+                                        ${expenses.length > 0 ? 
+                                            expenses.map(expense => `
+                                                <div class="flex justify-between items-center p-3 border-b">
+                                                    <div>
+                                                        <p class="font-medium">${expense.categorie}</p>
+                                                        <p class="text-sm text-gray-500">${expense.date}</p>
+                                                    </div>
+                                                    <span class="text-red-600 font-semibold">-${expense.montant} GDS</span>
+                                                </div>
+                                            `).join('') : 
+                                            '<p class="text-gray-500 p-3">Aucune dépense enregistrée aujourd\'hui.</p>'
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-2">Répartition par catégorie</h4>
+                                    <div class="chart-container">
+                                        <canvas id="expenses-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('main-content').innerHTML = content;
+                
+                // Créer le graphique des dépenses
+                createExpensesChart(expenses);
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des dépenses:", error);
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des dépenses</h2>
+                        <p class="text-red-500">Erreur lors du chargement des données: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Créer le graphique des dépenses par catégorie
+        function createExpensesChart(expenses) {
+            const ctx = document.getElementById('expenses-chart').getContext('2d');
+            
+            if (expensesChart) {
+                expensesChart.destroy();
+            }
+            
+            // Calculer le total par catégorie
+            const expenseByCategory = {};
+            expenseCategories.forEach(category => {
+                expenseByCategory[category] = 0;
+            });
+            
+            expenses.forEach(expense => {
+                if (expenseByCategory.hasOwnProperty(expense.categorie)) {
+                    expenseByCategory[expense.categorie] += parseFloat(expense.montant);
+                }
+            });
+            
+            // Filtrer les catégories sans dépenses
+            const labels = [];
+            const data = [];
+            const backgroundColors = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(255, 205, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+            ];
+            
+            let colorIndex = 0;
+            for (const category in expenseByCategory) {
+                if (expenseByCategory[category] > 0) {
+                    labels.push(category.charAt(0).toUpperCase() + category.slice(1));
+                    data.push(expenseByCategory[category]);
+                    colorIndex = (colorIndex + 1) % backgroundColors.length;
+                }
+            }
+            
+            // Si aucune dépense, afficher un message
+            if (data.length === 0) {
+                document.getElementById('expenses-chart').parentElement.innerHTML = 
+                    '<p class="text-gray-500 text-center p-4">Aucune donnée à afficher.</p>';
+                return;
+            }
+            
+            expensesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Ajouter une dépense
+        async function addExpense() {
+            const amount = document.getElementById('expense-amount').value;
+            const category = document.getElementById('expense-category').value;
+            const date = document.getElementById('expense-date').value;
+            
+            if (!amount || !category || !date) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            
+            try {
+                await db.collection('expenses').add({
+                    montant: parseFloat(amount),
+                    categorie: category,
+                    date: date
+                });
+                
+                // Réinitialiser le formulaire
+                document.getElementById('expense-amount').value = '';
+                document.getElementById('expense-category').value = '';
+                
+                // Recharger les données
+                loadExpenses();
+                
+            } catch (error) {
+                console.error("Erreur lors de l'ajout de la dépense:", error);
+                alert("Erreur lors de l'ajout de la dépense: " + error.message);
+            }
+        }
+
+        // Charger la section des rapports
+        async function loadReports() {
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            // Définir la date de début de la semaine (lundi)
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+            const startOfWeekStr = formatDate(startOfWeek);
+            
+            // Définir la date de début du mois
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const startOfMonthStr = formatDate(startOfMonth);
+            
+            const content = `
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold mb-6">Rapports et exportations</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div class="border rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-2">Journalier</h3>
+                            <p class="text-gray-600 mb-4">Export des données du: ${todayStr}</p>
+                            <div class="space-y-2">
+                                <button class="export-pdf w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700" data-period="day">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF
+                                </button>
+                                <button class="export-excel w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700" data-period="day">
+                                    <i class="fas fa-file-excel mr-2"></i>Excel
+                                </button>
+                                <button class="export-word w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700" data-period="day">
+                                    <i class="fas fa-file-word mr-2"></i>Word
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="border rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-2">Hebdomadaire</h3>
+                            <p class="text-gray-600 mb-4">Du ${startOfWeekStr} au ${todayStr}</p>
+                            <div class="space-y-2">
+                                <button class="export-pdf w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700" data-period="week">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF
+                                </button>
+                                <button class="export-excel w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700" data-period="week">
+                                    <i class="fas fa-file-excel mr-2"></i>Excel
+                                </button>
+                                <button class="export-word w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700" data-period="week">
+                                    <i class="fas fa-file-word mr-2"></i>Word
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="border rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-2">Mensuel</h3>
+                            <p class="text-gray-600 mb-4">Du ${startOfMonthStr} au ${todayStr}</p>
+                            <div class="space-y-2">
+                                <button class="export-pdf w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700" data-period="month">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF
+                                </button>
+                                <button class="export-excel w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700" data-period="month">
+                                    <i class="fas fa-file-excel mr-2"></i>Excel
+                                </button>
+                                <button class="export-word w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700" data-period="month">
+                                    <i class="fas fa-file-word mr-2"></i>Word
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Comparaisons</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="text-lg font-medium mb-2">Revenus par période</h4>
+                                <div class="chart-container">
+                                    <canvas id="revenue-comparison-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="text-lg font-medium mb-2">Dépenses par période</h4>
+                                <div class="chart-container">
+                                    <canvas id="expense-comparison-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('main-content').innerHTML = content;
+            
+            // Charger les données de comparaison
+            loadComparisonData();
+        }
+
+        // Charger les données de comparaison pour les graphiques
+        async function loadComparisonData() {
+            try {
+                const today = new Date();
+                
+                // Données journalières
+                const dayRevenues = await getRevenuesForPeriod(today, today);
+                const dayExpenses = await getExpensesForPeriod(today, today);
+                
+                // Données hebdomadaires
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+                const weekRevenues = await getRevenuesForPeriod(startOfWeek, today);
+                const weekExpenses = await getExpensesForPeriod(startOfWeek, today);
+                
+                // Données mensuelles
+                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const monthRevenues = await getRevenuesForPeriod(startOfMonth, today);
+                const monthExpenses = await getExpensesForPeriod(startOfMonth, today);
+                
+                // Créer les graphiques de comparaison
+                createComparisonChart('revenue-comparison-chart', 
+                                    [dayRevenues, weekRevenues, monthRevenues], 
+                                    'Revenus par période');
+                
+                createComparisonChart('expense-comparison-chart', 
+                                    [dayExpenses, weekExpenses, monthExpenses], 
+                                    'Dépenses par période');
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des données de comparaison:", error);
+            }
+        }
+
+        // Obtenir les revenus pour une période
+        async function getRevenuesForPeriod(startDate, endDate) {
+            const startStr = formatDate(startDate);
+            const endStr = formatDate(endDate);
+            
+            const snapshot = await db.collection('revenues')
+                .where('date', '>=', startStr)
+                .where('date', '<=', endStr)
+                .get();
+            
+            let total = 0;
+            snapshot.forEach(doc => {
+                total += parseFloat(doc.data().montant);
+            });
+            
+            return total;
+        }
+
+        // Obtenir les dépenses pour une période
+        async function getExpensesForPeriod(startDate, endDate) {
+            const startStr = formatDate(startDate);
+            const endStr = formatDate(endDate);
+            
+            const snapshot = await db.collection('expenses')
+                .where('date', '>=', startStr)
+                .where('date', '<=', endStr)
+                .get();
+            
+            let total = 0;
+            snapshot.forEach(doc => {
+                total += parseFloat(doc.data().montant);
+            });
+            
+            return total;
+        }
+
+        // Créer un graphique de comparaison
+        function createComparisonChart(canvasId, data, label) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Journalier', 'Hebdomadaire', 'Mensuel'],
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: canvasId.includes('revenue') ? 
+                            'rgba(75, 192, 192, 0.7)' : 'rgba(255, 99, 132, 0.7)',
+                        borderColor: canvasId.includes('revenue') ? 
+                            'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Exporter en PDF
+        async function exportToPDF() {
+            // Implémentation simplifiée - dans une vraie application, utiliser jsPDF avec html2canvas
+            alert("Fonctionnalité PDF en cours de développement. Elle permettra d'exporter les données financières.");
+        }
+
+        // Exporter en Excel
+        async function exportToExcel() {
+            try {
+                // Récupérer toutes les données
+                const revenuesSnapshot = await db.collection('revenues').get();
+                const expensesSnapshot = await db.collection('expenses').get();
+                
+                const revenues = [];
+                revenuesSnapshot.forEach(doc => {
+                    revenues.push(doc.data());
+                });
+                
+                const expenses = [];
+                expensesSnapshot.forEach(doc => {
+                    expenses.push(doc.data());
+                });
+                
+                // Créer un classeur Excel
+                const wb = XLSX.utils.book_new();
+                
+                // Feuille de revenus
+                const revenuesWS = XLSX.utils.json_to_sheet(revenues);
+                XLSX.utils.book_append_sheet(wb, revenuesWS, "Revenus");
+                
+                // Feuille de dépenses
+                const expensesWS = XLSX.utils.json_to_sheet(expenses);
+                XLSX.utils.book_append_sheet(wb, expensesWS, "Dépenses");
+                
+                // Exporter le fichier
+                XLSX.writeFile(wb, "donnees_financieres.xlsx");
+                
+            } catch (error) {
+                console.error("Erreur lors de l'export Excel:", error);
+                alert("Erreur lors de l'export: " + error.message);
+            }
+        }
+
+        // Exporter en Word
+        async function exportToWord() {
+            // Implémentation simplifiée
+            alert("Fonctionnalité Word en cours de développement. Elle permettra d'exporter un rapport formaté.");
+        }
+
+        // Formater une date au format YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    </script>
+</body>
+</html>
