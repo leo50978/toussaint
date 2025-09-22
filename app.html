@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Financière</title>
+    <title>Gestion Financière Complète</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -33,6 +33,21 @@
             height: 250px;
             width: 100%;
         }
+        .transaction-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #e5e7eb;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -56,6 +71,14 @@
         <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="expenses">
             <i class="fas fa-credit-card text-2xl"></i>
             <span class="text-xs mt-1">Dépenses</span>
+        </button>
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="loans">
+            <i class="fas fa-hand-holding-usd text-2xl"></i>
+            <span class="text-xs mt-1">Prêts</span>
+        </button>
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="investments">
+            <i class="fas fa-chart-line text-2xl"></i>
+            <span class="text-xs mt-1">Investissements</span>
         </button>
         <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="reports">
             <i class="fas fa-file-export text-2xl"></i>
@@ -82,11 +105,18 @@
         let currentTab = 'dashboard';
         let revenuesChart = null;
         let expensesChart = null;
+        let expensesTypeChart = null;
+        let loansChart = null;
+        let investmentsChart = null;
         let dashboardChart = null;
 
-        // Types de revenus et catégories de dépenses
-        const revenueTypes = ['jeu', 'snack', 'abonnement', 'événement'];
+        // Types de revenus, catégories de dépenses, types de prêts et d'investissements
+        const revenueTypes = ['jeu', 'snack', 'abonnement', 'événement', 'autre'];
         const expenseCategories = ['salaires', 'maintenance', 'marketing', 'fournitures', 'loyer', 'autres'];
+        const expenseTypes = ['fixe', 'variable'];
+        const loanTypes = ['personnel', 'entreprise', 'urgence', 'autre'];
+        const investmentTypes = ['actions', 'immobilier', 'cryptomonnaie', 'obligations', 'entreprise', 'autre'];
+        const riskLevels = ['faible', 'moyen', 'élevé'];
 
         // Initialiser l'application
         document.addEventListener('DOMContentLoaded', function() {
@@ -119,6 +149,16 @@
                     addExpense();
                 }
 
+                if (e.target.matches('#add-loan-btn')) {
+                    e.preventDefault();
+                    addLoan();
+                }
+
+                if (e.target.matches('#add-investment-btn')) {
+                    e.preventDefault();
+                    addInvestment();
+                }
+
                 if (e.target.matches('.export-pdf')) {
                     e.preventDefault();
                     exportToPDF();
@@ -132,6 +172,12 @@
                 if (e.target.matches('.export-word')) {
                     e.preventDefault();
                     exportToWord();
+                }
+
+                if (e.target.matches('.repay-loan-btn')) {
+                    e.preventDefault();
+                    const loanId = e.target.getAttribute('data-id');
+                    repayLoan(loanId);
                 }
             });
         }
@@ -159,6 +205,12 @@
                     break;
                 case 'expenses':
                     loadExpenses();
+                    break;
+                case 'loans':
+                    loadLoans();
+                    break;
+                case 'investments':
+                    loadInvestments();
                     break;
                 case 'reports':
                     loadReports();
@@ -188,36 +240,101 @@
                     .get();
                 
                 let totalExpenses = 0;
+                let fixedExpenses = 0;
+                let variableExpenses = 0;
+                
                 expensesSnapshot.forEach(doc => {
-                    totalExpenses += parseFloat(doc.data().montant);
+                    const data = doc.data();
+                    const amount = parseFloat(data.montant);
+                    totalExpenses += amount;
+                    
+                    if (data.typeDepense === 'fixe') {
+                        fixedExpenses += amount;
+                    } else {
+                        variableExpenses += amount;
+                    }
+                });
+
+                // Récupérer les prêts actifs
+                const loansSnapshot = await db.collection('loans')
+                    .where('statut', '==', 'actif')
+                    .get();
+                
+                let totalLoans = 0;
+                let totalLoanBalance = 0;
+                
+                loansSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalLoans += parseFloat(data.montant);
+                    totalLoanBalance += parseFloat(data.reste);
+                });
+
+                // Récupérer les investissements du jour
+                const investmentsSnapshot = await db.collection('investments')
+                    .get();
+                
+                let totalInvestments = 0;
+                let totalInvestmentValue = 0;
+                
+                investmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalInvestments += parseFloat(data.montant);
+                    totalInvestmentValue += parseFloat(data.valeur_actuelle || data.montant);
                 });
 
                 const netProfit = totalRevenues - totalExpenses;
+                const netWorth = totalInvestmentValue - totalLoanBalance;
 
                 // Afficher les données
                 const content = `
                     <div class="bg-white rounded-lg shadow p-6">
                         <h2 class="text-2xl font-bold mb-6">Tableau de bord - ${todayStr}</h2>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
                                 <h3 class="text-lg font-semibold text-green-800">Revenus</h3>
-                                <p class="text-2xl font-bold text-green-600">${totalRevenues.toFixed(2)} GDS</p>
+                                <p class="text-2xl font-bold text-green-600">${totalRevenues.toFixed(2)} </p>
                             </div>
                             <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                                 <h3 class="text-lg font-semibold text-red-800">Dépenses</h3>
-                                <p class="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)} GDS</p>
+                                <p class="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)} </p>
+                                <p class="text-sm mt-1">Fixes: ${fixedExpenses.toFixed(2)}  | Variables: ${variableExpenses.toFixed(2)} </p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h3 class="text-lg font-semibold text-purple-800">Prêts</h3>
+                                <p class="text-2xl font-bold text-purple-600">${totalLoanBalance.toFixed(2)} </p>
+                                <p class="text-sm mt-1">Total: ${totalLoans.toFixed(2)}  | Remboursé: ${(totalLoans - totalLoanBalance).toFixed(2)} </p>
                             </div>
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                <h3 class="text-lg font-semibold text-blue-800">Bénéfice net</h3>
-                                <p class="text-2xl font-bold ${netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}">${netProfit.toFixed(2)} GDS</p>
+                                <h3 class="text-lg font-semibold text-blue-800">Investissements</h3>
+                                <p class="text-2xl font-bold text-blue-600">${totalInvestmentValue.toFixed(2)} </p>
+                                <p class="text-sm mt-1">Investi: ${totalInvestments.toFixed(2)}  | Gain: ${(totalInvestmentValue - totalInvestments).toFixed(2)} </p>
                             </div>
                         </div>
 
-                        <div class="mb-8">
-                            <h3 class="text-xl font-semibold mb-4">Revenus vs Dépenses</h3>
-                            <div class="chart-container">
-                                <canvas id="dashboard-chart"></canvas>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                <h3 class="text-lg font-semibold text-yellow-800">Bénéfice net</h3>
+                                <p class="text-3xl font-bold ${netProfit >= 0 ? 'text-yellow-600' : 'text-red-600'}">${netProfit.toFixed(2)} </p>
+                            </div>
+                            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                <h3 class="text-lg font-semibold text-indigo-800">Valeur nette</h3>
+                                <p class="text-3xl font-bold ${netWorth >= 0 ? 'text-indigo-600' : 'text-red-600'}">${netWorth.toFixed(2)} </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Revenus vs Dépenses</h3>
+                                <div class="chart-container">
+                                    <canvas id="dashboard-chart"></canvas>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Répartition des dépenses</h3>
+                                <div class="chart-container">
+                                    <canvas id="expenses-type-chart"></canvas>
+                                </div>
                             </div>
                         </div>
 
@@ -225,30 +342,30 @@
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Alertes</h3>
                                 <div class="space-y-3">
-                                    ${totalExpenses > 500 ? `
+                                    ${totalExpenses > totalRevenues ? `
                                         <div class="bg-red-50 p-3 rounded-lg border border-red-200 flex items-start">
                                             <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
-                                            <p class="text-red-700">Vos dépenses dépassent le seuil de 500GDS aujourd'hui.</p>
+                                            <p class="text-red-700">Vos dépenses dépassent vos revenus aujourd'hui.</p>
                                         </div>
                                     ` : ''}
                                     
-                                    ${totalRevenues < 300 ? `
+                                    ${fixedExpenses > totalRevenues * 0.4 ? `
+                                        <div class="bg-orange-50 p-3 rounded-lg border border-orange-200 flex items-start">
+                                            <i class="fas fa-exclamation-circle text-orange-500 mt-1 mr-3"></i>
+                                            <p class="text-orange-700">Vos dépenses fixes dépassent 40% de vos revenus.</p>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${totalLoanBalance > 0 ? `
                                         <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex items-start">
                                             <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
-                                            <p class="text-yellow-700">Vos revenus sont inférieurs à la moyenne quotidienne.</p>
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${netProfit < 0 ? `
-                                        <div class="bg-red-50 p-3 rounded-lg border border-red-200 flex items-start">
-                                            <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
-                                            <p class="text-red-700">Vous êtes en perte aujourd'hui.</p>
+                                            <p class="text-yellow-700">Vous avez ${totalLoanBalance.toFixed(2)}  de prêts en cours.</p>
                                         </div>
                                     ` : ''}
                                     
                                     ${!totalRevenues && !totalExpenses ? `
                                         <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                            <p class="text-blue-700">Aucune donnée enregistrée aujourd'hui.</p>
+                                            <p class="text-blue-700">Aucune transaction enregistrée aujourd'hui.</p>
                                         </div>
                                     ` : ''}
                                 </div>
@@ -256,7 +373,7 @@
                             
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Dernières transactions</h3>
-                                <div class="space-y-3">
+                                <div class="space-y-3 transaction-list">
                                     ${await getRecentTransactions()}
                                 </div>
                             </div>
@@ -266,8 +383,9 @@
                 
                 document.getElementById('main-content').innerHTML = content;
                 
-                // Créer le graphique
+                // Créer les graphiques
                 createDashboardChart(totalRevenues, totalExpenses);
+                createExpensesTypeChart(fixedExpenses, variableExpenses);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement du tableau de bord:", error);
@@ -293,7 +411,7 @@
                 data: {
                     labels: ['Revenus', 'Dépenses'],
                     datasets: [{
-                        label: 'Montant (GDS)',
+                        label: 'Montant ()',
                         data: [revenues, expenses],
                         backgroundColor: [
                             'rgba(75, 192, 192, 0.7)',
@@ -318,18 +436,63 @@
             });
         }
 
+        // Créer le graphique des types de dépenses
+        function createExpensesTypeChart(fixed, variable) {
+            const ctx = document.getElementById('expenses-type-chart').getContext('2d');
+            
+            if (expensesTypeChart) {
+                expensesTypeChart.destroy();
+            }
+            
+            expensesTypeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Fixes', 'Variables'],
+                    datasets: [{
+                        data: [fixed, variable],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
         // Obtenir les transactions récentes
         async function getRecentTransactions() {
             try {
                 // Récupérer les 5 dernières revenus
                 const revenuesSnapshot = await db.collection('revenues')
-                    .orderBy('date', 'desc')
+                    .orderBy('timestamp', 'desc')
                     .limit(3)
                     .get();
                 
                 // Récupérer les 5 dernières dépenses
                 const expensesSnapshot = await db.collection('expenses')
-                    .orderBy('date', 'desc')
+                    .orderBy('timestamp', 'desc')
+                    .limit(2)
+                    .get();
+                
+                // Récupérer les 3 derniers prêts
+                const loansSnapshot = await db.collection('loans')
+                    .orderBy('timestamp', 'desc')
+                    .limit(2)
+                    .get();
+                
+                // Récupérer les 3 derniers investissements
+                const investmentsSnapshot = await db.collection('investments')
+                    .orderBy('timestamp', 'desc')
                     .limit(2)
                     .get();
                 
@@ -341,7 +504,9 @@
                         type: 'revenue',
                         montant: data.montant,
                         description: data.type,
-                        date: data.date
+                        date: data.date,
+                        user: data.user,
+                        timestamp: data.timestamp
                     });
                 });
                 
@@ -351,33 +516,70 @@
                         type: 'expense',
                         montant: data.montant,
                         description: data.categorie,
-                        date: data.date
+                        subtype: data.typeDepense,
+                        date: data.date,
+                        user: data.user,
+                        timestamp: data.timestamp
                     });
                 });
                 
-                // Trier par date (plus récent en premier)
-                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                loansSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    transactions.push({
+                        type: 'loan',
+                        montant: data.montant,
+                        description: data.type,
+                        date: data.date,
+                        user: data.user,
+                        timestamp: data.timestamp
+                    });
+                });
+                
+                investmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    transactions.push({
+                        type: 'investment',
+                        montant: data.montant,
+                        description: data.type,
+                        date: data.date,
+                        user: data.user,
+                        timestamp: data.timestamp
+                    });
+                });
+                
+                // Trier par timestamp (plus récent en premier)
+                transactions.sort((a, b) => b.timestamp - a.timestamp);
                 
                 // Générer le HTML
                 if (transactions.length === 0) {
-                    return '<p class="text-gray-500">Aucune transaction récente.</p>';
+                    return '<p class="text-gray-500 p-3">Aucune transaction récente.</p>';
                 }
                 
-                return transactions.map(transaction => `
-                    <div class="flex justify-between items-center p-3 border-b">
-                        <div>
-                            <p class="font-medium">${transaction.description}</p>
-                            <p class="text-sm text-gray-500">${transaction.date}</p>
+                return transactions.map(transaction => {
+                    const time = formatTime(new Date(transaction.timestamp.toDate()));
+                    const icon = transaction.type === 'revenue' ? 'fa-arrow-up' : 
+                                transaction.type === 'expense' ? 'fa-arrow-down' :
+                                transaction.type === 'loan' ? 'fa-hand-holding-usd' : 'fa-chart-line';
+                    const color = transaction.type === 'revenue' ? 'text-green-600' : 
+                                 transaction.type === 'expense' ? 'text-red-600' :
+                                 transaction.type === 'loan' ? 'text-purple-600' : 'text-blue-600';
+                    
+                    return `
+                        <div class="flex justify-between items-start p-3 border-b">
+                            <div class="flex-1">
+                                <p class="font-medium">${transaction.description}${transaction.subtype ? ` (${transaction.subtype})` : ''}</p>
+                                <p class="text-sm text-gray-500">Par ${transaction.user} à ${time}</p>
+                            </div>
+                            <span class="${color} font-semibold">
+                                <i class="fas ${icon} mr-1"></i>${transaction.montant} 
+                            </span>
                         </div>
-                        <span class="${transaction.type === 'revenue' ? 'text-green-600' : 'text-red-600'} font-semibold">
-                            ${transaction.type === 'revenue' ? '+' : '-'}${transaction.montant} GDS
-                        </span>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 
             } catch (error) {
                 console.error("Erreur lors de la récupération des transactions:", error);
-                return '<p class="text-red-500">Erreur lors du chargement des transactions.</p>';
+                return '<p class="text-red-500 p-3">Erreur lors du chargement des transactions.</p>';
             }
         }
 
@@ -390,6 +592,7 @@
                 // Récupérer les revenus du jour
                 const revenuesSnapshot = await db.collection('revenues')
                     .where('date', '==', todayStr)
+                    .orderBy('timestamp', 'desc')
                     .get();
                 
                 let revenues = [];
@@ -414,7 +617,7 @@
                                 <h3 class="text-xl font-semibold mb-4">Ajouter un revenu</h3>
                                 <form id="revenue-form" class="space-y-4">
                                     <div>
-                                        <label for="revenue-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
+                                        <label for="revenue-amount" class="block text-sm font-medium text-gray-700">Montant ()</label>
                                         <input type="number" step="0.01" id="revenue-amount" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -436,6 +639,12 @@
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
                                     
+                                    <div>
+                                        <label for="revenue-user" class="block text-sm font-medium text-gray-700">Nom / Signature</label>
+                                        <input type="text" id="revenue-user" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
                                     <button type="submit" id="add-revenue-btn" 
                                             class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                         Ajouter le revenu
@@ -446,22 +655,25 @@
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Revenus du jour</h3>
                                 <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                                    <p class="text-lg font-semibold text-blue-800">Total: ${totalRevenues.toFixed(2)} GDS</p>
+                                    <p class="text-lg font-semibold text-blue-800">Total: ${totalRevenues.toFixed(2)} </p>
                                 </div>
                                 
                                 <div class="mb-6">
                                     <h4 class="text-lg font-medium mb-2">Liste des revenus</h4>
-                                    <div class="max-h-60 overflow-y-auto">
+                                    <div class="transaction-list">
                                         ${revenues.length > 0 ? 
-                                            revenues.map(revenue => `
-                                                <div class="flex justify-between items-center p-3 border-b">
-                                                    <div>
-                                                        <p class="font-medium">${revenue.type}</p>
-                                                        <p class="text-sm text-gray-500">${revenue.date}</p>
+                                            revenues.map(revenue => {
+                                                const time = formatTime(new Date(revenue.timestamp.toDate()));
+                                                return `
+                                                    <div class="flex justify-between items-start p-3 border-b">
+                                                        <div class="flex-1">
+                                                            <p class="font-medium">${revenue.type}</p>
+                                                            <p class="text-sm text-gray-500">Par ${revenue.user} à ${time}</p>
+                                                        </div>
+                                                        <span class="text-green-600 font-semibold">+${revenue.montant} </span>
                                                     </div>
-                                                    <span class="text-green-600 font-semibold">+${revenue.montant} GDS</span>
-                                                </div>
-                                            `).join('') : 
+                                                `;
+                                            }).join('') : 
                                             '<p class="text-gray-500 p-3">Aucun revenu enregistré aujourd\'hui.</p>'
                                         }
                                     </div>
@@ -521,7 +733,8 @@
                 'rgba(75, 192, 192, 0.7)',
                 'rgba(54, 162, 235, 0.7)',
                 'rgba(153, 102, 255, 0.7)',
-                'rgba(255, 159, 64, 0.7)'
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(201, 203, 207, 0.7)'
             ];
             
             let colorIndex = 0;
@@ -567,8 +780,9 @@
             const amount = document.getElementById('revenue-amount').value;
             const type = document.getElementById('revenue-type').value;
             const date = document.getElementById('revenue-date').value;
+            const user = document.getElementById('revenue-user').value;
             
-            if (!amount || !type || !date) {
+            if (!amount || !type || !date || !user) {
                 alert('Veuillez remplir tous les champs.');
                 return;
             }
@@ -577,12 +791,15 @@
                 await db.collection('revenues').add({
                     montant: parseFloat(amount),
                     type: type,
-                    date: date
+                    date: date,
+                    user: user,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 // Réinitialiser le formulaire
                 document.getElementById('revenue-amount').value = '';
                 document.getElementById('revenue-type').value = '';
+                document.getElementById('revenue-user').value = '';
                 
                 // Recharger les données
                 loadRevenues();
@@ -602,10 +819,13 @@
                 // Récupérer les dépenses du jour
                 const expensesSnapshot = await db.collection('expenses')
                     .where('date', '==', todayStr)
+                    .orderBy('timestamp', 'desc')
                     .get();
                 
                 let expenses = [];
                 let totalExpenses = 0;
+                let fixedExpenses = 0;
+                let variableExpenses = 0;
                 
                 expensesSnapshot.forEach(doc => {
                     const data = doc.data();
@@ -613,7 +833,15 @@
                         id: doc.id,
                         ...data
                     });
-                    totalExpenses += parseFloat(data.montant);
+                    
+                    const amount = parseFloat(data.montant);
+                    totalExpenses += amount;
+                    
+                    if (data.typeDepense === 'fixe') {
+                        fixedExpenses += amount;
+                    } else {
+                        variableExpenses += amount;
+                    }
                 });
                 
                 // Afficher les données
@@ -626,7 +854,7 @@
                                 <h3 class="text-xl font-semibold mb-4">Ajouter une dépense</h3>
                                 <form id="expense-form" class="space-y-4">
                                     <div>
-                                        <label for="expense-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
+                                        <label for="expense-amount" class="block text-sm font-medium text-gray-700">Montant ()</label>
                                         <input type="number" step="0.01" id="expense-amount" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -634,7 +862,7 @@
                                     <div>
                                         <label for="expense-category" class="block text-sm font-medium text-gray-700">Catégorie</label>
                                         <select id="expense-category" required 
-                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-50500">
                                             <option value="">Sélectionnez une catégorie</option>
                                             ${expenseCategories.map(category => `
                                                 <option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>
@@ -643,8 +871,25 @@
                                     </div>
                                     
                                     <div>
+                                        <label for="expense-type" class="block text-sm font-medium text-gray-700">Type de dépense</label>
+                                        <select id="expense-type" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez un type</option>
+                                            ${expenseTypes.map(type => `
+                                                <option value="${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
                                         <label for="expense-date" class="block text-sm font-medium text-gray-700">Date</label>
                                         <input type="date" id="expense-date" value="${todayStr}" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="expense-user" class="block text-sm font-medium text-gray-700">Nom / Signature</label>
+                                        <input type="text" id="expense-user" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
                                     
@@ -658,31 +903,43 @@
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Dépenses du jour</h3>
                                 <div class="bg-red-50 p-4 rounded-lg mb-4">
-                                    <p class="text-lg font-semibold text-red-800">Total: ${totalExpenses.toFixed(2)} GDS</p>
+                                    <p class="text-lg font-semibold text-red-800">Total: ${totalExpenses.toFixed(2)} </p>
+                                    <p class="text-sm mt-1">Fixes: ${fixedExpenses.toFixed(2)}  | Variables: ${variableExpenses.toFixed(2)} </p>
                                 </div>
                                 
                                 <div class="mb-6">
                                     <h4 class="text-lg font-medium mb-2">Liste des dépenses</h4>
-                                    <div class="max-h-60 overflow-y-auto">
+                                    <div class="transaction-list">
                                         ${expenses.length > 0 ? 
-                                            expenses.map(expense => `
-                                                <div class="flex justify-between items-center p-3 border-b">
-                                                    <div>
-                                                        <p class="font-medium">${expense.categorie}</p>
-                                                        <p class="text-sm text-gray-500">${expense.date}</p>
+                                            expenses.map(expense => {
+                                                const time = formatTime(new Date(expense.timestamp.toDate()));
+                                                return `
+                                                    <div class="flex justify-between items-start p-3 border-b">
+                                                        <div class="flex-1">
+                                                            <p class="font-medium">${expense.categorie} (${expense.typeDepense})</p>
+                                                            <p class="text-sm text-gray-500">Par ${expense.user} à ${time}</p>
+                                                        </div>
+                                                        <span class="text-red-600 font-semibold">-${expense.montant} </span>
                                                     </div>
-                                                    <span class="text-red-600 font-semibold">-${expense.montant} GDS</span>
-                                                </div>
-                                            `).join('') : 
+                                                `;
+                                            }).join('') : 
                                             '<p class="text-gray-500 p-3">Aucune dépense enregistrée aujourd\'hui.</p>'
                                         }
                                     </div>
                                 </div>
                                 
-                                <div>
-                                    <h4 class="text-lg font-medium mb-2">Répartition par catégorie</h4>
-                                    <div class="chart-container">
-                                        <canvas id="expenses-chart"></canvas>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="text-lg font-medium mb-2">Répartition par catégorie</h4>
+                                        <div class="chart-container">
+                                            <canvas id="expenses-chart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-medium mb-2">Fixes vs Variables</h4>
+                                        <div class="chart-container">
+                                            <canvas id="expenses-type-chart-details"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -692,8 +949,9 @@
                 
                 document.getElementById('main-content').innerHTML = content;
                 
-                // Créer le graphique des dépenses
+                // Créer les graphiques des dépenses
                 createExpensesChart(expenses);
+                createExpensesTypeChartDetails(fixedExpenses, variableExpenses);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement des dépenses:", error);
@@ -776,13 +1034,44 @@
             });
         }
 
+        // Créer le graphique des types de dépenses (détails)
+        function createExpensesTypeChartDetails(fixed, variable) {
+            const ctx = document.getElementById('expenses-type-chart-details').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Fixes', 'Variables'],
+                    datasets: [{
+                        data: [fixed, variable],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
         // Ajouter une dépense
         async function addExpense() {
             const amount = document.getElementById('expense-amount').value;
             const category = document.getElementById('expense-category').value;
+            const type = document.getElementById('expense-type').value;
             const date = document.getElementById('expense-date').value;
+            const user = document.getElementById('expense-user').value;
             
-            if (!amount || !category || !date) {
+            if (!amount || !category || !type || !date || !user) {
                 alert('Veuillez remplir tous les champs.');
                 return;
             }
@@ -791,12 +1080,17 @@
                 await db.collection('expenses').add({
                     montant: parseFloat(amount),
                     categorie: category,
-                    date: date
+                    typeDepense: type,
+                    date: date,
+                    user: user,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 // Réinitialiser le formulaire
                 document.getElementById('expense-amount').value = '';
                 document.getElementById('expense-category').value = '';
+                document.getElementById('expense-type').value = '';
+                document.getElementById('expense-user').value = '';
                 
                 // Recharger les données
                 loadExpenses();
@@ -804,6 +1098,584 @@
             } catch (error) {
                 console.error("Erreur lors de l'ajout de la dépense:", error);
                 alert("Erreur lors de l'ajout de la dépense: " + error.message);
+            }
+        }
+
+        // Charger la section des prêts
+        async function loadLoans() {
+            try {
+                // Récupérer tous les prêts
+                const loansSnapshot = await db.collection('loans')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                let loans = [];
+                let totalLoans = 0;
+                let totalLoanBalance = 0;
+                
+                loansSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    loans.push({
+                        id: doc.id,
+                        ...data
+                    });
+                    totalLoans += parseFloat(data.montant);
+                    totalLoanBalance += parseFloat(data.reste);
+                });
+                
+                // Afficher les données
+                const content = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des prêts</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Nouveau prêt</h3>
+                                <form id="loan-form" class="space-y-4">
+                                    <div>
+                                        <label for="loan-amount" class="block text-sm font-medium text-gray-700">Montant ()</label>
+                                        <input type="number" step="0.01" id="loan-amount" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="loan-type" class="block text-sm font-medium text-gray-700">Type de prêt</label>
+                                        <select id="loan-type" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez un type</option>
+                                            ${loanTypes.map(type => `
+                                                <option value="${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="loan-interest" class="block text-sm font-medium text-gray-700">Taux d'intérêt (%)</label>
+                                        <input type="number" step="0.01" id="loan-interest" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="loan-duration" class="block text-sm font-medium text-gray-700">Durée (mois)</label>
+                                        <input type="number" id="loan-duration" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="loan-lender" class="block text-sm font-medium text-gray-700">Prêteur</label>
+                                        <input type="text" id="loan-lender" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="loan-date" class="block text-sm font-medium text-gray-700">Date d'emprunt</label>
+                                        <input type="date" id="loan-date" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="loan-user" class="block text-sm font-medium text-gray-700">Nom / Signature</label>
+                                        <input type="text" id="loan-user" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <button type="submit" id="add-loan-btn" 
+                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Ajouter le prêt
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Prêts en cours</h3>
+                                <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                                    <p class="text-lg font-semibold text-purple-800">Total dû: ${totalLoanBalance.toFixed(2)} </p>
+                                    <p class="text-sm mt-1">Montant total: ${totalLoans.toFixed(2)}  | Remboursé: ${(totalLoans - totalLoanBalance).toFixed(2)} </p>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-medium mb-2">Liste des prêts</h4>
+                                    <div class="transaction-list">
+                                        ${loans.length > 0 ? 
+                                            loans.map(loan => {
+                                                const time = formatTime(new Date(loan.timestamp.toDate()));
+                                                const progress = ((loan.montant - loan.reste) / loan.montant) * 100;
+                                                return `
+                                                    <div class="p-3 border-b">
+                                                        <div class="flex justify-between items-start">
+                                                            <div class="flex-1">
+                                                                <p class="font-medium">${loan.type} - ${loan.preteur}</p>
+                                                                <p class="text-sm text-gray-500">Par ${loan.user} à ${time}</p>
+                                                                <p class="text-sm mt-1">Montant: ${loan.montant}  à ${loan.taux_interet}%</p>
+                                                                <p class="text-sm">Reste: ${loan.reste}  / ${loan.montant} </p>
+                                                            </div>
+                                                            <span class="text-purple-600 font-semibold">${loan.statut === 'actif' ? 'Actif' : 'Remboursé'}</span>
+                                                        </div>
+                                                        <div class="progress-bar mt-2">
+                                                            <div class="progress-fill bg-purple-600" style="width: ${progress}%"></div>
+                                                        </div>
+                                                        ${loan.statut === 'actif' ? `
+                                                            <button class="repay-loan-btn mt-2 bg-green-600 text-white py-1 px-3 rounded text-sm" data-id="${loan.id}">
+                                                                Effectuer un remboursement
+                                                            </button>
+                                                        ` : ''}
+                                                    </div>
+                                                `;
+                                            }).join('') : 
+                                            '<p class="text-gray-500 p-3">Aucun prêt enregistré.</p>'
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-2">Répartition par type</h4>
+                                    <div class="chart-container">
+                                        <canvas id="loans-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('main-content').innerHTML = content;
+                
+                // Créer le graphique des prêts
+                createLoansChart(loans);
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des prêts:", error);
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des prêts</h2>
+                        <p class="text-red-500">Erreur lors du chargement des données: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Créer le graphique des prêts par type
+        function createLoansChart(loans) {
+            const ctx = document.getElementById('loans-chart').getContext('2d');
+            
+            if (loansChart) {
+                loansChart.destroy();
+            }
+            
+            // Calculer le total par type
+            const loanByType = {};
+            loanTypes.forEach(type => {
+                loanByType[type] = 0;
+            });
+            
+            loans.forEach(loan => {
+                if (loanByType.hasOwnProperty(loan.type)) {
+                    loanByType[loan.type] += parseFloat(loan.reste);
+                }
+            });
+            
+            // Filtrer les types sans prêts
+            const labels = [];
+            const data = [];
+            const backgroundColors = [
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(255, 159, 64, 0.7)'
+            ];
+            
+            let colorIndex = 0;
+            for (const type in loanByType) {
+                if (loanByType[type] > 0) {
+                    labels.push(type.charAt(0).toUpperCase() + type.slice(1));
+                    data.push(loanByType[type]);
+                    colorIndex = (colorIndex + 1) % backgroundColors.length;
+                }
+            }
+            
+            // Si aucun prêt, afficher un message
+            if (data.length === 0) {
+                document.getElementById('loans-chart').parentElement.innerHTML = 
+                    '<p class="text-gray-500 text-center p-4">Aucune donnée à afficher.</p>';
+                return;
+            }
+            
+            loansChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Ajouter un prêt
+        async function addLoan() {
+            const amount = document.getElementById('loan-amount').value;
+            const type = document.getElementById('loan-type').value;
+            const interest = document.getElementById('loan-interest').value;
+            const duration = document.getElementById('loan-duration').value;
+            const lender = document.getElementById('loan-lender').value;
+            const date = document.getElementById('loan-date').value;
+            const user = document.getElementById('loan-user').value;
+            
+            if (!amount || !type || !interest || !duration || !lender || !date || !user) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            
+            try {
+                await db.collection('loans').add({
+                    montant: parseFloat(amount),
+                    type: type,
+                    taux_interet: parseFloat(interest),
+                    duree: parseInt(duration),
+                    preteur: lender,
+                    date_emprunt: date,
+                    reste: parseFloat(amount),
+                    statut: 'actif',
+                    user: user,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Réinitialiser le formulaire
+                document.getElementById('loan-amount').value = '';
+                document.getElementById('loan-type').value = '';
+                document.getElementById('loan-interest').value = '';
+                document.getElementById('loan-duration').value = '';
+                document.getElementById('loan-lender').value = '';
+                document.getElementById('loan-user').value = '';
+                
+                // Recharger les données
+                loadLoans();
+                
+            } catch (error) {
+                console.error("Erreur lors de l'ajout du prêt:", error);
+                alert("Erreur lors de l'ajout du prêt: " + error.message);
+            }
+        }
+
+        // Effectuer un remboursement de prêt
+        async function repayLoan(loanId) {
+            const amount = prompt("Montant du remboursement :");
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                alert("Veuillez entrer un montant valide.");
+                return;
+            }
+            
+            try {
+                const loanDoc = await db.collection('loans').doc(loanId).get();
+                const loanData = loanDoc.data();
+                const newBalance = parseFloat(loanData.reste) - parseFloat(amount);
+                
+                await db.collection('loans').doc(loanId).update({
+                    reste: newBalance,
+                    statut: newBalance > 0 ? 'actif' : 'remboursé'
+                });
+                
+                // Enregistrer le remboursement
+                await db.collection('loan_payments').add({
+                    loan_id: loanId,
+                    montant: parseFloat(amount),
+                    date: formatDate(new Date()),
+                    user: "Utilisateur", // Remplacer par l'utilisateur connecté
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert(`Remboursement de ${amount}  effectué avec succès.`);
+                
+                // Recharger les données
+                loadLoans();
+                
+            } catch (error) {
+                console.error("Erreur lors du remboursement:", error);
+                alert("Erreur lors du remboursement: " + error.message);
+            }
+        }
+
+        // Charger la section des investissements
+        async function loadInvestments() {
+            try {
+                // Récupérer tous les investissements
+                const investmentsSnapshot = await db.collection('investments')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                let investments = [];
+                let totalInvestments = 0;
+                let totalInvestmentValue = 0;
+                
+                investmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    investments.push({
+                        id: doc.id,
+                        ...data
+                    });
+                    totalInvestments += parseFloat(data.montant);
+                    totalInvestmentValue += parseFloat(data.valeur_actuelle || data.montant);
+                });
+                
+                const totalGain = totalInvestmentValue - totalInvestments;
+                const gainPercentage = totalInvestments > 0 ? (totalGain / totalInvestments) * 100 : 0;
+                
+                // Afficher les données
+                const content = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des investissements</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Nouvel investissement</h3>
+                                <form id="investment-form" class="space-y-4">
+                                    <div>
+                                        <label for="investment-amount" class="block text-sm font-medium text-gray-700">Montant investi ()</label>
+                                        <input type="number" step="0.01" id="investment-amount" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="investment-type" class="block text-sm font-medium text-gray-700">Type d'investissement</label>
+                                        <select id="investment-type" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez un type</option>
+                                            ${investmentTypes.map(type => `
+                                                <option value="${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="investment-risk" class="block text-sm font-medium text-gray-700">Niveau de risque</label>
+                                        <select id="investment-risk" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez un niveau</option>
+                                            ${riskLevels.map(risk => `
+                                                <option value="${risk}">${risk.charAt(0).toUpperCase() + risk.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="investment-description" class="block text-sm font-medium text-gray-700">Description</label>
+                                        <input type="text" id="investment-description" 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="investment-current-value" class="block text-sm font-medium text-gray-700">Valeur actuelle ()</label>
+                                        <input type="number" step="0.01" id="investment-current-value" 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="investment-date" class="block text-sm font-medium text-gray-700">Date d'investissement</label>
+                                        <input type="date" id="investment-date" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="investment-user" class="block text-sm font-medium text-gray-700">Nom / Signature</label>
+                                        <input type="text" id="investment-user" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <button type="submit" id="add-investment-btn" 
+                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Ajouter l'investissement
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Portefeuille d'investissements</h3>
+                                <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                    <p class="text-lg font-semibold text-blue-800">Valeur totale: ${totalInvestmentValue.toFixed(2)} </p>
+                                    <p class="text-sm mt-1">Investi: ${totalInvestments.toFixed(2)}  | Gain: ${totalGain.toFixed(2)}  (${gainPercentage.toFixed(2)}%)</p>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-medium mb-2">Liste des investissements</h4>
+                                    <div class="transaction-list">
+                                        ${investments.length > 0 ? 
+                                            investments.map(investment => {
+                                                const time = formatTime(new Date(investment.timestamp.toDate()));
+                                                const gain = (investment.valeur_actuelle || investment.montant) - investment.montant;
+                                                const gainPercent = investment.montant > 0 ? (gain / investment.montant) * 100 : 0;
+                                                const gainColor = gain >= 0 ? 'text-green-600' : 'text-red-600';
+                                                
+                                                return `
+                                                    <div class="p-3 border-b">
+                                                        <div class="flex justify-between items-start">
+                                                            <div class="flex-1">
+                                                                <p class="font-medium">${investment.type} - ${investment.niveau_risque}</p>
+                                                                <p class="text-sm text-gray-500">Par ${investment.user} à ${time}</p>
+                                                                <p class="text-sm mt-1">Investi: ${investment.montant}  | Actuel: ${investment.valeur_actuelle || investment.montant} </p>
+                                                            </div>
+                                                            <span class="${gainColor} font-semibold">
+                                                                ${gain >= 0 ? '+' : ''}${gain.toFixed(2)} <br>
+                                                                <span class="text-xs">(${gainPercent.toFixed(2)}%)</span>
+                                                            </span>
+                                                        </div>
+                                                        ${investment.description ? `<p class="text-sm text-gray-600 mt-1">${investment.description}</p>` : ''}
+                                                    </div>
+                                                `;
+                                            }).join('') : 
+                                            '<p class="text-gray-500 p-3">Aucun investissement enregistré.</p>'
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-2">Répartition par type</h4>
+                                    <div class="chart-container">
+                                        <canvas id="investments-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('main-content').innerHTML = content;
+                
+                // Créer le graphique des investissements
+                createInvestmentsChart(investments);
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des investissements:", error);
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des investissements</h2>
+                        <p class="text-red-500">Erreur lors du chargement des données: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Créer le graphique des investissements par type
+        function createInvestmentsChart(investments) {
+            const ctx = document.getElementById('investments-chart').getContext('2d');
+            
+            if (investmentsChart) {
+                investmentsChart.destroy();
+            }
+            
+            // Calculer le total par type
+            const investmentByType = {};
+            investmentTypes.forEach(type => {
+                investmentByType[type] = 0;
+            });
+            
+            investments.forEach(investment => {
+                if (investmentByType.hasOwnProperty(investment.type)) {
+                    investmentByType[investment.type] += parseFloat(investment.valeur_actuelle || investment.montant);
+                }
+            });
+            
+            // Filtrer les types sans investissements
+            const labels = [];
+            const data = [];
+            const backgroundColors = [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 205, 86, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(201, 203, 207, 0.7)'
+            ];
+            
+            let colorIndex = 0;
+            for (const type in investmentByType) {
+                if (investmentByType[type] > 0) {
+                    labels.push(type.charAt(0).toUpperCase() + type.slice(1));
+                    data.push(investmentByType[type]);
+                    colorIndex = (colorIndex + 1) % backgroundColors.length;
+                }
+            }
+            
+            // Si aucun investissement, afficher un message
+            if (data.length === 0) {
+                document.getElementById('investments-chart').parentElement.innerHTML = 
+                    '<p class="text-gray-500 text-center p-4">Aucune donnée à afficher.</p>';
+                return;
+            }
+            
+            investmentsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Ajouter un investissement
+        async function addInvestment() {
+            const amount = document.getElementById('investment-amount').value;
+            const type = document.getElementById('investment-type').value;
+            const risk = document.getElementById('investment-risk').value;
+            const description = document.getElementById('investment-description').value;
+            const currentValue = document.getElementById('investment-current-value').value || amount;
+            const date = document.getElementById('investment-date').value;
+            const user = document.getElementById('investment-user').value;
+            
+            if (!amount || !type || !risk || !date || !user) {
+                alert('Veuillez remplir tous les champs obligatoires.');
+                return;
+            }
+            
+            try {
+                await db.collection('investments').add({
+                    montant: parseFloat(amount),
+                    type: type,
+                    niveau_risque: risk,
+                    description: description,
+                    valeur_actuelle: parseFloat(currentValue),
+                    date_investissement: date,
+                    user: user,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Réinitialiser le formulaire
+                document.getElementById('investment-amount').value = '';
+                document.getElementById('investment-type').value = '';
+                document.getElementById('investment-risk').value = '';
+                document.getElementById('investment-description').value = '';
+                document.getElementById('investment-current-value').value = '';
+                document.getElementById('investment-user').value = '';
+                
+                // Recharger les données
+                loadInvestments();
+                
+            } catch (error) {
+                console.error("Erreur lors de l'ajout de l'investissement:", error);
+                alert("Erreur lors de l'ajout de l'investissement: " + error.message);
             }
         }
 
@@ -1013,6 +1885,8 @@
                 // Récupérer toutes les données
                 const revenuesSnapshot = await db.collection('revenues').get();
                 const expensesSnapshot = await db.collection('expenses').get();
+                const loansSnapshot = await db.collection('loans').get();
+                const investmentsSnapshot = await db.collection('investments').get();
                 
                 const revenues = [];
                 revenuesSnapshot.forEach(doc => {
@@ -1022,6 +1896,16 @@
                 const expenses = [];
                 expensesSnapshot.forEach(doc => {
                     expenses.push(doc.data());
+                });
+                
+                const loans = [];
+                loansSnapshot.forEach(doc => {
+                    loans.push(doc.data());
+                });
+                
+                const investments = [];
+                investmentsSnapshot.forEach(doc => {
+                    investments.push(doc.data());
                 });
                 
                 // Créer un classeur Excel
@@ -1035,8 +1919,16 @@
                 const expensesWS = XLSX.utils.json_to_sheet(expenses);
                 XLSX.utils.book_append_sheet(wb, expensesWS, "Dépenses");
                 
+                // Feuille de prêts
+                const loansWS = XLSX.utils.json_to_sheet(loans);
+                XLSX.utils.book_append_sheet(wb, loansWS, "Prêts");
+                
+                // Feuille d'investissements
+                const investmentsWS = XLSX.utils.json_to_sheet(investments);
+                XLSX.utils.book_append_sheet(wb, investmentsWS, "Investissements");
+                
                 // Exporter le fichier
-                XLSX.writeFile(wb, "donnees_financieres.xlsx");
+                XLSX.writeFile(wb, "donnees_financieres_completes.xlsx");
                 
             } catch (error) {
                 console.error("Erreur lors de l'export Excel:", error);
@@ -1056,6 +1948,13 @@
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        // Formater une heure au format HH:MM
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
         }
     </script>
 </body>
