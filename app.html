@@ -76,6 +76,10 @@
             <i class="fas fa-hand-holding-usd text-2xl"></i>
             <span class="text-xs mt-1">Prêts</span>
         </button>
+        <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="borrowings">
+            <i class="fas fa-university text-2xl"></i>
+            <span class="text-xs mt-1">Emprunts</span>
+        </button>
         <button class="tab-btn flex flex-col items-center text-gray-600" data-tab="investments">
             <i class="fas fa-chart-line text-2xl"></i>
             <span class="text-xs mt-1">Investissements</span>
@@ -107,14 +111,16 @@
         let expensesChart = null;
         let expensesTypeChart = null;
         let loansChart = null;
+        let borrowingsChart = null;
         let investmentsChart = null;
         let dashboardChart = null;
 
-        // Types de revenus, catégories de dépenses, types de prêts et d'investissements
-        const revenueTypes = ['jeu', 'snack', 'abonnement', 'événement', 'autre'];
-        const expenseCategories = ['salaires', 'maintenance', 'marketing', 'fournitures', 'loyer', 'autres'];
+        // Types de revenus, catégories de dépenses, types de prêts, emprunts et d'investissements
+        const revenueTypes = ['jeu ps', 'fresko', 'cinema', 'boisson glace', 'starlinks'];
+        const expenseCategories = ['salaires', 'maintenance', 'marketing', 'fournitures', 'imprevus', 'autres'];
         const expenseTypes = ['fixe', 'variable'];
         const loanTypes = ['personnel', 'entreprise', 'urgence', 'autre'];
+        const borrowingTypes = ['banque', 'fournisseur', 'partenaire', 'autre'];
         const investmentTypes = ['actions', 'immobilier', 'cryptomonnaie', 'obligations', 'entreprise', 'autre'];
         const riskLevels = ['faible', 'moyen', 'élevé'];
 
@@ -154,6 +160,11 @@
                     addLoan();
                 }
 
+                if (e.target.matches('#add-borrowing-btn')) {
+                    e.preventDefault();
+                    addBorrowing();
+                }
+
                 if (e.target.matches('#add-investment-btn')) {
                     e.preventDefault();
                     addInvestment();
@@ -178,6 +189,12 @@
                     e.preventDefault();
                     const loanId = e.target.getAttribute('data-id');
                     repayLoan(loanId);
+                }
+
+                if (e.target.matches('.repay-borrowing-btn')) {
+                    e.preventDefault();
+                    const borrowingId = e.target.getAttribute('data-id');
+                    repayBorrowing(borrowingId);
                 }
             });
         }
@@ -208,6 +225,9 @@
                     break;
                 case 'loans':
                     loadLoans();
+                    break;
+                case 'borrowings':
+                    loadBorrowings();
                     break;
                 case 'investments':
                     loadInvestments();
@@ -269,7 +289,21 @@
                     totalLoanBalance += parseFloat(data.reste);
                 });
 
-                // Récupérer les investissements du jour
+                // Récupérer les emprunts actifs
+                const borrowingsSnapshot = await db.collection('borrowings')
+                    .where('statut', '==', 'actif')
+                    .get();
+                
+                let totalBorrowings = 0;
+                let totalBorrowingBalance = 0;
+                
+                borrowingsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalBorrowings += parseFloat(data.montant);
+                    totalBorrowingBalance += parseFloat(data.reste);
+                });
+
+                // Récupérer les investissements
                 const investmentsSnapshot = await db.collection('investments')
                     .get();
                 
@@ -283,7 +317,7 @@
                 });
 
                 const netProfit = totalRevenues - totalExpenses;
-                const netWorth = totalInvestmentValue - totalLoanBalance;
+                const netWorth = totalInvestmentValue - totalLoanBalance - totalBorrowingBalance;
 
                 // Afficher les données
                 const content = `
@@ -293,33 +327,38 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
                                 <h3 class="text-lg font-semibold text-green-800">Revenus</h3>
-                                <p class="text-2xl font-bold text-green-600">${totalRevenues.toFixed(2)} </p>
+                                <p class="text-2xl font-bold text-green-600">${totalRevenues.toFixed(2)} GDS</p>
                             </div>
                             <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                                 <h3 class="text-lg font-semibold text-red-800">Dépenses</h3>
-                                <p class="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)} </p>
-                                <p class="text-sm mt-1">Fixes: ${fixedExpenses.toFixed(2)}  | Variables: ${variableExpenses.toFixed(2)} </p>
+                                <p class="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)} GDS</p>
+                                <p class="text-sm mt-1">Fixes: ${fixedExpenses.toFixed(2)} GDS | Variables: ${variableExpenses.toFixed(2)} GDS</p>
                             </div>
                             <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
                                 <h3 class="text-lg font-semibold text-purple-800">Prêts</h3>
-                                <p class="text-2xl font-bold text-purple-600">${totalLoanBalance.toFixed(2)} </p>
-                                <p class="text-sm mt-1">Total: ${totalLoans.toFixed(2)}  | Remboursé: ${(totalLoans - totalLoanBalance).toFixed(2)} </p>
+                                <p class="text-2xl font-bold text-purple-600">${totalLoanBalance.toFixed(2)} GDS</p>
+                                <p class="text-sm mt-1">Total: ${totalLoans.toFixed(2)} GDS | Remboursé: ${(totalLoans - totalLoanBalance).toFixed(2)} GDS</p>
                             </div>
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                <h3 class="text-lg font-semibold text-blue-800">Investissements</h3>
-                                <p class="text-2xl font-bold text-blue-600">${totalInvestmentValue.toFixed(2)} </p>
-                                <p class="text-sm mt-1">Investi: ${totalInvestments.toFixed(2)}  | Gain: ${(totalInvestmentValue - totalInvestments).toFixed(2)} </p>
+                                <h3 class="text-lg font-semibold text-blue-800">Emprunts</h3>
+                                <p class="text-2xl font-bold text-blue-600">${totalBorrowingBalance.toFixed(2)} GDS</p>
+                                <p class="text-sm mt-1">Total: ${totalBorrowings.toFixed(2)} GDS | Remboursé: ${(totalBorrowings - totalBorrowingBalance).toFixed(2)} GDS</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                <h3 class="text-lg font-semibold text-indigo-800">Investissements</h3>
+                                <p class="text-2xl font-bold text-indigo-600">${totalInvestmentValue.toFixed(2)} GDS</p>
+                                <p class="text-sm mt-1">Investi: ${totalInvestments.toFixed(2)} GDS | Gain: ${(totalInvestmentValue - totalInvestments).toFixed(2)} GDS</p>
+                            </div>
                             <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                                 <h3 class="text-lg font-semibold text-yellow-800">Bénéfice net</h3>
-                                <p class="text-3xl font-bold ${netProfit >= 0 ? 'text-yellow-600' : 'text-red-600'}">${netProfit.toFixed(2)} </p>
+                                <p class="text-3xl font-bold ${netProfit >= 0 ? 'text-yellow-600' : 'text-red-600'}">${netProfit.toFixed(2)} GDS</p>
                             </div>
-                            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                                <h3 class="text-lg font-semibold text-indigo-800">Valeur nette</h3>
-                                <p class="text-3xl font-bold ${netWorth >= 0 ? 'text-indigo-600' : 'text-red-600'}">${netWorth.toFixed(2)} </p>
+                            <div class="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                                <h3 class="text-lg font-semibold text-teal-800">Valeur nette</h3>
+                                <p class="text-3xl font-bold ${netWorth >= 0 ? 'text-teal-600' : 'text-red-600'}">${netWorth.toFixed(2)} GDS</p>
                             </div>
                         </div>
 
@@ -331,9 +370,9 @@
                                 </div>
                             </div>
                             <div>
-                                <h3 class="text-xl font-semibold mb-4">Répartition des dépenses</h3>
+                                <h3 class="text-xl font-semibold mb-4">Dettes vs Investissements</h3>
                                 <div class="chart-container">
-                                    <canvas id="expenses-type-chart"></canvas>
+                                    <canvas id="debts-chart"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -356,10 +395,10 @@
                                         </div>
                                     ` : ''}
                                     
-                                    ${totalLoanBalance > 0 ? `
+                                    ${(totalLoanBalance + totalBorrowingBalance) > 0 ? `
                                         <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex items-start">
                                             <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
-                                            <p class="text-yellow-700">Vous avez ${totalLoanBalance.toFixed(2)}  de prêts en cours.</p>
+                                            <p class="text-yellow-700">Vous avez ${(totalLoanBalance + totalBorrowingBalance).toFixed(2)} GDS de dettes en cours.</p>
                                         </div>
                                     ` : ''}
                                     
@@ -385,7 +424,7 @@
                 
                 // Créer les graphiques
                 createDashboardChart(totalRevenues, totalExpenses);
-                createExpensesTypeChart(fixedExpenses, variableExpenses);
+                createDebtsChart(totalLoanBalance + totalBorrowingBalance, totalInvestmentValue);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement du tableau de bord:", error);
@@ -411,7 +450,7 @@
                 data: {
                     labels: ['Revenus', 'Dépenses'],
                     datasets: [{
-                        label: 'Montant ()',
+                        label: 'Montant (GDS)',
                         data: [revenues, expenses],
                         backgroundColor: [
                             'rgba(75, 192, 192, 0.7)',
@@ -436,23 +475,19 @@
             });
         }
 
-        // Créer le graphique des types de dépenses
-        function createExpensesTypeChart(fixed, variable) {
-            const ctx = document.getElementById('expenses-type-chart').getContext('2d');
+        // Créer le graphique des dettes vs investissements
+        function createDebtsChart(debts, investments) {
+            const ctx = document.getElementById('debts-chart').getContext('2d');
             
-            if (expensesTypeChart) {
-                expensesTypeChart.destroy();
-            }
-            
-            expensesTypeChart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Fixes', 'Variables'],
+                    labels: ['Dettes', 'Investissements'],
                     datasets: [{
-                        data: [fixed, variable],
+                        data: [debts, investments],
                         backgroundColor: [
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 99, 132, 0.7)'
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)'
                         ],
                         borderWidth: 1
                     }]
@@ -475,7 +510,7 @@
                 // Récupérer les 5 dernières revenus
                 const revenuesSnapshot = await db.collection('revenues')
                     .orderBy('timestamp', 'desc')
-                    .limit(3)
+                    .limit(2)
                     .get();
                 
                 // Récupérer les 5 dernières dépenses
@@ -487,13 +522,19 @@
                 // Récupérer les 3 derniers prêts
                 const loansSnapshot = await db.collection('loans')
                     .orderBy('timestamp', 'desc')
-                    .limit(2)
+                    .limit(1)
+                    .get();
+                
+                // Récupérer les 3 derniers emprunts
+                const borrowingsSnapshot = await db.collection('borrowings')
+                    .orderBy('timestamp', 'desc')
+                    .limit(1)
                     .get();
                 
                 // Récupérer les 3 derniers investissements
                 const investmentsSnapshot = await db.collection('investments')
                     .orderBy('timestamp', 'desc')
-                    .limit(2)
+                    .limit(1)
                     .get();
                 
                 let transactions = [];
@@ -535,6 +576,18 @@
                     });
                 });
                 
+                borrowingsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    transactions.push({
+                        type: 'borrowing',
+                        montant: data.montant,
+                        description: data.type,
+                        date: data.date,
+                        user: data.user,
+                        timestamp: data.timestamp
+                    });
+                });
+                
                 investmentsSnapshot.forEach(doc => {
                     const data = doc.data();
                     transactions.push({
@@ -559,10 +612,12 @@
                     const time = formatTime(new Date(transaction.timestamp.toDate()));
                     const icon = transaction.type === 'revenue' ? 'fa-arrow-up' : 
                                 transaction.type === 'expense' ? 'fa-arrow-down' :
-                                transaction.type === 'loan' ? 'fa-hand-holding-usd' : 'fa-chart-line';
+                                transaction.type === 'loan' ? 'fa-hand-holding-usd' :
+                                transaction.type === 'borrowing' ? 'fa-university' : 'fa-chart-line';
                     const color = transaction.type === 'revenue' ? 'text-green-600' : 
                                  transaction.type === 'expense' ? 'text-red-600' :
-                                 transaction.type === 'loan' ? 'text-purple-600' : 'text-blue-600';
+                                 transaction.type === 'loan' ? 'text-purple-600' :
+                                 transaction.type === 'borrowing' ? 'text-blue-600' : 'text-indigo-600';
                     
                     return `
                         <div class="flex justify-between items-start p-3 border-b">
@@ -571,7 +626,7 @@
                                 <p class="text-sm text-gray-500">Par ${transaction.user} à ${time}</p>
                             </div>
                             <span class="${color} font-semibold">
-                                <i class="fas ${icon} mr-1"></i>${transaction.montant} 
+                                <i class="fas ${icon} mr-1"></i>${transaction.montant} GDS
                             </span>
                         </div>
                     `;
@@ -617,7 +672,7 @@
                                 <h3 class="text-xl font-semibold mb-4">Ajouter un revenu</h3>
                                 <form id="revenue-form" class="space-y-4">
                                     <div>
-                                        <label for="revenue-amount" class="block text-sm font-medium text-gray-700">Montant ()</label>
+                                        <label for="revenue-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
                                         <input type="number" step="0.01" id="revenue-amount" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -655,7 +710,7 @@
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Revenus du jour</h3>
                                 <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                                    <p class="text-lg font-semibold text-blue-800">Total: ${totalRevenues.toFixed(2)} </p>
+                                    <p class="text-lg font-semibold text-blue-800">Total: ${totalRevenues.toFixed(2)} GDS</p>
                                 </div>
                                 
                                 <div class="mb-6">
@@ -670,7 +725,7 @@
                                                             <p class="font-medium">${revenue.type}</p>
                                                             <p class="text-sm text-gray-500">Par ${revenue.user} à ${time}</p>
                                                         </div>
-                                                        <span class="text-green-600 font-semibold">+${revenue.montant} </span>
+                                                        <span class="text-green-600 font-semibold">+${revenue.montant} GDS</span>
                                                     </div>
                                                 `;
                                             }).join('') : 
@@ -854,7 +909,7 @@
                                 <h3 class="text-xl font-semibold mb-4">Ajouter une dépense</h3>
                                 <form id="expense-form" class="space-y-4">
                                     <div>
-                                        <label for="expense-amount" class="block text-sm font-medium text-gray-700">Montant ()</label>
+                                        <label for="expense-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
                                         <input type="number" step="0.01" id="expense-amount" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -862,7 +917,7 @@
                                     <div>
                                         <label for="expense-category" class="block text-sm font-medium text-gray-700">Catégorie</label>
                                         <select id="expense-category" required 
-                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-50500">
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                             <option value="">Sélectionnez une catégorie</option>
                                             ${expenseCategories.map(category => `
                                                 <option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>
@@ -903,8 +958,8 @@
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Dépenses du jour</h3>
                                 <div class="bg-red-50 p-4 rounded-lg mb-4">
-                                    <p class="text-lg font-semibold text-red-800">Total: ${totalExpenses.toFixed(2)} </p>
-                                    <p class="text-sm mt-1">Fixes: ${fixedExpenses.toFixed(2)}  | Variables: ${variableExpenses.toFixed(2)} </p>
+                                    <p class="text-lg font-semibold text-red-800">Total: ${totalExpenses.toFixed(2)} GDS</p>
+                                    <p class="text-sm mt-1">Fixes: ${fixedExpenses.toFixed(2)} GDS | Variables: ${variableExpenses.toFixed(2)} GDS</p>
                                 </div>
                                 
                                 <div class="mb-6">
@@ -919,7 +974,7 @@
                                                             <p class="font-medium">${expense.categorie} (${expense.typeDepense})</p>
                                                             <p class="text-sm text-gray-500">Par ${expense.user} à ${time}</p>
                                                         </div>
-                                                        <span class="text-red-600 font-semibold">-${expense.montant} </span>
+                                                        <span class="text-red-600 font-semibold">-${expense.montant} GDS</span>
                                                     </div>
                                                 `;
                                             }).join('') : 
@@ -1133,7 +1188,7 @@
                                 <h3 class="text-xl font-semibold mb-4">Nouveau prêt</h3>
                                 <form id="loan-form" class="space-y-4">
                                     <div>
-                                        <label for="loan-amount" class="block text-sm font-medium text-gray-700">Montant ()</label>
+                                        <label for="loan-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
                                         <input type="number" step="0.01" id="loan-amount" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -1189,8 +1244,8 @@
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Prêts en cours</h3>
                                 <div class="bg-purple-50 p-4 rounded-lg mb-4">
-                                    <p class="text-lg font-semibold text-purple-800">Total dû: ${totalLoanBalance.toFixed(2)} </p>
-                                    <p class="text-sm mt-1">Montant total: ${totalLoans.toFixed(2)}  | Remboursé: ${(totalLoans - totalLoanBalance).toFixed(2)} </p>
+                                    <p class="text-lg font-semibold text-purple-800">Total dû: ${totalLoanBalance.toFixed(2)} GDS</p>
+                                    <p class="text-sm mt-1">Montant total: ${totalLoans.toFixed(2)} GDS | Remboursé: ${(totalLoans - totalLoanBalance).toFixed(2)} GDS</p>
                                 </div>
                                 
                                 <div class="mb-6">
@@ -1206,8 +1261,8 @@
                                                             <div class="flex-1">
                                                                 <p class="font-medium">${loan.type} - ${loan.preteur}</p>
                                                                 <p class="text-sm text-gray-500">Par ${loan.user} à ${time}</p>
-                                                                <p class="text-sm mt-1">Montant: ${loan.montant}  à ${loan.taux_interet}%</p>
-                                                                <p class="text-sm">Reste: ${loan.reste}  / ${loan.montant} </p>
+                                                                <p class="text-sm mt-1">Montant: ${loan.montant} GDS à ${loan.taux_interet}%</p>
+                                                                <p class="text-sm">Reste: ${loan.reste} GDS / ${loan.montant} GDS</p>
                                                             </div>
                                                             <span class="text-purple-600 font-semibold">${loan.statut === 'actif' ? 'Actif' : 'Remboursé'}</span>
                                                         </div>
@@ -1395,10 +1450,325 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                alert(`Remboursement de ${amount}  effectué avec succès.`);
+                alert(`Remboursement de ${amount} GDS effectué avec succès.`);
                 
                 // Recharger les données
                 loadLoans();
+                
+            } catch (error) {
+                console.error("Erreur lors du remboursement:", error);
+                alert("Erreur lors du remboursement: " + error.message);
+            }
+        }
+
+        // Charger la section des emprunts
+        async function loadBorrowings() {
+            try {
+                // Récupérer tous les emprunts
+                const borrowingsSnapshot = await db.collection('borrowings')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                let borrowings = [];
+                let totalBorrowings = 0;
+                let totalBorrowingBalance = 0;
+                
+                borrowingsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    borrowings.push({
+                        id: doc.id,
+                        ...data
+                    });
+                    totalBorrowings += parseFloat(data.montant);
+                    totalBorrowingBalance += parseFloat(data.reste);
+                });
+                
+                // Afficher les données
+                const content = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des emprunts</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Nouvel emprunt</h3>
+                                <form id="borrowing-form" class="space-y-4">
+                                    <div>
+                                        <label for="borrowing-amount" class="block text-sm font-medium text-gray-700">Montant (GDS)</label>
+                                        <input type="number" step="0.01" id="borrowing-amount" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-type" class="block text-sm font-medium text-gray-700">Type d'emprunt</label>
+                                        <select id="borrowing-type" required 
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionnez un type</option>
+                                            ${borrowingTypes.map(type => `
+                                                <option value="${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-interest" class="block text-sm font-medium text-gray-700">Taux d'intérêt (%)</label>
+                                        <input type="number" step="0.01" id="borrowing-interest" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-duration" class="block text-sm font-medium text-gray-700">Durée (mois)</label>
+                                        <input type="number" id="borrowing-duration" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-lender" class="block text-sm font-medium text-gray-700">Prêteur/Créancier</label>
+                                        <input type="text" id="borrowing-lender" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-purpose" class="block text-sm font-medium text-gray-700">Objet de l'emprunt</label>
+                                        <input type="text" id="borrowing-purpose" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-date" class="block text-sm font-medium text-gray-700">Date d'emprunt</label>
+                                        <input type="date" id="borrowing-date" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="borrowing-user" class="block text-sm font-medium text-gray-700">Nom / Signature</label>
+                                        <input type="text" id="borrowing-user" required 
+                                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <button type="submit" id="add-borrowing-btn" 
+                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Ajouter l'emprunt
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-semibold mb-4">Emprunts en cours</h3>
+                                <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                    <p class="text-lg font-semibold text-blue-800">Total dû: ${totalBorrowingBalance.toFixed(2)} GDS</p>
+                                    <p class="text-sm mt-1">Montant total: ${totalBorrowings.toFixed(2)} GDS | Remboursé: ${(totalBorrowings - totalBorrowingBalance).toFixed(2)} GDS</p>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-medium mb-2">Liste des emprunts</h4>
+                                    <div class="transaction-list">
+                                        ${borrowings.length > 0 ? 
+                                            borrowings.map(borrowing => {
+                                                const time = formatTime(new Date(borrowing.timestamp.toDate()));
+                                                const progress = ((borrowing.montant - borrowing.reste) / borrowing.montant) * 100;
+                                                return `
+                                                    <div class="p-3 border-b">
+                                                        <div class="flex justify-between items-start">
+                                                            <div class="flex-1">
+                                                                <p class="font-medium">${borrowing.type} - ${borrowing.preteur}</p>
+                                                                <p class="text-sm text-gray-500">Par ${borrowing.user} à ${time}</p>
+                                                                <p class="text-sm mt-1">Objet: ${borrowing.objet}</p>
+                                                                <p class="text-sm">Montant: ${borrowing.montant} GDS à ${borrowing.taux_interet}%</p>
+                                                                <p class="text-sm">Reste: ${borrowing.reste} GDS / ${borrowing.montant} GDS</p>
+                                                            </div>
+                                                            <span class="text-blue-600 font-semibold">${borrowing.statut === 'actif' ? 'Actif' : 'Remboursé'}</span>
+                                                        </div>
+                                                        <div class="progress-bar mt-2">
+                                                            <div class="progress-fill bg-blue-600" style="width: ${progress}%"></div>
+                                                        </div>
+                                                        ${borrowing.statut === 'actif' ? `
+                                                            <button class="repay-borrowing-btn mt-2 bg-green-600 text-white py-1 px-3 rounded text-sm" data-id="${borrowing.id}">
+                                                                Effectuer un remboursement
+                                                            </button>
+                                                        ` : ''}
+                                                    </div>
+                                                `;
+                                            }).join('') : 
+                                            '<p class="text-gray-500 p-3">Aucun emprunt enregistré.</p>'
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-2">Répartition par type</h4>
+                                    <div class="chart-container">
+                                        <canvas id="borrowings-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('main-content').innerHTML = content;
+                
+                // Créer le graphique des emprunts
+                createBorrowingsChart(borrowings);
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des emprunts:", error);
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold mb-6">Gestion des emprunts</h2>
+                        <p class="text-red-500">Erreur lors du chargement des données: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Créer le graphique des emprunts par type
+        function createBorrowingsChart(borrowings) {
+            const ctx = document.getElementById('borrowings-chart').getContext('2d');
+            
+            if (borrowingsChart) {
+                borrowingsChart.destroy();
+            }
+            
+            // Calculer le total par type
+            const borrowingByType = {};
+            borrowingTypes.forEach(type => {
+                borrowingByType[type] = 0;
+            });
+            
+            borrowings.forEach(borrowing => {
+                if (borrowingByType.hasOwnProperty(borrowing.type)) {
+                    borrowingByType[borrowing.type] += parseFloat(borrowing.reste);
+                }
+            });
+            
+            // Filtrer les types sans emprunts
+            const labels = [];
+            const data = [];
+            const backgroundColors = [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 205, 86, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+            ];
+            
+            let colorIndex = 0;
+            for (const type in borrowingByType) {
+                if (borrowingByType[type] > 0) {
+                    labels.push(type.charAt(0).toUpperCase() + type.slice(1));
+                    data.push(borrowingByType[type]);
+                    colorIndex = (colorIndex + 1) % backgroundColors.length;
+                }
+            }
+            
+            // Si aucun emprunt, afficher un message
+            if (data.length === 0) {
+                document.getElementById('borrowings-chart').parentElement.innerHTML = 
+                    '<p class="text-gray-500 text-center p-4">Aucune donnée à afficher.</p>';
+                return;
+            }
+            
+            borrowingsChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Ajouter un emprunt
+        async function addBorrowing() {
+            const amount = document.getElementById('borrowing-amount').value;
+            const type = document.getElementById('borrowing-type').value;
+            const interest = document.getElementById('borrowing-interest').value;
+            const duration = document.getElementById('borrowing-duration').value;
+            const lender = document.getElementById('borrowing-lender').value;
+            const purpose = document.getElementById('borrowing-purpose').value;
+            const date = document.getElementById('borrowing-date').value;
+            const user = document.getElementById('borrowing-user').value;
+            
+            if (!amount || !type || !interest || !duration || !lender || !purpose || !date || !user) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            
+            try {
+                await db.collection('borrowings').add({
+                    montant: parseFloat(amount),
+                    type: type,
+                    taux_interet: parseFloat(interest),
+                    duree: parseInt(duration),
+                    preteur: lender,
+                    objet: purpose,
+                    date_emprunt: date,
+                    reste: parseFloat(amount),
+                    statut: 'actif',
+                    user: user,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Réinitialiser le formulaire
+                document.getElementById('borrowing-amount').value = '';
+                document.getElementById('borrowing-type').value = '';
+                document.getElementById('borrowing-interest').value = '';
+                document.getElementById('borrowing-duration').value = '';
+                document.getElementById('borrowing-lender').value = '';
+                document.getElementById('borrowing-purpose').value = '';
+                document.getElementById('borrowing-user').value = '';
+                
+                // Recharger les données
+                loadBorrowings();
+                
+            } catch (error) {
+                console.error("Erreur lors de l'ajout de l'emprunt:", error);
+                alert("Erreur lors de l'ajout de l'emprunt: " + error.message);
+            }
+        }
+
+        // Effectuer un remboursement d'emprunt
+        async function repayBorrowing(borrowingId) {
+            const amount = prompt("Montant du remboursement :");
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                alert("Veuillez entrer un montant valide.");
+                return;
+            }
+            
+            try {
+                const borrowingDoc = await db.collection('borrowings').doc(borrowingId).get();
+                const borrowingData = borrowingDoc.data();
+                const newBalance = parseFloat(borrowingData.reste) - parseFloat(amount);
+                
+                await db.collection('borrowings').doc(borrowingId).update({
+                    reste: newBalance,
+                    statut: newBalance > 0 ? 'actif' : 'remboursé'
+                });
+                
+                // Enregistrer le remboursement
+                await db.collection('borrowing_payments').add({
+                    borrowing_id: borrowingId,
+                    montant: parseFloat(amount),
+                    date: formatDate(new Date()),
+                    user: "Utilisateur", // Remplacer par l'utilisateur connecté
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert(`Remboursement de ${amount} GDS effectué avec succès.`);
+                
+                // Recharger les données
+                loadBorrowings();
                 
             } catch (error) {
                 console.error("Erreur lors du remboursement:", error);
@@ -1441,7 +1811,7 @@
                                 <h3 class="text-xl font-semibold mb-4">Nouvel investissement</h3>
                                 <form id="investment-form" class="space-y-4">
                                     <div>
-                                        <label for="investment-amount" class="block text-sm font-medium text-gray-700">Montant investi ()</label>
+                                        <label for="investment-amount" class="block text-sm font-medium text-gray-700">Montant investi (GDS)</label>
                                         <input type="number" step="0.01" id="investment-amount" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -1475,7 +1845,7 @@
                                     </div>
                                     
                                     <div>
-                                        <label for="investment-current-value" class="block text-sm font-medium text-gray-700">Valeur actuelle ()</label>
+                                        <label for="investment-current-value" class="block text-sm font-medium text-gray-700">Valeur actuelle (GDS)</label>
                                         <input type="number" step="0.01" id="investment-current-value" 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
@@ -1486,7 +1856,7 @@
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
                                     
-                                    <div>
+                                                                       <div>
                                         <label for="investment-user" class="block text-sm font-medium text-gray-700">Nom / Signature</label>
                                         <input type="text" id="investment-user" required 
                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -1501,9 +1871,9 @@
                             
                             <div>
                                 <h3 class="text-xl font-semibold mb-4">Portefeuille d'investissements</h3>
-                                <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                                    <p class="text-lg font-semibold text-blue-800">Valeur totale: ${totalInvestmentValue.toFixed(2)} </p>
-                                    <p class="text-sm mt-1">Investi: ${totalInvestments.toFixed(2)}  | Gain: ${totalGain.toFixed(2)}  (${gainPercentage.toFixed(2)}%)</p>
+                                <div class="bg-indigo-50 p-4 rounded-lg mb-4">
+                                    <p class="text-lg font-semibold text-indigo-800">Valeur totale: ${totalInvestmentValue.toFixed(2)} GDS</p>
+                                    <p class="text-sm mt-1">Investi: ${totalInvestments.toFixed(2)} GDS | Gain: ${totalGain.toFixed(2)} GDS (${gainPercentage.toFixed(2)}%)</p>
                                 </div>
                                 
                                 <div class="mb-6">
@@ -1522,10 +1892,10 @@
                                                             <div class="flex-1">
                                                                 <p class="font-medium">${investment.type} - ${investment.niveau_risque}</p>
                                                                 <p class="text-sm text-gray-500">Par ${investment.user} à ${time}</p>
-                                                                <p class="text-sm mt-1">Investi: ${investment.montant}  | Actuel: ${investment.valeur_actuelle || investment.montant} </p>
+                                                                <p class="text-sm mt-1">Investi: ${investment.montant} GDS | Actuel: ${investment.valeur_actuelle || investment.montant} GDS</p>
                                                             </div>
                                                             <span class="${gainColor} font-semibold">
-                                                                ${gain >= 0 ? '+' : ''}${gain.toFixed(2)} <br>
+                                                                ${gain >= 0 ? '+' : ''}${gain.toFixed(2)} GDS<br>
                                                                 <span class="text-xs">(${gainPercent.toFixed(2)}%)</span>
                                                             </span>
                                                         </div>
@@ -1826,22 +2196,23 @@
         }
 
         // Obtenir les dépenses pour une période
-        async function getExpensesForPeriod(startDate, endDate) {
-            const startStr = formatDate(startDate);
-            const endStr = formatDate(endDate);
-            
-            const snapshot = await db.collection('expenses')
-                .where('date', '>=', startStr)
-                .where('date', '<=', endStr)
-                .get();
-            
-            let total = 0;
-            snapshot.forEach(doc => {
-                total += parseFloat(doc.data().montant);
-            });
-            
-            return total;
-        }
+       // Obtenir les dépenses pour une période
+async function getExpensesForPeriod(startDate, endDate) {
+    const startStr = formatDate(startDate);
+    const endStr = formatDate(endDate);
+    
+    const snapshot = await db.collection('expenses')
+        .where('date', '>=', startStr)
+        .where('date', '<=', endStr)
+        .get();
+    
+    let total = 0;
+    snapshot.forEach(doc => {
+        total += parseFloat(doc.data().montant);
+    });
+    
+    return total;
+}
 
         // Créer un graphique de comparaison
         function createComparisonChart(canvasId, data, label) {
@@ -1886,6 +2257,7 @@
                 const revenuesSnapshot = await db.collection('revenues').get();
                 const expensesSnapshot = await db.collection('expenses').get();
                 const loansSnapshot = await db.collection('loans').get();
+                const borrowingsSnapshot = await db.collection('borrowings').get();
                 const investmentsSnapshot = await db.collection('investments').get();
                 
                 const revenues = [];
@@ -1901,6 +2273,11 @@
                 const loans = [];
                 loansSnapshot.forEach(doc => {
                     loans.push(doc.data());
+                });
+                
+                const borrowings = [];
+                borrowingsSnapshot.forEach(doc => {
+                    borrowings.push(doc.data());
                 });
                 
                 const investments = [];
@@ -1922,6 +2299,10 @@
                 // Feuille de prêts
                 const loansWS = XLSX.utils.json_to_sheet(loans);
                 XLSX.utils.book_append_sheet(wb, loansWS, "Prêts");
+                
+                // Feuille d'emprunts
+                const borrowingsWS = XLSX.utils.json_to_sheet(borrowings);
+                XLSX.utils.book_append_sheet(wb, borrowingsWS, "Emprunts");
                 
                 // Feuille d'investissements
                 const investmentsWS = XLSX.utils.json_to_sheet(investments);
