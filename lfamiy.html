@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joyeux Anniversaire à ma Tante Adorée</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'dancing': ['"Dancing Script"', 'cursive'],
+                        'playfair': ['"Playfair Display"', 'serif'],
+                        'comfortaa': ['"Comfortaa"', 'cursive']
+                    },
+                    colors: {
+                        'aunt-purple': '#a78bfa',
+                        'aunt-lavender': '#c4b5fd',
+                        'aunt-gold': '#fbbf24',
+                        'aunt-pink': '#f472b6',
+                        'aunt-teal': '#5eead4'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Playfair+Display:wght@400;700&family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <style>
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes particleFloat {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 1;
+            }
+            50% { 
+                transform: translateY(-100px) rotate(180deg);
+                opacity: 0.7;
+            }
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #f472b6; }
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #f472b6;
+            white-space: nowrap;
+            letter-spacing: .15em;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .heartbeat {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        
+        .aunt-gradient {
+            background-image: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+        }
+        
+        .photo-frame {
+            border: 15px solid white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: rotate(-3deg);
+        }
+        
+        .photo-frame:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+        
+        .memory-card {
+            transition: all 0.3s ease;
+            perspective: 1000px;
+        }
+        
+        .memory-card:hover {
+            transform: translateY(-10px) rotateY(10deg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .handwriting {
+            font-family: 'Dancing Script', cursive;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .birthday-hat {
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-aunt-lavender to-aunt-purple-50 font-comfortaa">
+    <!-- Fond étoilé -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- Bouton musique -->
+    <button id="musicToggle" class="fixed top-5 right-5 z-50 w-12 h-12 rounded-full bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-30 text-white flex items-center justify-center shadow-lg hover:bg-white hover:text-aunt-purple transition-all">
+        <i class="fas fa-volume-mute" id="musicIcon"></i>
+    </button>
+    
+    <!-- Boutons de navigation -->
+    <button id="prevBtn" class="fixed bottom-8 left-8 z-40 w-14 h-14 rounded-full bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-30 text-white flex items-center justify-center shadow-lg hover:bg-white hover:text-aunt-purple transition-all hidden">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <button id="nextBtn" class="fixed bottom-8 right-8 z-40 w-14 h-14 rounded-full bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-30 text-white flex items-center justify-center shadow-lg hover:bg-white hover:text-aunt-purple transition-all">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    
+    <!-- Audio -->
+    <audio id="backgroundMusic" loop>
+        <source src="Ton_anniversaire(48k).m4a" type="audio/mp3">
+    </audio>
+
+    <!-- Section 1: Écran d'accueil -->
+    <section id="welcome" class="min-h-screen flex items-center justify-center relative overflow-hidden aunt-gradient active-section">
+        <div class="absolute inset-0" id="particles"></div>
+        
+        <div class="text-center text-white z-10 px-4 max-w-4xl mx-auto">
+            <div class="space-y-8">
+                <div class="birthday-hat text-6xl mb-4">🎉</div>
+                <h1 class="text-5xl md:text-7xl font-bold opacity-0 handwrite tracking-wide" id="welcomeTitle">
+                    Joyeux Anniversaire à ma Tante Adorée !
+                </h1>
+                <p class="text-xl md:text-2xl opacity-0" id="welcomeText">
+                    "tu es  comme une deuxième mère pour moi."<br>
+                    Aujourd'hui, je veux célébrer la personne extraordinaire que tu es !
+                </p>
+                <button id="startBtn" class="bg-white text-aunt-purple px-8 py-4 rounded-full text-lg font-semibold hover:bg-aunt-lavender transform hover:scale-105 transition-all duration-300 opacity-0 shadow-lg">
+                    <i class="fas fa-birthday-cake mr-2"></i>
+                    Découvrir ton cadeau
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Notre complicité -->
+    <section id="story" class="min-h-screen hidden items-center justify-center relative bg-gradient-to-br from-white to-aunt-lavender fade-in-section">
+        <div class="container mx-auto px-6 py-12">
+            <div class="max-w-5xl mx-auto text-center">
+                <h2 class="text-4xl md:text-5xl font-playfair font-bold text-aunt-pink mb-12">
+                    <span class="text-4xl">💕</span><br>
+                    Ta bienveillance inépuisable
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="photo-frame bg-white p-2 rounded-lg transform rotate-2 transition-all duration-300">
+                        <img src="noune.jpeg" alt="Tante et neveu/nièce" class="w-full h-auto rounded">
+                    </div>
+                    
+                    <div class="text-left space-y-6">
+                        <p class="text-lg text-gray-700">
+                            <span class="text-2xl text-aunt-pink">👩‍👧</span> Je n’oublierai jamais la façon dont tu savais transformer chaque moment en un instant spécial.
+                        </p>
+                        
+                        <p class="text-lg text-gray-700">
+                            <span class="text-2xl text-aunt-pink">🎁</span> Chacun de tes gestes, qu’il s’agisse d’un cadeau, d’un mot ou d’un appui, porte la marque de ton cœur généreux
+                        </p>
+                        
+                        <p class="text-lg text-gray-700">
+                            <span class="text-2xl text-aunt-pink">💫</span> Tu nous as toujours aimés d’un amour vrai et généreux.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Ce que tu représentes -->
+  <section id="meaning" class="min-h-screen hidden items-center justify-center relative bg-gradient-to-br from-aunt-pink to-aunt-gold text-white fade-in-section">
+    <div class="container mx-auto px-6 py-12 text-center">
+        <h2 class="text-4xl md:text-5xl font-playfair font-bold mb-16">
+            <span class="text-4xl">🌟</span><br>
+            Ce que tu représentes pour moi
+        </h2>
+        
+        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div class="memory-card bg-white bg-opacity-20 backdrop-blur-sm p-8 rounded-3xl border border-white border-opacity-30">
+                <div class="text-5xl mb-4">💖</div>
+                <h3 class="text-2xl font-bold mb-4">Ton amour</h3>
+                <p class="opacity-90">Tu nous as toujours entourés d’un amour sincère et inconditionnel, qui reste une force au quotidien.</p>
+            </div>
+            
+            <div class="memory-card bg-white bg-opacity-20 backdrop-blur-sm p-8 rounded-3xl border border-white border-opacity-30">
+                <div class="text-5xl mb-4">🌸</div>
+                <h3 class="text-2xl font-bold mb-4">Ta douceur</h3>
+                <p class="opacity-90">Dans chaque geste et chaque mot, tu apportes chaleur et réconfort à ceux qui t’entourent.</p>
+            </div>
+            
+            <div class="memory-card bg-white bg-opacity-20 backdrop-blur-sm p-8 rounded-3xl border border-white border-opacity-30">
+                <div class="text-5xl mb-4">✨</div>
+                <h3 class="text-2xl font-bold mb-4">Ton inspiration</h3>
+                <p class="opacity-90">Ta force, ta générosité et ta vision unique de la vie sont pour moi une source d’admiration constante.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+    <!-- Section 4: Mes souvenirs préférés -->
+    <section id="memories" class="min-h-screen hidden items-center justify-center relative bg-white fade-in-section">
+        <div class="container mx-auto px-6 py-12">
+            <h2 class="text-4xl md:text-5xl font-playfair font-bold text-center text-aunt-pink mb-16">
+                <span class="text-4xl">🎈</span><br>
+                Ces moments gravés dans mon cœur
+            </h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="memory-card bg-aunt-lavender p-4 rounded-xl transform rotate-1 hover:rotate-0">
+                    <div class="aspect-square bg-gradient-to-br from-aunt-purple to-aunt-pink rounded-lg flex items-center justify-center text-4xl text-white">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-center">Tes cadeaux surprises</p>
+                </div>
+                
+                <div class="memory-card bg-aunt-lavender p-4 rounded-xl transform -rotate-1 hover:rotate-0">
+                    <div class="aspect-square bg-gradient-to-br from-aunt-gold to-aunt-pink rounded-lg flex items-center justify-center text-4xl text-white">
+                        <i class="fas fa-ice-cream"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-center">Nos sorties gourmandes</p>
+                </div>
+                
+                <div class="memory-card bg-aunt-lavender p-4 rounded-xl transform rotate-2 hover:rotate-0">
+                    <div class="aspect-square bg-gradient-to-br from-aunt-teal to-aunt-purple rounded-lg flex items-center justify-center text-4xl text-white">
+                        <i class="fas fa-laugh-beam"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-center">Tes histoires drôles</p>
+                </div>
+                
+                <div class="memory-card bg-aunt-lavender p-4 rounded-xl transform -rotate-2 hover:rotate-0">
+                    <div class="aspect-square bg-gradient-to-br from-aunt-pink to-aunt-gold rounded-lg flex items-center justify-center text-4xl text-white">
+                        <i class="fas fa-hands"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-center">Tes encouragements</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center max-w-2xl mx-auto">
+                <p class="text-lg text-gray-700 italic">
+                    "Tu es un trésor de souvenirs joyeux . Merci pour chacun de ces moments précieux."
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Déclaration finale -->
+    <section id="declaration" class="min-h-screen hidden items-center justify-center relative bg-gradient-to-br from-aunt-teal to-aunt-purple text-white fade-in-section">
+        <div class="container mx-auto px-6 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-light mb-8 opacity-90">
+                    En ce jour spécial, je veux te dire...
+                </h2>
+                
+                <div class="space-y-12">
+                    <div id="loveDeclaration" class="text-6xl md:text-8xl font-dancing font-bold text-white">
+                        <!-- Le texte sera ajouté par JavaScript avec effet typewriter -->
+                    </div>
+                    
+                    <div id="loveSubtext" class="text-2xl md:text-3xl font-light opacity-0">
+                        Que tu es  exceptionnelle et irremplaçable
+                    </div>
+                </div>
+                
+                <div class="mt-16 heartbeat">
+                    <div class="text-8xl">🎂</div>
+                </div>
+            </div>
+        </div>
+    </section>
+<section id="gift" class="min-h-screen hidden items-center justify-center relative bg-gradient-to-br from-aunt-gold to-aunt-pink fade-in-section">
+    <div class="container mx-auto px-6 py-12 text-center">
+        <div class="max-w-4xl mx-auto bg-white bg-opacity-90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-2xl">
+            <h2 class="text-4xl md:text-5xl font-playfair font-bold text-aunt-pink mb-8">
+                <span class="text-4xl">🎊</span><br>
+                Joyeux anniversaire !
+            </h2>
+            
+            <p class="text-lg text-gray-700 mb-8">
+                Que cette journée soit remplie de joie, de rires et de moments heureux !
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-8 mt-12">
+                <button class="choice-btn bg-aunt-purple text-white p-6 rounded-2xl shadow-lg hover:bg-aunt-pink transition-all transform hover:scale-105">
+                    <div class="text-4xl mb-4">🎉</div>
+                    <h3 class="text-xl font-bold mb-2">Célébrons ensemble</h3>
+                </button>
+                
+                <button class="choice-btn bg-aunt-teal text-white p-6 rounded-2xl shadow-lg hover:bg-aunt-purple transition-all transform hover:scale-105">
+                    <div class="text-4xl mb-4">💖</div>
+                    <h3 class="text-xl font-bold mb-2">Tout mon amour</h3>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Section 6: Cadeau numérique -->
+    <section id="gift" class="min-h-screen hidden items-center justify-center relative bg-gradient-to-br from-aunt-gold to-aunt-pink fade-in-section">
+        <div class="container mx-auto px-6 py-12 text-center">
+            <div class="max-w-4xl mx-auto bg-white bg-opacity-90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-2xl">
+                <h2 class="text-4xl md:text-5xl font-playfair font-bold text-aunt-pink mb-8">
+                    <span class="text-4xl">🎊</span><br>
+                    Un cadeau spécial pour ton anniversaire
+                </h2>
+                
+                <p class="text-lg text-gray-700 mb-8">
+                    Pour célébrer la tante extraordinaire que tu es, j'ai préparé quelque chose de spécial...
+                </p>
+                
+                <div class="grid md:grid-cols-2 gap-8 mt-12">
+                    <button id="videoBtn" class="choice-btn bg-aunt-purple text-white p-6 rounded-2xl shadow-lg hover:bg-aunt-pink transition-all transform hover:scale-105">
+                        <div class="text-4xl mb-4">🎬</div>
+                        <h3 class="text-xl font-bold mb-2">Notre vidéo souvenir</h3>
+                        <p class="text-white text-opacity-80">Quelques moments précieux de notre complicité</p>
+                    </button>
+                    
+                    <button id="playlistBtn" class="choice-btn bg-aunt-teal text-white p-6 rounded-2xl shadow-lg hover:bg-aunt-purple transition-all transform hover:scale-105">
+                        <div class="text-4xl mb-4">🎵</div>
+                        <h3 class="text-xl font-bold mb-2">Notre playlist anniversaire</h3>
+                        <p class="text-white text-opacity-80">Les chansons qui célèbrent notre relation</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-aunt-pink text-white py-8 text-center">
+        <p class="font-dancing text-2xl">
+            Avec tout mon affection, pour la tante la plus géniale du monde...<br>
+            Ton neveu qui t'aime énormément ❤️
+        </p>
+    </footer>
+
+    <!-- Modal de réponse -->
+    <div id="responseModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
+            <div id="modalContent">
+                <!-- Le contenu sera ajouté par JavaScript -->
+            </div>
+            <button id="closeModal" class="mt-6 bg-aunt-purple text-white px-6 py-2 rounded-full hover:bg-aunt-pink transition-colors">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentSection = 0;
+        const sections = ['welcome', 'story', 'meaning', 'memories', 'declaration', 'gift'];
+        let music = document.getElementById('backgroundMusic');
+        let musicPlaying = false;
+        let typewriterInterval;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            createParticles();
+            initializeAnimations();
+            setupEventListeners();
+            updateNavButtons();
+            setupIntersectionObserver();
+            
+            // Masquer toutes les sections sauf la première
+            sections.forEach((section, index) => {
+                if (index > 0) {
+                    document.getElementById(section).style.display = 'none';
+                }
+            });
+            
+            // Créer des confettis
+            createConfetti();
+        });
+
+        function setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.fade-in-section').forEach(section => {
+                observer.observe(section);
+            });
+        }
+
+        function setupEventListeners() {
+            // Gestion du bouton de démarrage
+            document.getElementById('startBtn').addEventListener('click', nextSection);
+            
+            // Gestion des boutons de choix
+            document.getElementById('videoBtn').addEventListener('click', () => showModal('video'));
+            document.getElementById('playlistBtn').addEventListener('click', () => showModal('playlist'));
+            
+            // Gestion de la musique
+            document.getElementById('musicToggle').addEventListener('click', toggleMusic);
+            
+            // Fermeture du modal
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('responseModal').classList.add('hidden');
+            });
+            
+            // Boutons de navigation
+            document.getElementById('prevBtn').addEventListener('click', prevSection);
+            document.getElementById('nextBtn').addEventListener('click', nextSection);
+        }
+
+        // Création des étoiles
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Création des particules
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.bottom = '-10px';
+                particle.style.width = Math.random() * 6 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Création de confettis
+        function createConfetti() {
+            const welcomeSection = document.getElementById('welcome');
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = getRandomColor();
+                confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear ${Math.random() * 2}s infinite`;
+                welcomeSection.appendChild(confetti);
+            }
+        }
+
+        function getRandomColor() {
+            const colors = ['#a78bfa', '#c4b5fd', '#fbbf24', '#f472b6', '#5eead4'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Animations initiales
+        function initializeAnimations() {
+            // Animation de l'écran d'accueil
+            anime.timeline()
+                .add({
+                    targets: '#welcomeTitle',
+                    opacity: [0, 1],
+                    translateY: [50, 0],
+                    duration: 1500,
+                    easing: 'easeOutQuad'
+                })
+                .add({
+                    targets: '#welcomeText',
+                    opacity: [0, 1],
+                    translateY: [30, 0],
+                    duration: 1000,
+                    easing: 'easeOutQuad'
+                }, '-=500')
+                .add({
+                    targets: '#startBtn',
+                    opacity: [0, 1],
+                    scale: [0.8, 1],
+                    duration: 800,
+                    easing: 'easeOutBack'
+                }, '-=300');
+        }
+
+        // Navigation entre sections
+        function nextSection() {
+            if (currentSection < sections.length - 1) {
+                // Masquer la section actuelle
+                document.getElementById(sections[currentSection]).style.display = 'none';
+                
+                // Passer à la section suivante
+                currentSection++;
+                
+                // Afficher la nouvelle section
+                showSection(sections[currentSection]);
+                updateNavButtons();
+            }
+        }
+
+        function prevSection() {
+            if (currentSection > 0) {
+                // Masquer la section actuelle
+                document.getElementById(sections[currentSection]).style.display = 'none';
+                
+                // Passer à la section précédente
+                currentSection--;
+                
+                // Afficher la nouvelle section
+                showSection(sections[currentSection]);
+                updateNavButtons();
+            }
+        }
+
+        function updateNavButtons() {
+            // Bouton précédent
+            if (currentSection === 0) {
+                document.getElementById('prevBtn').classList.add('hidden');
+            } else {
+                document.getElementById('prevBtn').classList.remove('hidden');
+            }
+            
+            // Bouton suivant
+            if (currentSection === sections.length - 1) {
+                document.getElementById('nextBtn').classList.add('hidden');
+            } else {
+                document.getElementById('nextBtn').classList.remove('hidden');
+            }
+        }
+
+        function showSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            
+            // Afficher la section
+            section.style.display = 'flex';
+            
+            // Activer l'animation d'apparition
+            setTimeout(() => {
+                section.classList.add('visible');
+                
+                // Lancer les animations spécifiques
+                switch(sectionId) {
+                    case 'declaration':
+                        animateDeclarationSection();
+                        break;
+                    case 'gift':
+                        animateGiftSection();
+                        break;
+                }
+            }, 50);
+        }
+
+        // Animations des sections
+        function animateDeclarationSection() {
+            // Effet typewriter pour "Joyeux anniversaire ma tante"
+            const text = "Joyeux anniversaire, je t'aime !";
+            const element = document.getElementById('loveDeclaration');
+            element.textContent = ''; // Effacer le contenu existant
+            
+            let i = 0;
+            
+            // Nettoyer tout intervalle existant
+            if (typewriterInterval) clearInterval(typewriterInterval);
+            
+            typewriterInterval = setInterval(() => {
+                element.textContent += text.charAt(i);
+                i++;
+                if (i >= text.length) {
+                    clearInterval(typewriterInterval);
+                    
+                    // Animer le sous-texte après
+                    setTimeout(() => {
+                        anime({
+                            targets: '#loveSubtext',
+                            opacity: [0, 1],
+                            translateY: [30, 0],
+                            duration: 1500,
+                            easing: 'easeOutQuad'
+                        });
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        function animateGiftSection() {
+            anime({
+                targets: '.choice-btn',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 800,
+                delay: anime.stagger(300),
+                easing: 'easeOutBack'
+            });
+        }
+
+        // Modal de réponse
+        function showModal(choice) {
+            const modal = document.getElementById('responseModal');
+            const content = document.getElementById('modalContent');
+            
+            if (choice === 'video') {
+                content.innerHTML = `
+                    <div class="text-6xl mb-4">🎥</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Notre vidéo souvenir</h3>
+                    <p class="text-gray-600 mb-6">Une compilation de nos moments de complicité. (Lien fictif pour l'exemple)</p>
+                    <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg mb-6 flex items-center justify-center text-4xl text-gray-500">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <p class="text-sm text-gray-500">Clique sur le bouton play pour voir la vidéo</p>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="text-6xl mb-4">🎶</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Notre playlist anniversaire</h3>
+                    <p class="text-gray-600 mb-6">Les chansons qui célèbrent notre relation (Lien fictif pour l'exemple)</p>
+                    <div class="grid grid-cols-3 gap-2 mb-6">
+                        <div class="bg-gray-100 p-2 rounded flex items-center">
+                            <i class="fas fa-music text-aunt-purple mr-2"></i>
+                            <span class="text-xs truncate">Happy Birthday</span>
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded flex items-center">
+                            <i class="fas fa-music text-aunt-purple mr-2"></i>
+                            <span class="text-xs truncate">Celebration</span>
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded flex items-center">
+                            <i class="fas fa-music text-aunt-purple mr-2"></i>
+                            <span class="text-xs truncate">Best Tante Ever</span>
+                        </div>
+                    </div>
+                    <a href="#" class="inline-block bg-aunt-purple text-white px-4 py-2 rounded-full hover:bg-aunt-pink transition-colors">
+                        <i class="fab fa-spotify mr-2"></i>Écouter sur Spotify
+                    </a>
+                `;
+            }
+            
+            modal.classList.remove('hidden');
+            
+            anime({
+                targets: '#responseModal > div',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 500,
+                easing: 'easeOutBack'
+            });
+        }
+
+        // Gestion de la musique
+        function toggleMusic() {
+            const icon = document.getElementById('musicIcon');
+            
+            if (musicPlaying) {
+                music.pause();
+                icon.className = 'fas fa-volume-mute';
+                musicPlaying = false;
+            } else {
+                music.play().catch(e => console.log('Autoplay prevented'));
+                icon.className = 'fas fa-volume-up';
+                musicPlaying = true;
+            }
+        }
+
+        // Animation au scroll
+        function animateOnScroll() {
+            const fadeElements = document.querySelectorAll('.fade-in-section');
+            
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', animateOnScroll);
+    </script>
+</body>
+</html>
