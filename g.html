@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ligue PES PS3 - Champions League</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <style>
+        :root {
+            --ucl-blue: #0c2461;
+            --ucl-dark: #1e3799;
+            --ucl-light: #4a69bd;
+            --gold: #FFD700;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--ucl-blue) 0%, var(--ucl-dark) 50%, var(--ucl-light) 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .champions-theme {
+            background: linear-gradient(135deg, var(--ucl-blue) 0%, var(--ucl-dark) 100%);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .player-card {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .player-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .qualified {
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.2) 0%, transparent 100%);
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .eliminated {
+            background: linear-gradient(90deg, rgba(244, 67, 54, 0.1) 0%, transparent 100%);
+            border-left: 4px solid #F44336;
+        }
+        
+        .fighting {
+            background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, transparent 100%);
+            border-left: 4px solid #FFC107;
+        }
+        
+        .admin-mode {
+            background: rgba(255, 193, 7, 0.15);
+            border: 2px solid rgba(255, 193, 7, 0.4);
+        }
+        
+        .match-card {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .match-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .fade-in {
+            opacity: 0;
+        }
+        
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 50%, #2a5298 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .pulse-gold {
+            animation: pulse-gold 2s infinite;
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        
+        .trophy-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--ucl-light) 0%, #5d7cc9 100%);
+            box-shadow: 0 4px 15px rgba(77, 104, 193, 0.4);
+        }
+        
+        .score-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .score-input:focus {
+            outline: none;
+            border-color: var(--ucl-light);
+            box-shadow: 0 0 0 2px rgba(74, 105, 189, 0.3);
+        }
+        
+        .champion-crown {
+            background: linear-gradient(135deg, #FFD700 0%, #FFED4E 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .match-status {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+        
+        .status-completed {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .intro-stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .skip-intro-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .skip-intro-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Intro Overlay -->
+    <div id="introOverlay" class="intro-overlay">
+        <div class="intro-stars" id="starsContainer"></div>
+        
+        <button id="skipIntroBtn" class="skip-intro-btn">
+            <i class="fas fa-forward mr-2"></i>Passer l'intro
+        </button>
+        
+        
+        <div class="text-center px-4 max-w-4xl relative z-10">
+            <!-- Logo UEFA -->
+            <div class="mb-8">
+                <div class="w-24 h-24 mx-auto bg-white rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-trophy text-4xl text-yellow-500"></i>
+                </div>
+            </div>
+            
+            <!-- Titre principal -->
+            <h1 id="introTitle" class="text-5xl md:text-7xl font-black mb-6 fade-in uppercase tracking-wider text-white drop-shadow-2xl">
+                LIGUE PES
+            </h1>
+            
+            <!-- Sous-titre -->
+            <div class="text-2xl md:text-4xl font-light mb-8 fade-in text-blue-200 drop-shadow-lg">
+                Édition Champions League
+            </div>
+            
+            <!-- Séparateur -->
+            <div class="w-32 h-1 bg-gradient-to-r from-blue-400 to-purple-500 mx-auto mb-8 fade-in"></div>
+            
+            <!-- Liste des joueurs -->
+            <div id="playerNames" class="my-8 text-lg md:text-xl max-w-2xl mx-auto">
+                <!-- Player names will be inserted here by JavaScript -->
+            </div>
+            
+            <!-- Bouton principal -->
+            <button id="startApp" class="mt-8 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-12 rounded-full transition-all duration-300 transform hover:scale-105 pulse-gold shadow-2xl">
+                <i class="fas fa-play-circle mr-3"></i>Entrer dans le stade
+            </button>
+            
+            <!-- Footer intro -->
+            <div class="mt-12 text-blue-200 text-sm fade-in">
+                <p>Tournoi officiel PS3 • Saison 2024</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="hidden min-h-screen">
+        <!-- Header -->
+        <header class="py-6 px-4 md:px-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="text-center md:text-left mb-4 md:mb-0">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2">Ligue PES PS3</h1>
+                        <p class="text-lg opacity-80">Tournoi Champions League</p>
+                    </div>
+                    
+                    <!-- Admin Login -->
+                    <div id="adminSection" class="glass-card p-4 max-w-md w-full">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-bold">
+                                <i class="fas fa-user-shield mr-2"></i>
+                                <span id="adminStatus">Mode Spectateur</span>
+                            </h3>
+                            <button id="logoutBtn" class="hidden bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                <i class="fas fa-sign-out-alt mr-1"></i>Quitter
+                            </button>
+                        </div>
+                        
+                        <div id="adminLogin">
+                            <div class="flex">
+                                <input id="adminCode" type="password" placeholder="Code admin (1111)" class="flex-grow score-input px-4 py-2 rounded-l-lg">
+                                <button id="loginBtn" class="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-4 py-2 rounded-r-lg transition-colors">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </button>
+                            </div>
+                            <p id="loginMessage" class="mt-2 text-sm text-red-300 hidden">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Code incorrect
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="py-4 px-4 md:px-8 mb-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button id="groupsTab" class="nav-btn active glass-card text-white px-5 py-3 rounded-xl transition-all duration-300 font-semibold">
+                        <i class="fas fa-users mr-2"></i>Poules
+                    </button>
+                    <button id="knockoutTab" class="nav-btn glass-card text-white px-5 py-3 rounded-xl transition-all duration-300 font-semibold">
+                        <i class="fas fa-trophy mr-2"></i>Phase Finale
+                    </button>
+                    <button id="statsTab" class="nav-btn glass-card text-white px-5 py-3 rounded-xl transition-all duration-300 font-semibold">
+                        <i class="fas fa-chart-bar mr-2"></i>Statistiques
+                    </button>
+                    <button id="rulesTab" class="nav-btn glass-card text-white px-5 py-3 rounded-xl transition-all duration-300 font-semibold">
+                        <i class="fas fa-book mr-2"></i>Règles
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="py-6 px-4 md:px-8 pb-16">
+            <div class="max-w-7xl mx-auto">
+                <!-- Groups Section -->
+                <section id="groupsSection" class="content-section">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                        <!-- Group A -->
+                        <div class="glass-card p-6">
+                            <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">POULE A</h2>
+                            <div id="groupA" class="space-y-4">
+                                <!-- Group A players will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Group B -->
+                        <div class="glass-card p-6">
+                            <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">POULE B</h2>
+                            <div id="groupB" class="space-y-4">
+                                <!-- Group B players will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Group Matches -->
+                    <div class="glass-card p-6">
+                        <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">MATCHS DES POULES</h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Group A Matches -->
+                            <div>
+                                <h3 class="text-xl font-bold mb-4 text-center text-blue-300">POULE A</h3>
+                                <div id="groupAMatches" class="space-y-4">
+                                    <!-- Group A matches will be inserted here by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <!-- Group B Matches -->
+                            <div>
+                                <h3 class="text-xl font-bold mb-4 text-center text-green-300">POULE B</h3>
+                                <div id="groupBMatches" class="space-y-4">
+                                    <!-- Group B matches will be inserted here by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Knockout Section -->
+                <section id="knockoutSection" class="content-section hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <!-- Semi-finals -->
+                        <div class="glass-card p-6 mb-8">
+                            <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">DEMI-FINALES</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div id="semi1" class="match-card p-5">
+                                    <!-- Semi-final 1 will be inserted here by JavaScript -->
+                                </div>
+                                <div id="semi2" class="match-card p-5">
+                                    <!-- Semi-final 2 will be inserted here by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Final -->
+                        <div class="glass-card p-6">
+                            <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">FINALE</h2>
+                            <div id="final" class="match-card p-6 max-w-md mx-auto text-center">
+                                <!-- Final will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Stats Section -->
+                <section id="statsSection" class="content-section hidden">
+                    <div class="max-w-6xl mx-auto">
+                        <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">CLASSEMENT ET STATISTIQUES</h2>
+                        
+                        <!-- Overall Ranking -->
+                        <div class="glass-card p-6 mb-8">
+                            <h3 class="text-xl font-bold mb-4 flex items-center">
+                                <i class="fas fa-trophy champion-crown mr-3"></i>
+                                CLASSEMENT GÉNÉRAL
+                            </h3>
+                            <div id="overallRanking" class="space-y-3">
+                                <!-- Overall ranking will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Player Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                            <!-- Top Scorers -->
+                            <div class="glass-card p-6">
+                                <h3 class="text-xl font-bold mb-4 flex items-center">
+                                    <i class="fas fa-futbol text-yellow-400 mr-3"></i>
+                                    MEILLEURS BUTEURS
+                                </h3>
+                                <div id="topScorers" class="space-y-3">
+                                    <!-- Top scorers will be inserted here by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <!-- Best Defense -->
+                            <div class="glass-card p-6">
+                                <h3 class="text-xl font-bold mb-4 flex items-center">
+                                    <i class="fas fa-shield-alt text-green-400 mr-3"></i>
+                                    MEILLEURES DÉFENSES
+                                </h3>
+                                <div id="bestDefense" class="space-y-3">
+                                    <!-- Best defense will be inserted here by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <!-- Best Attack -->
+                            <div class="glass-card p-6">
+                                <h3 class="text-xl font-bold mb-4 flex items-center">
+                                    <i class="fas fa-bolt text-red-400 mr-3"></i>
+                                    MEILLEURES ATTAQUES
+                                </h3>
+                                <div id="bestAttack" class="space-y-3">
+                                    <!-- Best attack will be inserted here by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Rules Section -->
+                <section id="rulesSection" class="content-section hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="glass-card p-6">
+                            <h2 class="text-2xl font-bold mb-6 text-center border-b border-white/20 pb-3">RÈGLES DU TOURNOI</h2>
+                            
+                            <div class="space-y-6">
+                                <div class="bg-white/5 p-4 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-3 text-blue-300"><i class="fas fa-users mr-2"></i>Phase de Groupes</h3>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>2 poules de 5 joueurs chacune</li>
+                                        <li>Chaque joueur affronte une fois tous les autres de sa poule</li>
+                                        <li>Victoire : 3 points | Nul : 1 point | Défaite : 0 point</li>
+                                        <li>Les 2 premiers de chaque poule se qualifient pour les demi-finales</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="bg-white/5 p-4 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-3 text-green-300"><i class="fas fa-trophy mr-2"></i>Phase Finale</h3>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Demi-finales : 1er de la Poule A vs 2nd de la Poule B</li>
+                                        <li>Demi-finales : 1er de la Poule B vs 2nd de la Poule A</li>
+                                        <li>Finale : Vainqueurs des demi-finales</li>
+                                        <li>En cas d'égalité en phase finale, prolongations puis tirs au but</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="bg-white/5 p-4 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-3 text-yellow-300"><i class="fas fa-star mr-2"></i>Départages</h3>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>Points totaux</li>
+                                        <li>Différence de buts générale</li>
+                                        <li>Nombre de buts marqués</li>
+                                        <li>Résultat en confrontation directe</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="py-6 px-4 md:px-8 text-center text-gray-300 border-t border-white/10 mt-8">
+            <div class="max-w-7xl mx-auto">
+                <p class="mb-2">Ligue PES PS3 - Édition Champions League 2024</p>
+                <div class="flex justify-center space-x-6 mt-4">
+                    <button id="replayIntro" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center">
+                        <i class="fas fa-redo mr-2"></i>Revoir l'intro
+                    </button>
+                    <button id="resetData" class="text-red-400 hover:text-red-300 transition-colors flex items-center hidden">
+                        <i class="fas fa-trash-alt mr-2"></i>Reset données
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // App State
+        const state = {
+            isAdmin: false,
+            currentSection: 'groups',
+            players: {
+                groupA: [
+                    { id: 1, name: "Messi", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 2, name: "Ronaldo", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 3, name: "Neymar", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 4, name: "Mbappé", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 5, name: "Lewandowski", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 }
+                ],
+                groupB: [
+                    { id: 6, name: "Modric", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 7, name: "Salah", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 8, name: "De Bruyne", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 9, name: "Haaland", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 },
+                    { id: 10, name: "Kante", points: 0, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 }
+                ]
+            },
+            matches: {
+                groupA: [],
+                groupB: [],
+                semiFinals: [],
+                final: null
+            },
+            stats: {
+                topScorers: [],
+                bestDefense: [],
+                bestAttack: []
+            }
+        };
+
+        // DOM Elements
+        const introOverlay = document.getElementById('introOverlay');
+        const app = document.getElementById('app');
+        const introTitle = document.getElementById('introTitle');
+        const playerNames = document.getElementById('playerNames');
+        const skipIntroBtn = document.getElementById('skipIntroBtn');
+        const startApp = document.getElementById('startApp');
+        const replayIntro = document.getElementById('replayIntro');
+        const resetData = document.getElementById('resetData');
+        const adminCode = document.getElementById('adminCode');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginMessage = document.getElementById('loginMessage');
+        const adminLogin = document.getElementById('adminLogin');
+        const adminSection = document.getElementById('adminSection');
+        const adminStatus = document.getElementById('adminStatus');
+        const groupsTab = document.getElementById('groupsTab');
+        const knockoutTab = document.getElementById('knockoutTab');
+        const statsTab = document.getElementById('statsTab');
+        const rulesTab = document.getElementById('rulesTab');
+        const groupsSection = document.getElementById('groupsSection');
+        const knockoutSection = document.getElementById('knockoutSection');
+        const statsSection = document.getElementById('statsSection');
+        const rulesSection = document.getElementById('rulesSection');
+        const groupA = document.getElementById('groupA');
+        const groupB = document.getElementById('groupB');
+        const groupAMatches = document.getElementById('groupAMatches');
+        const groupBMatches = document.getElementById('groupBMatches');
+        const semi1 = document.getElementById('semi1');
+        const semi2 = document.getElementById('semi2');
+        const finalElement = document.getElementById('final');
+        const overallRanking = document.getElementById('overallRanking');
+        const topScorers = document.getElementById('topScorers');
+        const bestDefense = document.getElementById('bestDefense');
+        const bestAttack = document.getElementById('bestAttack');
+        const starsContainer = document.getElementById('starsContainer');
+
+        // Initialize App
+        function initApp() {
+            // Check if intro has been shown before
+            const introShown = localStorage.getItem('introShown');
+            
+            if (introShown) {
+                // Skip intro if already shown
+                introOverlay.classList.add('hidden');
+                app.classList.remove('hidden');
+                loadData();
+            } else {
+                // Show intro
+                playIntro();
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Generate matches
+            generateMatches();
+            
+            // Render initial UI
+            renderGroups();
+            renderMatches();
+        }
+
+        // Create stars for intro background
+        function createStars() {
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.opacity = Math.random() * 0.7 + 0.3;
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Play Intro Animation
+        function playIntro() {
+            // Create stars background
+            createStars();
+            
+            // Show intro overlay
+            introOverlay.classList.remove('hidden');
+            app.classList.add('hidden');
+            
+            // Create player names elements
+            const allPlayers = [...state.players.groupA, ...state.players.groupB];
+            playerNames.innerHTML = '';
+            
+            // Create two columns for players
+            const leftColumn = document.createElement('div');
+            leftColumn.className = 'fade-in w-1/2 pr-2';
+            const rightColumn = document.createElement('div');
+            rightColumn.className = 'fade-in w-1/2 pl-2';
+            
+            allPlayers.forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'py-3 px-4 mb-2 rounded-lg bg-white/5 border border-white/10 text-center transition-all duration-300 hover:bg-white/10 hover:scale-105';
+                playerElement.textContent = player.name;
+                
+                if (index < 5) {
+                    leftColumn.appendChild(playerElement);
+                } else {
+                    rightColumn.appendChild(playerElement);
+                }
+            });
+            
+            const columnsContainer = document.createElement('div');
+            columnsContainer.className = 'flex justify-between max-w-2xl mx-auto';
+            columnsContainer.appendChild(leftColumn);
+            columnsContainer.appendChild(rightColumn);
+            playerNames.appendChild(columnsContainer);
+            
+            // Animate intro elements
+            anime({
+                targets: '#introTitle',
+                opacity: [0, 1],
+                translateY: [-80, 0],
+                scale: [0.8, 1],
+                duration: 2000,
+                easing: 'easeOutExpo'
+            });
+            
+            anime({
+                targets: '.intro-overlay .fade-in',
+                opacity: [0, 1],
+                translateY: [40, 0],
+                delay: anime.stagger(200, {start: 1500}),
+                duration: 1200,
+                easing: 'easeOutExpo'
+            });
+            
+            anime({
+                targets: '#startApp',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                delay: 4000,
+                duration: 1000,
+                easing: 'easeOutExpo'
+            });
+            
+            anime({
+                targets: '#skipIntroBtn',
+                opacity: [0, 1],
+                delay: 1000,
+                duration: 800,
+                easing: 'easeOutExpo'
+            });
+            
+            // Mark intro as shown
+            localStorage.setItem('introShown', 'true');
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Skip intro button
+            skipIntroBtn.addEventListener('click', () => {
+                introOverlay.classList.add('hidden');
+                app.classList.remove('hidden');
+                loadData();
+            });
+            
+            // Start app button
+            startApp.addEventListener('click', () => {
+                introOverlay.classList.add('hidden');
+                app.classList.remove('hidden');
+                loadData();
+            });
+            
+            // Replay intro button
+            replayIntro.addEventListener('click', () => {
+                playIntro();
+            });
+            
+            // Reset data button (admin only)
+            resetData.addEventListener('click', resetAllData);
+            
+            // Admin login
+            loginBtn.addEventListener('click', handleAdminLogin);
+            adminCode.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleAdminLogin();
+            });
+            
+            // Admin logout
+            logoutBtn.addEventListener('click', handleAdminLogout);
+            
+            // Navigation tabs
+            groupsTab.addEventListener('click', () => switchSection('groups'));
+            knockoutTab.addEventListener('click', () => switchSection('knockout'));
+            statsTab.addEventListener('click', () => switchSection('stats'));
+            rulesTab.addEventListener('click', () => switchSection('rules'));
+        }
+
+        // Handle admin login
+        function handleAdminLogin() {
+            const code = adminCode.value;
+            if (code === '1111') {
+                state.isAdmin = true;
+                adminSection.classList.add('admin-mode');
+                loginMessage.classList.add('hidden');
+                adminLogin.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                adminStatus.textContent = 'Mode Administrateur';
+                adminStatus.classList.add('text-yellow-400');
+                resetData.classList.remove('hidden');
+                
+                // Re-render UI with admin controls
+                renderGroups();
+                renderMatches();
+                renderKnockoutStage();
+                
+                // Show success message
+                showNotification('Accès administrateur activé', 'success');
+            } else {
+                loginMessage.classList.remove('hidden');
+                adminCode.value = '';
+                anime({
+                    targets: '#adminCode',
+                    translateX: [ -10, 10, -10, 10, 0 ],
+                    duration: 400,
+                    easing: 'easeInOutSine'
+                });
+            }
+        }
+
+        // Handle admin logout
+        function handleAdminLogout() {
+            state.isAdmin = false;
+            adminSection.classList.remove('admin-mode');
+            adminLogin.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
+            adminStatus.textContent = 'Mode Spectateur';
+            adminStatus.classList.remove('text-yellow-400');
+            resetData.classList.add('hidden');
+            adminCode.value = '';
+            
+            // Re-render UI without admin controls
+            renderGroups();
+            renderMatches();
+            renderKnockoutStage();
+            
+            showNotification('Mode administrateur désactivé', 'info');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Switch between sections
+        function switchSection(section) {
+            // Update active tab
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            if (section === 'groups') {
+                groupsTab.classList.add('active');
+                groupsSection.classList.remove('hidden');
+            } else if (section === 'knockout') {
+                knockoutTab.classList.add('active');
+                knockoutSection.classList.remove('hidden');
+                renderKnockoutStage();
+            } else if (section === 'stats') {
+                statsTab.classList.add('active');
+                statsSection.classList.remove('hidden');
+                renderStats();
+            } else if (section === 'rules') {
+                rulesTab.classList.add('active');
+                rulesSection.classList.remove('hidden');
+            }
+            
+            state.currentSection = section;
+        }
+
+        // Generate matches for groups
+        function generateMatches() {
+            // Generate group A matches
+            state.matches.groupA = [];
+            for (let i = 0; i < state.players.groupA.length; i++) {
+                for (let j = i + 1; j < state.players.groupA.length; j++) {
+                    state.matches.groupA.push({
+                        id: `A${i}-${j}`,
+                        player1: state.players.groupA[i],
+                        player2: state.players.groupA[j],
+                        score1: null,
+                        score2: null,
+                        played: false
+                    });
+                }
+            }
+            
+            // Generate group B matches
+            state.matches.groupB = [];
+            for (let i = 0; i < state.players.groupB.length; i++) {
+                for (let j = i + 1; j < state.players.groupB.length; j++) {
+                    state.matches.groupB.push({
+                        id: `B${i}-${j}`,
+                        player1: state.players.groupB[i],
+                        player2: state.players.groupB[j],
+                        score1: null,
+                        score2: null,
+                        played: false
+                    });
+                }
+            }
+        }
+
+        // Render groups
+        function renderGroups() {
+            // Sort players by points and other criteria
+            const sortedGroupA = [...state.players.groupA].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+                return a.name.localeCompare(b.name);
+            });
+            
+            const sortedGroupB = [...state.players.groupB].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+                return a.name.localeCompare(b.name);
+            });
+            
+            // Render group A
+            groupA.innerHTML = '';
+            sortedGroupA.forEach((player, index) => {
+                const statusClass = index < 2 ? 'qualified' : index >= 3 ? 'eliminated' : 'fighting';
+                
+                const playerElement = document.createElement('div');
+                playerElement.className = `player-card p-4 flex justify-between items-center ${statusClass}`;
+                
+                playerElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="font-bold text-lg w-8">${index + 1}.</span>
+                        <span class="font-semibold">${player.name}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-xl">${player.points} pts</div>
+                        <div class="text-sm opacity-75">${player.played}J ${player.wins}V ${player.draws}N ${player.losses}D</div>
+                        <div class="text-sm font-medium">${player.goalsFor}:${player.goalsAgainst}</div>
+                    </div>
+                `;
+                
+                groupA.appendChild(playerElement);
+            });
+            
+            // Render group B
+            groupB.innerHTML = '';
+            sortedGroupB.forEach((player, index) => {
+                const statusClass = index < 2 ? 'qualified' : index >= 3 ? 'eliminated' : 'fighting';
+                
+                const playerElement = document.createElement('div');
+                playerElement.className = `player-card p-4 flex justify-between items-center ${statusClass}`;
+                
+                playerElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="font-bold text-lg w-8">${index + 1}.</span>
+                        <span class="font-semibold">${player.name}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-xl">${player.points} pts</div>
+                        <div class="text-sm opacity-75">${player.played}J ${player.wins}V ${player.draws}N ${player.losses}D</div>
+                        <div class="text-sm font-medium">${player.goalsFor}:${player.goalsAgainst}</div>
+                    </div>
+                `;
+                
+                groupB.appendChild(playerElement);
+            });
+        }
+
+        // Render matches
+        function renderMatches() {
+            // Render group A matches
+            groupAMatches.innerHTML = '';
+            state.matches.groupA.forEach(match => {
+                const matchElement = document.createElement('div');
+                matchElement.className = 'match-card p-4';
+                
+                const statusBadge = match.played ? 
+                    '<span class="match-status status-completed">Terminé</span>' : 
+                    '<span class="match-status status-pending">À venir</span>';
+                
+                if (state.isAdmin && !match.played) {
+                    matchElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-medium">${match.player1.name}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-medium">${match.player1.name}</span>
+                            <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="${match.id}" data-player="1" placeholder="0">
+                        </div>
+                        <div class="text-center text-gray-400 mb-3 font-bold">VS</div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-medium">${match.player2.name}</span>
+                            <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="${match.id}" data-player="2" placeholder="0">
+                        </div>
+                        <button class="save-result w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-2 rounded-lg transition-colors font-medium" data-match="${match.id}">
+                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        </button>
+                    `;
+                } else {
+                    const scoreText = match.played ? `${match.score1} - ${match.score2}` : 'À venir';
+                    const resultClass = match.played ? 'text-white font-bold' : 'text-gray-400';
+                    
+                    matchElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-medium">${match.player1.name}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span>${match.player1.name}</span>
+                            <span class="font-bold ${match.played ? 'text-white' : 'text-gray-500'}">${match.played ? match.score1 : '-'}</span>
+                        </div>
+                        <div class="text-center my-2 ${resultClass}">${scoreText}</div>
+                        <div class="flex justify-between items-center">
+                            <span>${match.player2.name}</span>
+                            <span class="font-bold ${match.played ? 'text-white' : 'text-gray-500'}">${match.played ? match.score2 : '-'}</span>
+                        </div>
+                    `;
+                }
+                
+                groupAMatches.appendChild(matchElement);
+            });
+            
+            // Render group B matches
+            groupBMatches.innerHTML = '';
+            state.matches.groupB.forEach(match => {
+                const matchElement = document.createElement('div');
+                matchElement.className = 'match-card p-4';
+                
+                const statusBadge = match.played ? 
+                    '<span class="match-status status-completed">Terminé</span>' : 
+                    '<span class="match-status status-pending">À venir</span>';
+                
+                if (state.isAdmin && !match.played) {
+                    matchElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-medium">${match.player1.name}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-medium">${match.player1.name}</span>
+                            <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="${match.id}" data-player="1" placeholder="0">
+                        </div>
+                        <div class="text-center text-gray-400 mb-3 font-bold">VS</div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-medium">${match.player2.name}</span>
+                            <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="${match.id}" data-player="2" placeholder="0">
+                        </div>
+                        <button class="save-result w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-2 rounded-lg transition-colors font-medium" data-match="${match.id}">
+                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        </button>
+                    `;
+                } else {
+                    const scoreText = match.played ? `${match.score1} - ${match.score2}` : 'À venir';
+                    const resultClass = match.played ? 'text-white font-bold' : 'text-gray-400';
+                    
+                    matchElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-medium">${match.player1.name}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span>${match.player1.name}</span>
+                            <span class="font-bold ${match.played ? 'text-white' : 'text-gray-500'}">${match.played ? match.score1 : '-'}</span>
+                        </div>
+                        <div class="text-center my-2 ${resultClass}">${scoreText}</div>
+                        <div class="flex justify-between items-center">
+                            <span>${match.player2.name}</span>
+                            <span class="font-bold ${match.played ? 'text-white' : 'text-gray-500'}">${match.played ? match.score2 : '-'}</span>
+                        </div>
+                    `;
+                }
+                
+                groupBMatches.appendChild(matchElement);
+            });
+            
+            // Add event listeners for save buttons
+            if (state.isAdmin) {
+                document.querySelectorAll('.save-result').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const matchId = e.target.getAttribute('data-match');
+                        saveMatchResult(matchId);
+                    });
+                });
+            }
+        }
+
+        // Save match result
+        function saveMatchResult(matchId) {
+            const scoreInputs = document.querySelectorAll(`.score-input[data-match="${matchId}"]`);
+            const score1 = parseInt(scoreInputs[0].value);
+            const score2 = parseInt(scoreInputs[1].value);
+            
+            if (isNaN(score1) || isNaN(score2)) {
+                showNotification('Veuillez entrer des scores valides', 'error');
+                return;
+            }
+            
+            // Find the match
+            let match;
+            let group;
+            
+            if (matchId.startsWith('A')) {
+                match = state.matches.groupA.find(m => m.id === matchId);
+                group = state.players.groupA;
+            } else {
+                match = state.matches.groupB.find(m => m.id === matchId);
+                group = state.players.groupB;
+            }
+            
+            if (!match) return;
+            
+            // Update match
+            match.score1 = score1;
+            match.score2 = score2;
+            match.played = true;
+            
+            // Update players stats
+            const player1 = group.find(p => p.id === match.player1.id);
+            const player2 = group.find(p => p.id === match.player2.id);
+            
+            player1.played++;
+            player2.played++;
+            
+            player1.goalsFor += score1;
+            player1.goalsAgainst += score2;
+            player1.goalDifference = player1.goalsFor - player1.goalsAgainst;
+            
+            player2.goalsFor += score2;
+            player2.goalsAgainst += score1;
+            player2.goalDifference = player2.goalsFor - player2.goalsAgainst;
+            
+            if (score1 > score2) {
+                player1.wins++;
+                player1.points += 3;
+                player2.losses++;
+            } else if (score1 < score2) {
+                player2.wins++;
+                player2.points += 3;
+                player1.losses++;
+            } else {
+                player1.draws++;
+                player2.draws++;
+                player1.points += 1;
+                player2.points += 1;
+            }
+            
+            // Re-render UI
+            renderGroups();
+            renderMatches();
+            
+            // Save to localStorage
+            saveData();
+            
+            showNotification(`Résultat enregistré: ${match.player1.name} ${score1}-${score2} ${match.player2.name}`, 'success');
+        }
+
+        // Check if all group matches are played
+        function allGroupMatchesPlayed() {
+            const allGroupAFinished = state.matches.groupA.every(match => match.played);
+            const allGroupBFinished = state.matches.groupB.every(match => match.played);
+            return allGroupAFinished && allGroupBFinished;
+        }
+
+        // Render knockout stage
+        function renderKnockoutStage() {
+            // Check if all group matches are played
+            const groupsFinished = allGroupMatchesPlayed();
+            
+            if (!groupsFinished) {
+                // Show message that groups are not finished
+                semi1.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-clock text-4xl text-yellow-400 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">En attente des résultats</h3>
+                        <p class="text-gray-400">Les demi-finales seront affichées une fois tous les matchs de poules terminés</p>
+                    </div>
+                `;
+                semi2.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-clock text-4xl text-yellow-400 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">En attente des résultats</h3>
+                        <p class="text-gray-400">Les demi-finales seront affichées une fois tous les matchs de poules terminés</p>
+                    </div>
+                `;
+                
+                finalElement.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-trophy text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">Finale à venir</h3>
+                        <p class="text-gray-400">La finale sera déterminée après les demi-finales</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Get qualified players from groups
+            const qualifiedA = [...state.players.groupA]
+                .sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    return b.goalsFor - a.goalsFor;
+                })
+                .slice(0, 2);
+                
+            const qualifiedB = [...state.players.groupB]
+                .sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    return b.goalsFor - a.goalsFor;
+                })
+                .slice(0, 2);
+            
+            // Generate semi-finals if we have qualified players
+            if (qualifiedA.length >= 2 && qualifiedB.length >= 2) {
+                if (state.matches.semiFinals.length === 0) {
+                    state.matches.semiFinals = [
+                        {
+                            id: 'semi1',
+                            player1: qualifiedA[0],
+                            player2: qualifiedB[1],
+                            score1: null,
+                            score2: null,
+                            played: false
+                        },
+                        {
+                            id: 'semi2',
+                            player1: qualifiedB[0],
+                            player2: qualifiedA[1],
+                            score1: null,
+                            score2: null,
+                            played: false
+                        }
+                    ];
+                }
+            }
+            
+            // Render semi-finals
+            semi1.innerHTML = '';
+            semi2.innerHTML = '';
+            
+            if (state.matches.semiFinals.length > 0) {
+                state.matches.semiFinals.forEach((match, index) => {
+                    const container = index === 0 ? semi1 : semi2;
+                    const statusBadge = match.played ? 
+                        '<span class="match-status status-completed">Terminé</span>' : 
+                        '<span class="match-status status-pending">À venir</span>';
+                    
+                    if (state.isAdmin && !match.played) {
+                        container.innerHTML = `
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-bold">Demi-finale ${index + 1}</h3>
+                                ${statusBadge}
+                            </div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium">${match.player1.name}</span>
+                                <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="${match.id}" data-player="1" placeholder="0">
+                            </div>
+                            <div class="text-center text-gray-400 mb-3 font-bold">VS</div>
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="font-medium">${match.player2.name}</span>
+                                <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="${match.id}" data-player="2" placeholder="0">
+                            </div>
+                            <button class="save-knockout w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-2 rounded-lg transition-colors font-medium" data-match="${match.id}">
+                                <i class="fas fa-save mr-2"></i>Enregistrer
+                            </button>
+                        `;
+                    } else {
+                        const scoreText = match.played ? `${match.score1} - ${match.score2}` : 'À venir';
+                        container.innerHTML = `
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-bold">Demi-finale ${index + 1}</h3>
+                                ${statusBadge}
+                            </div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span>${match.player1.name}</span>
+                                <span class="font-bold ${match.played ? 'text-white' : 'text-gray-500'}">${match.played ? match.score1 : '-'}</span>
+                            </div>
+                            <div class="text-center my-2 font-bold ${match.played ? 'text-white' : 'text-gray-400'}">${scoreText}</div>
+                            <div class="flex justify-between items-center">
+                                <span>${match.player2.name}</span>
+                                <span class="font-bold ${match.played ? 'text-white' : 'text-gray-500'}">${match.played ? match.score2 : '-'}</span>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            // Generate final if semi-finals are played
+            const bothSemisPlayed = state.matches.semiFinals.length > 0 && 
+                                   state.matches.semiFinals.every(match => match.played);
+            
+            if (bothSemisPlayed) {
+                const winner1 = state.matches.semiFinals[0].score1 > state.matches.semiFinals[0].score2 ? 
+                    state.matches.semiFinals[0].player1 : state.matches.semiFinals[0].player2;
+                    
+                const winner2 = state.matches.semiFinals[1].score1 > state.matches.semiFinals[1].score2 ? 
+                    state.matches.semiFinals[1].player1 : state.matches.semiFinals[1].player2;
+                
+                // Create final if not exists
+                if (!state.matches.final) {
+                    state.matches.final = {
+                        id: 'final',
+                        player1: winner1,
+                        player2: winner2,
+                        score1: null,
+                        score2: null,
+                        played: false
+                    };
+                }
+            }
+            
+            // Render final
+            finalElement.innerHTML = '';
+            
+            if (state.matches.final) {
+                const statusBadge = state.matches.final.played ? 
+                    '<span class="match-status status-completed">Terminé</span>' : 
+                    '<span class="match-status status-pending">À venir</span>';
+                
+                if (state.isAdmin && !state.matches.final.played) {
+                    finalElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-bold">Finale</h3>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-medium">${state.matches.final.player1.name}</span>
+                            <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="final" data-player="1" placeholder="0">
+                        </div>
+                        <div class="text-center text-gray-400 mb-3 font-bold">VS</div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-medium">${state.matches.final.player2.name}</span>
+                            <input type="number" min="0" class="score-input w-14 text-center py-1 rounded" data-match="final" data-player="2" placeholder="0">
+                        </div>
+                        <button class="save-knockout w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-2 rounded-lg transition-colors font-medium" data-match="final">
+                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        </button>
+                    `;
+                } else {
+                    const scoreText = state.matches.final.played ? 
+                        `${state.matches.final.score1} - ${state.matches.final.score2}` : 'À venir';
+                    
+                    finalElement.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-bold">Finale</h3>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span>${state.matches.final.player1.name}</span>
+                            <span class="font-bold ${state.matches.final.played ? 'text-white' : 'text-gray-500'}">${state.matches.final.played ? state.matches.final.score1 : '-'}</span>
+                        </div>
+                        <div class="text-center my-2 font-bold ${state.matches.final.played ? 'text-white' : 'text-gray-400'}">${scoreText}</div>
+                        <div class="flex justify-between items-center">
+                            <span>${state.matches.final.player2.name}</span>
+                            <span class="font-bold ${state.matches.final.played ? 'text-white' : 'text-gray-500'}">${state.matches.final.played ? state.matches.final.score2 : '-'}</span>
+                        </div>
+                        ${state.matches.final.played ? `
+                            <div class="mt-4 p-3 bg-gradient-to-r from-yellow-600 to-yellow-800 rounded-lg text-center">
+                                <i class="fas fa-trophy champion-crown text-2xl mb-2"></i>
+                                <div class="font-bold text-lg">Champion: ${state.matches.final.score1 > state.matches.final.score2 ? state.matches.final.player1.name : state.matches.final.player2.name}</div>
+                            </div>
+                        ` : ''}
+                    `;
+                }
+            } else {
+                finalElement.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-trophy text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">Finale à venir</h3>
+                        <p class="text-gray-400">La finale sera déterminée après les demi-finales</p>
+                    </div>
+                `;
+            }
+            
+            // Add event listeners for knockout save buttons
+            if (state.isAdmin) {
+                document.querySelectorAll('.save-knockout').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const matchId = e.target.getAttribute('data-match');
+                        saveKnockoutResult(matchId);
+                    });
+                });
+            }
+        }
+
+        // Save knockout result
+        function saveKnockoutResult(matchId) {
+            const scoreInputs = document.querySelectorAll(`.score-input[data-match="${matchId}"]`);
+            const score1 = parseInt(scoreInputs[0].value);
+            const score2 = parseInt(scoreInputs[1].value);
+            
+            if (isNaN(score1) || isNaN(score2)) {
+                showNotification('Veuillez entrer des scores valides', 'error');
+                return;
+            }
+            
+            // Find the match
+            let match;
+            if (matchId === 'final') {
+                match = state.matches.final;
+            } else {
+                match = state.matches.semiFinals.find(m => m.id === matchId);
+            }
+            
+            if (!match) return;
+            
+            // Update match
+            match.score1 = score1;
+            match.score2 = score2;
+            match.played = true;
+            
+            // Re-render knockout stage
+            renderKnockoutStage();
+            
+            // Save to localStorage
+            saveData();
+            
+            if (matchId === 'final') {
+                const winner = score1 > score2 ? match.player1.name : match.player2.name;
+                showNotification(`Félicitations à ${winner}, champion de la Ligue PES PS3 !`, 'success');
+            } else {
+                showNotification(`Résultat de la ${matchId} enregistré`, 'success');
+            }
+        }
+
+        // Render stats
+        function renderStats() {
+            // Combine all players
+            const allPlayers = [...state.players.groupA, ...state.players.groupB];
+            
+            // Overall ranking
+            const sortedPlayers = [...allPlayers].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+                return a.name.localeCompare(b.name);
+            });
+            
+            overallRanking.innerHTML = '';
+            sortedPlayers.forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-card p-4 flex justify-between items-center';
+                
+                // Add champion crown for first place
+                const rankDisplay = index === 0 ? 
+                    `<span class="champion-crown font-bold">${index + 1}.</span>` : 
+                    `<span class="font-bold">${index + 1}.</span>`;
+                
+                playerElement.innerHTML = `
+                    <div class="flex items-center">
+                        ${rankDisplay}
+                        <span class="ml-3 font-semibold ${index === 0 ? 'champion-crown' : ''}">${player.name}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-lg">${player.points} pts</div>
+                        <div class="text-sm opacity-75">${player.goalsFor}:${player.goalsAgainst}</div>
+                    </div>
+                `;
+                
+                overallRanking.appendChild(playerElement);
+            });
+            
+            // Top scorers
+            const topScorersList = [...allPlayers]
+                .sort((a, b) => b.goalsFor - a.goalsFor)
+                .slice(0, 5);
+            
+            topScorers.innerHTML = '';
+            topScorersList.forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-card p-3 flex justify-between items-center';
+                
+                playerElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="font-bold w-6">${index + 1}.</span>
+                        <span>${player.name}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-xl text-yellow-400">${player.goalsFor}</div>
+                        <div class="text-xs opacity-75">buts</div>
+                    </div>
+                `;
+                
+                topScorers.appendChild(playerElement);
+            });
+            
+            // Best defense (least goals conceded)
+            const bestDefenseList = [...allPlayers]
+                .sort((a, b) => a.goalsAgainst - b.goalsAgainst)
+                .slice(0, 5);
+            
+            bestDefense.innerHTML = '';
+            bestDefenseList.forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-card p-3 flex justify-between items-center';
+                
+                playerElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="font-bold w-6">${index + 1}.</span>
+                        <span>${player.name}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-xl text-green-400">${player.goalsAgainst}</div>
+                        <div class="text-xs opacity-75">encaissés</div>
+                    </div>
+                `;
+                
+                bestDefense.appendChild(playerElement);
+            });
+            
+            // Best attack (most goals scored)
+            const bestAttackList = [...allPlayers]
+                .sort((a, b) => b.goalsFor - a.goalsFor)
+                .slice(0, 5);
+            
+            bestAttack.innerHTML = '';
+            bestAttackList.forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-card p-3 flex justify-between items-center';
+                
+                playerElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="font-bold w-6">${index + 1}.</span>
+                        <span>${player.name}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-xl text-red-400">${player.goalsFor}</div>
+                        <div class="text-xs opacity-75">marqués</div>
+                    </div>
+                `;
+                
+                bestAttack.appendChild(playerElement);
+            });
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const dataToSave = {
+                players: state.players,
+                matches: state.matches,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem('pesLeagueData', JSON.stringify(dataToSave));
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('pesLeagueData');
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    state.players = data.players;
+                    state.matches = data.matches;
+                    
+                    // Re-render UI with loaded data
+                    renderGroups();
+                    renderMatches();
+                    renderKnockoutStage();
+                    
+                    console.log('Données chargées avec succès');
+                } catch (error) {
+                    console.error('Erreur lors du chargement des données:', error);
+                }
+            } else {
+                console.log('Aucune donnée sauvegardée trouvée');
+            }
+        }
+
+        // Reset all data
+        function resetAllData() {
+            if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes les données ? Cette action est irréversible.')) {
+                localStorage.removeItem('pesLeagueData');
+                
+                // Reset state
+                state.players.groupA.forEach(player => {
+                    player.points = 0;
+                    player.played = 0;
+                    player.wins = 0;
+                    player.draws = 0;
+                    player.losses = 0;
+                    player.goalsFor = 0;
+                    player.goalsAgainst = 0;
+                    player.goalDifference = 0;
+                });
+                
+                state.players.groupB.forEach(player => {
+                    player.points = 0;
+                    player.played = 0;
+                    player.wins = 0;
+                    player.draws = 0;
+                    player.losses = 0;
+                    player.goalsFor = 0;
+                    player.goalsAgainst = 0;
+                    player.goalDifference = 0;
+                });
+                
+                state.matches.groupA.forEach(match => {
+                    match.score1 = null;
+                    match.score2 = null;
+                    match.played = false;
+                });
+                
+                state.matches.groupB.forEach(match => {
+                    match.score1 = null;
+                    match.score2 = null;
+                    match.played = false;
+                });
+                
+                state.matches.semiFinals = [];
+                state.matches.final = null;
+                
+                // Re-render UI
+                renderGroups();
+                renderMatches();
+                renderKnockoutStage();
+                
+                showNotification('Toutes les données ont été réinitialisées', 'success');
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
