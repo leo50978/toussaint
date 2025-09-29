@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lettre d'Amour Éternelle</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .letter-text {
+            font-family: 'Dancing Script', cursive;
+            line-height: 1.8;
+        }
+        
+        .scroll-container {
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .letter-content {
+            position: absolute;
+            width: 100%;
+        }
+        
+        .heart {
+            position: absolute;
+            background-color: rgba(192, 132, 252, 0.3);
+            display: inline-block;
+            height: 30px;
+            width: 30px;
+            transform: rotate(-45deg);
+        }
+        
+        .heart:before,
+        .heart:after {
+            content: "";
+            background-color: rgba(192, 132, 252, 0.3);
+            border-radius: 50%;
+            height: 30px;
+            position: absolute;
+            width: 30px;
+        }
+        
+        .heart:before {
+            top: -15px;
+            left: 0;
+        }
+        
+        .heart:after {
+            left: 15px;
+            top: 0;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .control-btn {
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-btn:hover {
+            background: rgba(124, 58, 237, 0.9);
+            transform: scale(1.05);
+        }
+        
+        .scroll-direction {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-purple-50 to-purple-100 p-4">
+    <!-- Indication de direction -->
+    <div id="directionIndicator" class="scroll-direction">
+        Défilement: ↑ Haut
+    </div>
+
+    <!-- Bouton de contrôle audio -->
+    <button id="musicToggle" class="fixed top-6 right-6 z-50 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 transition-all duration-300 transform hover:scale-110">
+        <svg id="playIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+        </svg>
+        <svg id="pauseIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+
+    <!-- Cœur flottant décoratif -->
+    <div class="fixed bottom-10 left-10 heart opacity-70"></div>
+    <div class="fixed top-20 right-20 heart opacity-50" style="width: 20px; height: 20px;"></div>
+    <div class="fixed top-1/3 left-1/4 heart opacity-40" style="width: 15px; height: 15px;"></div>
+
+    <!-- Conteneur principal -->
+    <div class="scroll-container w-full max-w-2xl mx-auto">
+        <div id="letterContent" class="letter-content bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-purple-200">
+            <h1 class="text-4xl font-bold text-center mb-8 text-purple-800 letter-text">Ma chère muse,</h1>
+     
+<div class="letter-text text-xl text-purple-900 space-y-6">
+
+<p>Les mots me semblent toujours trop petits, trop fragiles, face à l’abîme de ce que je ressens pour toi. Mon cœur déborde d’un langage que même les plus belles phrases du monde ne sauraient te l'expliquer. Tu es cette blessure douce, ce miracle noir et précieux que la vie a placé sur mon chemin. Depuis toi, chaque jour respire un nouveau vertige, chaque instant devient lumière et nuit mêlées.</p>
+
+<p>Je cherche toujours les mots pour t’écrire cette lettre avec tout mon cœur, avec toute mon authenticité, avec cette part de moi que je n’ai jamais donnée à personne. Ce que je t’offre est brut, déchiré, vraie.</p>
+
+<p>Quand je pense à nous, j’ai cette certitude violente et brûlante : rien ne pourra jamais nous éteindre, même pas la fin. Notre histoire est déjà une tragédie sacrée, un poème de sang et de ciel, et pourtant elle n’en est qu’aux premiers vers. Devant nous s’ouvre un livre infini, que j’écris avec mes mains tremblantes, chaque chapitre est faite de nos rires, de nos chutes, de nos silences complices, et surtout de cet amour qui nous consume.</p>
+
+<p>Et puis, il y a tes bras, tes calins. Ces étreintes volées au temps . ces moments dont Je sens battre ton cœur contre le mien, et chaque fois que je ferme les yeux je nous imagine encore, t'es comme une drogue douce et mortelle. La chaleur de ton corps, la tendresse de tes mains, le frisson de tes lèvres sur les miennes… tout cela me consume et me guérit à la fois. Avec toi , je me perds et je me meurs, et pourtant je me retrouve : tu es mon refuge, mon tourment, mon évidence.</p>
+
+<p>Je crois en toi. Je crois en nous. Je crois en cette chose sombre et indestructible qui nous lie, pierre après pierre, souffle après souffle, comme un pacte scellé dans le sang et dans le feu. Ce que nous avons est rare, unique, indomptable, et il m’habite au point que mon âme elle-même porte ton nom.</p>
+
+<p>Je t’aime, mon abîme, mon étoile noire, ma muse. Je t’aime aujourd’hui, je t’aimerai demain, et dans chaque instant qui viendra. Même quand le temps se fera poussière, même quand tout se sera effondré, mon amour pour toi restera. Il sera l’écho d’un monde où deux cœurs ont osé tout, jusqu’à se confondre, jusqu’à s’immoler.</p>
+
+<p>Je rêve du jour où plus rien ne sera clandestin. J’entends déjà ton rire résonner comme un fantôme dans notre maison. J’imagine le matin où j’ouvrirai les yeux et que ce sera toujours ton visage que je verrai, ta voix qui me bercera, ta chaleur qui m’enveloppera sans crainte du monde. Ce jour-là, mon amour, nous n’aurons plus à voler des instants : nous serons l’instant lui-même, infini, sombre et absolu.</p>
+
+<p class="text-right mt-8">Pour toi, je suis.<br>
+Pour toi, je suis vraiment .<br>
+Pour toi, je suis et je resterai,  jusqu’au bout.</p>
+
+</div>
+            <div class="mt-10 text-center">
+                <div class="inline-block heart opacity-70 mx-2"></div>
+                <div class="inline-block heart opacity-70 mx-2"></div>
+                <div class="inline-block heart opacity-70 mx-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrôles de défilement -->
+    <div class="controls">
+        <button id="pauseBtn" class="control-btn">
+            <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            Pause
+        </button>
+        <button id="playBtn" class="control-btn hidden">
+            <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+            </svg>
+            Play
+        </button>
+    </div>
+
+    <!-- Élément Audio -->
+    <audio id="backgroundMusic" loop>
+        <!-- Remplacez cette URL par le lien vers votre fichier audio -->
+        <source src="musique.m4a" type="audio/mpeg">
+        Votre navigateur ne supporte pas l'élément audio.
+    </audio>
+
+    <script>
+        // Variables globales
+        let scrollAnimation = null;
+        let isScrollingUp = true;
+        let isPaused = false;
+
+        // Gestion de la musique de fond
+        const music = document.getElementById('backgroundMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const directionIndicator = document.getElementById('directionIndicator');
+
+        // Fonction pour basculer entre lecture et pause de la musique
+        function toggleMusic() {
+            if (music.paused) {
+                music.play().then(() => {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                }).catch(error => {
+                    console.error("Erreur de lecture:", error);
+                });
+            } else {
+                music.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        }
+
+        // Fonction pour démarrer le défilement
+        function startScrolling() {
+            if (scrollAnimation) {
+                scrollAnimation.restart();
+                return;
+            }
+
+            const letterContent = document.getElementById('letterContent');
+            const containerHeight = document.querySelector('.scroll-container').offsetHeight;
+            const letterHeight = letterContent.offsetHeight;
+            
+            scrollAnimation = anime({
+                targets: '#letterContent',
+                translateY: isScrollingUp ? [containerHeight, -letterHeight] : [-letterHeight, containerHeight],
+                duration: 180000, // Durée plus longue pour votre belle lettre
+                easing: 'linear',
+                complete: function() {
+                    // Inverser la direction
+                    isScrollingUp = !isScrollingUp;
+                    directionIndicator.textContent = isScrollingUp ? 'Défilement: ↑ Haut' : 'Défilement: ↓ Bas';
+                    
+                    // Redémarrer l'animation dans la nouvelle direction
+                    startScrolling();
+                }
+            });
+        }
+
+        // Fonction pour mettre en pause le défilement
+        function pauseScrolling() {
+            if (scrollAnimation) {
+                scrollAnimation.pause();
+                isPaused = true;
+                document.getElementById('pauseBtn').classList.add('hidden');
+                document.getElementById('playBtn').classList.remove('hidden');
+            }
+        }
+
+        // Fonction pour reprendre le défilement
+        function resumeScrolling() {
+            if (scrollAnimation) {
+                scrollAnimation.play();
+                isPaused = false;
+                document.getElementById('playBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').classList.remove('hidden');
+            }
+        }
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Démarrer le défilement automatique
+            startScrolling();
+
+            // Animation des cœurs flottants
+            const hearts = document.querySelectorAll('.heart');
+            hearts.forEach(heart => {
+                const size = Math.random() * 20 + 10;
+                const duration = Math.random() * 20 + 20;
+                const delay = Math.random() * 10;
+                
+                heart.style.width = `${size}px`;
+                heart.style.height = `${size}px`;
+                
+                heart.style.animation = `float ${duration}s linear ${delay}s infinite`;
+            });
+
+            // Tentative de lecture automatique de la musique
+            music.play().then(() => {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            }).catch(error => {
+                console.log("Lecture automatique bloquée, attente d'interaction utilisateur.");
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            });
+
+            // Événements pour les boutons de contrôle
+            document.getElementById('pauseBtn').addEventListener('click', pauseScrolling);
+            document.getElementById('playBtn').addEventListener('click', resumeScrolling);
+        });
+
+        // Événement de clic sur le bouton de musique
+        musicToggle.addEventListener('click', toggleMusic);
+    </script>
+</body>
+</html>
