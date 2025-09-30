@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Échange Pam</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .new-transaction {
+            border-left: 4px solid #3B82F6;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { background-color: white; }
+            50% { background-color: #f0f9ff; }
+            100% { background-color: white; }
+        }
+        
+        .status-pending { background-color: #fef3c7; color: #d97706; }
+        .status-confirmed { background-color: #d1fae5; color: #065f46; }
+        .status-completed { background-color: #dbeafe; color: #1e40af; }
+        .status-cancelled { background-color: #fee2e2; color: #dc2626; }
+
+        .alarm-active {
+            animation: alarm-pulse 1s infinite;
+        }
+        
+        @keyframes alarm-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .permission-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Bannière de permission -->
+    <div id="permission-banner" class="permission-banner text-white p-4 hidden">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div>
+                <i class="fas fa-bell mr-2"></i>
+                <span>Activez les notifications pour recevoir des alertes même hors ligne</span>
+            </div>
+            <div class="flex space-x-2">
+                <button id="enable-notifications" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    Activer
+                </button>
+                <button id="dismiss-banner" class="bg-transparent border border-white text-white px-4 py-2 rounded-lg hover:bg-white hover:text-purple-600 transition-colors">
+                    Plus tard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                        <span class="text-white font-bold">PAM</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">Admin Échange Pam</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Statut connexion -->
+                    <div id="connection-status" class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm text-gray-600">En ligne</span>
+                    </div>
+
+                    <!-- Alarm Control -->
+                    <div class="flex items-center space-x-2">
+                        <button id="alarm-toggle" class="p-2 text-blue-600 hover:text-blue-800 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                        </button>
+                        <span class="text-sm text-gray-600" id="alarm-status">Alarme: Activée</span>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notifications-btn" class="p-2 text-gray-600 hover:text-blue-600 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notification-count" class="notification-badge hidden">0</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Refresh -->
+                    <button id="refresh-btn" class="p-2 text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-sync-alt text-xl"></i>
+                    </button>
+                    
+                    <!-- Stats -->
+                    <div class="bg-blue-50 px-3 py-2 rounded-lg">
+                        <span class="text-sm text-blue-600 font-medium" id="total-transactions">0 transactions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Alarm Alert -->
+        <div id="alarm-alert" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-bell mr-3 text-red-500"></i>
+                    <div>
+                        <p class="font-bold">Nouvelle transaction reçue !</p>
+                        <p class="text-sm" id="alarm-message">Une nouvelle demande nécessite votre attention.</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="view-transaction" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        Voir
+                    </button>
+                    <button id="silence-alarm" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                        Arrêter l'alarme
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Alarme -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Configuration des alertes</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Volume de l'alarme</label>
+                    <input type="range" id="alarm-volume" min="0" max="1" step="0.1" value="0.8" class="w-full">
+                    <div class="text-sm text-gray-500 text-center" id="volume-display">80%</div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Durée de l'alarme (secondes)</label>
+                    <input type="number" id="alarm-duration" min="10" max="120" value="30" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Seuil urgence (HTG)</label>
+                    <input type="number" id="urgent-threshold" min="1000" max="50000" value="5000" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <select id="status-filter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="all">Tous les statuts</option>
+                        <option value="pending">En attente</option>
+                        <option value="confirmed">Confirmé</option>
+                        <option value="completed">Terminé</option>
+                        <option value="cancelled">Annulé</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type d'échange</label>
+                    <select id="type-filter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="all">Tous les types</option>
+                        <option value="moncash-to-natcash">MonCash → NatCash</option>
+                        <option value="natcash-to-moncash">NatCash → MonCash</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" id="date-filter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div class="flex-1"></div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+                    <input type="text" id="search-input" placeholder="ID, téléphone..." class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions List -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Transactions récentes</h2>
+            </div>
+            
+            <div id="transactions-list" class="divide-y divide-gray-200">
+                <!-- Les transactions seront ajoutées ici dynamiquement -->
+                <div class="p-8 text-center text-gray-500" id="empty-state">
+                    <i class="fas fa-exchange-alt text-4xl mb-4 text-gray-300"></i>
+                    <p>Aucune transaction pour le moment</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Transaction Details Modal -->
+    <div id="transaction-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Détails de la transaction</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <div id="modal-content">
+                    <!-- Contenu dynamique -->
+                </div>
+                
+                <div class="mt-6 flex space-x-3 justify-end">
+                    <button id="cancel-btn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button id="confirm-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Confirmer le paiement
+                    </button>
+                    <button id="complete-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden">
+                        Marquer comme terminé
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio pour les notifications et alarmes -->
+    <audio id="notification-sound" preload="auto">
+        <source src="siren-police-trap-194629.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Alarme principale -->
+    <audio id="alarm-sound" loop preload="auto">
+        <source src="siren-police-trap-194629.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Son d'urgence pour transactions importantes -->
+    <audio id="urgent-alarm-sound" loop preload="auto">
+        <source src="siren-police-trap-194629.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyANd0tZl-6P6l84ab-FSRIX9ISPd_YCe6I",
+            authDomain: "cpieo-99bd5.firebaseapp.com",
+            projectId: "cpieo-99bd5",
+            storageBucket: "cpieo-99bd5.firebasestorage.app",
+            messagingSenderId: "405125968337",
+            appId: "1:405125968337:web:7d5f74b710cc23b84270f0"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Variables globales
+        let transactions = [];
+        let currentTransaction = null;
+        let unsubscribe = null;
+        let isAlarmEnabled = true;
+        let currentAlarm = null;
+        let lastProcessedTransactionId = null;
+
+        // Configuration des alarmes avec valeurs par défaut
+        const alarmConfig = {
+            enabled: true,
+            volume: 0.8,
+            duration: 30000,
+            minAmountForUrgent: 5000,
+            pushNotifications: false
+        };
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+            initializeApp();
+            setupEventListeners();
+            setupVisibilityHandler();
+            checkNotificationPermission();
+        });
+
+        function loadConfiguration() {
+            const savedConfig = localStorage.getItem('alarmConfig');
+            if (savedConfig) {
+                Object.assign(alarmConfig, JSON.parse(savedConfig));
+            }
+            
+            // Appliquer la configuration aux contrôles
+            document.getElementById('alarm-volume').value = alarmConfig.volume;
+            document.getElementById('alarm-duration').value = alarmConfig.duration / 1000;
+            document.getElementById('urgent-threshold').value = alarmConfig.minAmountForUrgent;
+            updateVolumeDisplay();
+        }
+
+        function saveConfiguration() {
+            localStorage.setItem('alarmConfig', JSON.stringify(alarmConfig));
+        }
+
+        function initializeApp() {
+            // Charger le dernier ID traité
+            lastProcessedTransactionId = localStorage.getItem('lastProcessedTransactionId');
+            
+            // Écouter les nouvelles transactions en temps réel
+            unsubscribe = db.collection("transactions")
+                .orderBy("firebaseTimestamp", "desc")
+                .onSnapshot((snapshot) => {
+                    const newTransactions = [];
+                    let hasNewTransactions = false;
+                    
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            const transaction = {
+                                id: change.doc.id,
+                                ...change.doc.data()
+                            };
+                            newTransactions.push(transaction);
+                            
+                            // Vérifier si c'est une nouvelle transaction
+                            if (!lastProcessedTransactionId || transaction.id !== lastProcessedTransactionId) {
+                                hasNewTransactions = true;
+                                
+                                // Déclencher l'alarme pour les nouvelles transactions
+                                if (isAlarmEnabled && alarmConfig.enabled) {
+                                    triggerAlarm(transaction);
+                                }
+                                
+                                // Mettre à jour le dernier ID traité
+                                lastProcessedTransactionId = transaction.id;
+                                localStorage.setItem('lastProcessedTransactionId', transaction.id);
+                            }
+                        }
+                    });
+                    
+                    if (hasNewTransactions) {
+                        updateNotificationCount(newTransactions.length);
+                    }
+                    
+                    // Charger toutes les transactions
+                    loadAllTransactions();
+                }, (error) => {
+                    console.error("Erreur Firestore:", error);
+                    showNotification('Erreur de connexion à la base de données', 'error');
+                });
+        }
+
+        function setupEventListeners() {
+            // Filtres
+            document.getElementById('status-filter').addEventListener('change', filterTransactions);
+            document.getElementById('type-filter').addEventListener('change', filterTransactions);
+            document.getElementById('date-filter').addEventListener('change', filterTransactions);
+            document.getElementById('search-input').addEventListener('input', filterTransactions);
+            
+            // Configuration alarme
+            document.getElementById('alarm-volume').addEventListener('input', updateAlarmVolume);
+            document.getElementById('alarm-duration').addEventListener('change', updateAlarmDuration);
+            document.getElementById('urgent-threshold').addEventListener('change', updateUrgentThreshold);
+            
+            // Boutons
+            document.getElementById('refresh-btn').addEventListener('click', loadAllTransactions);
+            document.getElementById('notifications-btn').addEventListener('click', markAllAsRead);
+            
+            // Contrôle de l'alarme
+            document.getElementById('alarm-toggle').addEventListener('click', toggleAlarm);
+            document.getElementById('silence-alarm').addEventListener('click', silenceAlarm);
+            document.getElementById('view-transaction').addEventListener('click', viewLatestTransaction);
+            
+            // Permissions
+            document.getElementById('enable-notifications').addEventListener('click', enablePushNotifications);
+            document.getElementById('dismiss-banner').addEventListener('click', dismissPermissionBanner);
+            
+            // Modal
+            document.getElementById('close-modal').addEventListener('click', closeModal);
+            document.getElementById('cancel-btn').addEventListener('click', closeModal);
+            document.getElementById('confirm-btn').addEventListener('click', confirmTransaction);
+            document.getElementById('complete-btn').addEventListener('click', completeTransaction);
+            
+            // Fermer le modal en cliquant à l'extérieur
+            document.getElementById('transaction-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        }
+
+        function setupVisibilityHandler() {
+            // Gérer les changements de visibilité de la page
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    // Page en arrière-plan
+                    document.title = "💸 Nouvelle Transaction - Échange Pam";
+                } else {
+                    // Page au premier plan
+                    document.title = "Admin - Échange Pam";
+                    loadAllTransactions();
+                }
+            });
+        }
+
+        // Fonctions d'alarme améliorées
+        function triggerAlarm(transaction) {
+            if (!isAlarmEnabled || !alarmConfig.enabled) return;
+            
+            // Arrêter toute alarme en cours
+            silenceAlarm();
+            
+            // Choisir le type d'alarme selon le montant
+            const alarmAudio = transaction.amount >= alarmConfig.minAmountForUrgent 
+                ? document.getElementById('urgent-alarm-sound')
+                : document.getElementById('alarm-sound');
+            
+            // Configurer l'alarme
+            alarmAudio.volume = alarmConfig.volume;
+            currentAlarm = alarmAudio;
+            
+            // Stocker la transaction pour référence
+            currentAlarm.transaction = transaction;
+            
+            // Jouer l'alarme
+            playAlarmWithRetry(alarmAudio);
+            
+            // Afficher l'alerte visuelle
+            showAlarmAlert(transaction);
+            
+            // Notification push même si la page n'est pas active
+            if (document.hidden) {
+                showBrowserNotification(transaction, true);
+            }
+            
+            // Arrêt automatique après la durée configurée
+            setTimeout(() => {
+                if (currentAlarm === alarmAudio) {
+                    silenceAlarm();
+                }
+            }, alarmConfig.duration);
+        }
+
+        function playAlarmWithRetry(audioElement) {
+            audioElement.play().catch(error => {
+                console.log('Erreur lecture audio:', error);
+                
+                // Réessayer après un délai
+                setTimeout(() => {
+                    if (currentAlarm === audioElement) {
+                        audioElement.play().catch(e => {
+                            console.log('Deuxième tentative échouée:', e);
+                            showBrowserAlert(audioElement.transaction);
+                        });
+                    }
+                }, 1000);
+            });
+        }
+
+        function silenceAlarm() {
+            if (currentAlarm) {
+                currentAlarm.pause();
+                currentAlarm.currentTime = 0;
+                currentAlarm = null;
+            }
+            
+            // Cacher l'alerte visuelle
+            document.getElementById('alarm-alert').classList.add('hidden');
+            document.getElementById('alarm-toggle').classList.remove('alarm-active', 'text-red-500');
+            
+            // Restaurer le titre de la page
+            document.title = "Admin - Échange Pam";
+        }
+
+        function toggleAlarm() {
+            isAlarmEnabled = !isAlarmEnabled;
+            const alarmToggle = document.getElementById('alarm-toggle');
+            const alarmStatus = document.getElementById('alarm-status');
+            
+            if (isAlarmEnabled) {
+                alarmStatus.textContent = 'Alarme: Activée';
+                alarmToggle.classList.remove('text-gray-400');
+                alarmToggle.classList.add('text-blue-600');
+                showNotification('Alarme activée', 'success');
+            } else {
+                alarmStatus.textContent = 'Alarme: Désactivée';
+                alarmToggle.classList.remove('text-blue-600', 'alarm-active', 'text-red-500');
+                alarmToggle.classList.add('text-gray-400');
+                silenceAlarm();
+                showNotification('Alarme désactivée', 'warning');
+            }
+        }
+
+        function updateAlarmVolume() {
+            const volume = parseFloat(document.getElementById('alarm-volume').value);
+            alarmConfig.volume = volume;
+            updateVolumeDisplay();
+            saveConfiguration();
+        }
+
+        function updateAlarmDuration() {
+            const duration = parseInt(document.getElementById('alarm-duration').value) * 1000;
+            alarmConfig.duration = duration;
+            saveConfiguration();
+        }
+
+        function updateUrgentThreshold() {
+            const threshold = parseInt(document.getElementById('urgent-threshold').value);
+            alarmConfig.minAmountForUrgent = threshold;
+            saveConfiguration();
+        }
+
+        function updateVolumeDisplay() {
+            const volumePercent = Math.round(alarmConfig.volume * 100);
+            document.getElementById('volume-display').textContent = `${volumePercent}%`;
+        }
+
+        function showAlarmAlert(transaction) {
+            const alarmAlert = document.getElementById('alarm-alert');
+            const alarmMessage = document.getElementById('alarm-message');
+            const alarmToggle = document.getElementById('alarm-toggle');
+            
+            // Mettre à jour le message
+            const amount = transaction.amount || 0;
+            const phone = transaction.phone || 'Non spécifié';
+            const typeText = getTypeText(transaction.exchangeType);
+            alarmMessage.textContent = `${typeText} - ${amount.toFixed(2)} HTG - ${phone}`;
+            
+            // Afficher l'alerte
+            alarmAlert.classList.remove('hidden');
+            alarmToggle.classList.add('alarm-active', 'text-red-500');
+        }
+
+        function viewLatestTransaction() {
+            if (transactions.length > 0) {
+                openTransactionDetails(transactions[0]);
+                silenceAlarm();
+            }
+        }
+
+        // Système de notifications push
+        function checkNotificationPermission() {
+            if (!("Notification" in window)) {
+                document.getElementById('permission-banner').classList.add('hidden');
+                return;
+            }
+            
+            if (Notification.permission === "default") {
+                document.getElementById('permission-banner').classList.remove('hidden');
+            } else if (Notification.permission === "granted") {
+                alarmConfig.pushNotifications = true;
+                saveConfiguration();
+            }
+        }
+
+        function enablePushNotifications() {
+            if (!("Notification" in window)) {
+                showNotification('Votre navigateur ne supporte pas les notifications', 'error');
+                return;
+            }
+            
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    alarmConfig.pushNotifications = true;
+                    saveConfiguration();
+                    document.getElementById('permission-banner').classList.add('hidden');
+                    showNotification('Notifications activées avec succès', 'success');
+                    
+                    // Test notification
+                    new Notification("🔔 Échange Pam", {
+                        body: "Les notifications sont maintenant activées !",
+                        icon: '/favicon.ico',
+                        tag: 'permission-granted'
+                    });
+                } else {
+                    showNotification('Permissions de notification refusées', 'warning');
+                }
+            });
+        }
+
+        function dismissPermissionBanner() {
+            document.getElementById('permission-banner').classList.add('hidden');
+        }
+
+        function showBrowserNotification(transaction, requireInteraction = false) {
+            if (!alarmConfig.pushNotifications || !("Notification" in window)) return;
+            
+            if (Notification.permission === "granted") {
+                const amount = transaction.amount || 0;
+                const phone = transaction.phone || 'Non spécifié';
+                const typeText = getTypeText(transaction.exchangeType);
+                
+                const notification = new Notification("💰 Nouvelle Transaction - Échange Pam", {
+                    body: `${typeText}\nMontant: ${amount.toFixed(2)} HTG\nTéléphone: ${phone}`,
+                    icon: '/favicon.ico',
+                    tag: 'transaction-alert',
+                    requireInteraction: requireInteraction,
+                    badge: '/favicon.ico',
+                    vibrate: [200, 100, 200]
+                });
+                
+                notification.onclick = function() {
+                    window.focus();
+                    if (transactions.length > 0) {
+                        openTransactionDetails(transactions[0]);
+                    }
+                    notification.close();
+                };
+            }
+        }
+
+        function showBrowserAlert(transaction) {
+            if (!document.hidden) return; // Ne montrer l'alerte que si la page est en arrière-plan
+            
+            const amount = transaction.amount || 0;
+            const phone = transaction.phone || 'Non spécifié';
+            const typeText = getTypeText(transaction.exchangeType);
+            
+            if (confirm(`🚨 NOUVELLE TRANSACTION!\n\n${typeText}\nMontant: ${amount.toFixed(2)} HTG\nTéléphone: ${phone}\n\nVoulez-vous voir les détails ?`)) {
+                window.focus();
+                if (transactions.length > 0) {
+                    openTransactionDetails(transactions[0]);
+                }
+            }
+        }
+
+        // Fonctions de gestion des transactions (conservées mais optimisées)
+        function loadAllTransactions() {
+            db.collection("transactions")
+                .orderBy("firebaseTimestamp", "desc")
+                .get()
+                .then((snapshot) => {
+                    transactions = [];
+                    snapshot.forEach((doc) => {
+                        transactions.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    displayTransactions(transactions);
+                    updateStats();
+                })
+                .catch((error) => {
+                    console.error("Erreur lors du chargement:", error);
+                    showNotification('Erreur lors du chargement des transactions', 'error');
+                });
+        }
+
+        function displayTransactions(transactionsToShow) {
+            const container = document.getElementById('transactions-list');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (transactionsToShow.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            container.innerHTML = '';
+            
+            transactionsToShow.forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                container.appendChild(transactionElement);
+            });
+        }
+
+        function createTransactionElement(transaction) {
+            const div = document.createElement('div');
+            div.className = `p-6 hover:bg-gray-50 cursor-pointer transition-colors ${!transaction.adminViewed ? 'new-transaction' : ''}`;
+            div.addEventListener('click', () => openTransactionDetails(transaction));
+            
+            const statusClass = getStatusClass(transaction.status);
+            const typeText = getTypeText(transaction.exchangeType);
+            const amount = transaction.amount || 0;
+            const fee = amount * 0.10;
+            const total = amount + fee;
+            
+            const date = transaction.timestamp ? new Date(transaction.timestamp.seconds * 1000) : new Date();
+            const formattedDate = date.toLocaleDateString('fr-FR');
+            const formattedTime = date.toLocaleTimeString('fr-FR');
+            
+            const isUrgent = amount >= alarmConfig.minAmountForUrgent;
+            const urgentBadge = isUrgent ? '<span class="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">URGENT</span>' : '';
+            
+            div.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+                            ${getStatusText(transaction.status)}
+                        </span>
+                        ${urgentBadge}
+                        ${!transaction.adminViewed ? '<span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>' : ''}
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">${formattedDate} à ${formattedTime}</div>
+                        <div class="text-xs text-gray-400">ID: ${transaction.generatedId || transaction.id}</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                    <div>
+                        <div class="text-sm text-gray-600">Type d'échange</div>
+                        <div class="font-medium">${typeText}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-600">Montant</div>
+                        <div class="font-medium ${isUrgent ? 'text-red-600 font-bold' : ''}">${amount.toFixed(2)} HTG</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-600">Total à payer</div>
+                        <div class="font-medium">${total.toFixed(2)} HTG</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-sm text-gray-600">Numéro bénéficiaire</div>
+                        <div class="font-medium">${transaction.phone || 'Non spécifié'}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-600">ID Transaction</div>
+                        <div class="font-mono text-sm">${transaction.transactionId || 'Non spécifié'}</div>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function openTransactionDetails(transaction) {
+            currentTransaction = transaction;
+            
+            // Marquer comme vue
+            if (!transaction.adminViewed) {
+                markAsViewed(transaction.id);
+            }
+            
+            const modal = document.getElementById('transaction-modal');
+            const modalContent = document.getElementById('modal-content');
+            const confirmBtn = document.getElementById('confirm-btn');
+            const completeBtn = document.getElementById('complete-btn');
+            
+            const statusClass = getStatusClass(transaction.status);
+            const typeText = getTypeText(transaction.exchangeType);
+            const amount = transaction.amount || 0;
+            const fee = amount * 0.10;
+            const total = amount + fee;
+            
+            const date = transaction.timestamp ? new Date(transaction.timestamp.seconds * 1000) : new Date();
+            const formattedDate = date.toLocaleDateString('fr-FR');
+            const formattedTime = date.toLocaleTimeString('fr-FR');
+            
+            const isUrgent = amount >= alarmConfig.minAmountForUrgent;
+            const urgentBadge = isUrgent ? '<span class="ml-2 px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full font-bold">TRANSACTION URGENTE</span>' : '';
+            
+            modalContent.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+                                    ${getStatusText(transaction.status)}
+                                </span>
+                                ${urgentBadge}
+                            </div>
+                            <div class="mt-2 text-sm text-gray-500">Créé le ${formattedDate} à ${formattedTime}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold ${isUrgent ? 'text-red-600' : 'text-blue-600'}">${amount.toFixed(2)} HTG</div>
+                            <div class="text-sm text-gray-500">+ ${fee.toFixed(2)} HTG de frais (10%)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600 mb-1">Type d'échange</div>
+                            <div class="font-medium">${typeText}</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600 mb-1">ID Généré</div>
+                            <div class="font-mono">${transaction.generatedId || 'N/A'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600 mb-2">Informations de paiement</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <div class="text-xs text-gray-500">ID Transaction</div>
+                                <div class="font-mono">${transaction.transactionId || 'Non spécifié'}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Date de transaction</div>
+                                <div>${transaction.transactionDate || 'Non spécifié'}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Heure de transaction</div>
+                                <div>${transaction.transactionTime || 'Non spécifié'}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Montant total payé</div>
+                                <div class="font-medium">${total.toFixed(2)} HTG</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600 mb-2">Informations du bénéficiaire</div>
+                        <div class="font-medium text-lg">${transaction.phone || 'Non spécifié'}</div>
+                    </div>
+                    
+                    ${transaction.notes ? `
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600 mb-2">Notes supplémentaires</div>
+                        <div class="text-gray-700">${transaction.notes}</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            confirmBtn.classList.toggle('hidden', transaction.status !== 'pending');
+            completeBtn.classList.toggle('hidden', transaction.status !== 'confirmed');
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('transaction-modal').classList.add('hidden');
+            currentTransaction = null;
+        }
+
+        function confirmTransaction() {
+            if (!currentTransaction) return;
+            
+            updateTransactionStatus(currentTransaction.id, 'confirmed')
+                .then(() => {
+                    closeModal();
+                    loadAllTransactions();
+                    showNotification('Transaction confirmée avec succès', 'success');
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showNotification('Erreur lors de la confirmation', 'error');
+                });
+        }
+
+        function completeTransaction() {
+            if (!currentTransaction) return;
+            
+            updateTransactionStatus(currentTransaction.id, 'completed')
+                .then(() => {
+                    closeModal();
+                    loadAllTransactions();
+                    showNotification('Transaction marquée comme terminée', 'success');
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showNotification('Erreur lors de la mise à jour', 'error');
+                });
+        }
+
+        function updateTransactionStatus(transactionId, status) {
+            return db.collection("transactions").doc(transactionId).update({
+                status: status,
+                adminViewed: true,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        function markAsViewed(transactionId) {
+            db.collection("transactions").doc(transactionId).update({
+                adminViewed: true
+            });
+        }
+
+        function markAllAsRead() {
+            const unviewedTransactions = transactions.filter(t => !t.adminViewed);
+            
+            unviewedTransactions.forEach(transaction => {
+                markAsViewed(transaction.id);
+            });
+            
+            updateNotificationCount(0);
+            showNotification('Toutes les transactions marquées comme lues', 'success');
+        }
+
+        function filterTransactions() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            const searchFilter = document.getElementById('search-input').value.toLowerCase();
+            
+            let filtered = transactions;
+            
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(t => t.status === statusFilter);
+            }
+            
+            if (typeFilter !== 'all') {
+                filtered = filtered.filter(t => t.exchangeType === typeFilter);
+            }
+            
+            if (dateFilter) {
+                filtered = filtered.filter(t => {
+                    const transactionDate = t.timestamp ? new Date(t.timestamp.seconds * 1000).toISOString().split('T')[0] : '';
+                    return transactionDate === dateFilter;
+                });
+            }
+            
+            if (searchFilter) {
+                filtered = filtered.filter(t => 
+                    (t.phone && t.phone.includes(searchFilter)) ||
+                    (t.transactionId && t.transactionId.toLowerCase().includes(searchFilter)) ||
+                    (t.generatedId && t.generatedId.toLowerCase().includes(searchFilter)) ||
+                    (t.id && t.id.toLowerCase().includes(searchFilter))
+                );
+            }
+            
+            displayTransactions(filtered);
+        }
+
+        function updateStats() {
+            const total = transactions.length;
+            const pending = transactions.filter(t => t.status === 'pending').length;
+            const confirmed = transactions.filter(t => t.status === 'confirmed').length;
+            const completed = transactions.filter(t => t.status === 'completed').length;
+            
+            document.getElementById('total-transactions').textContent = 
+                `${total} transactions (${pending} attente, ${confirmed} confirmées, ${completed} terminées)`;
+        }
+
+        function updateNotificationCount(count) {
+            const badge = document.getElementById('notification-count');
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : 
+                           type === 'error' ? 'bg-red-500' : 
+                           type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+            
+            toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white ${bgColor} z-50`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Fonctions utilitaires
+        function getStatusClass(status) {
+            switch(status) {
+                case 'pending': return 'status-pending';
+                case 'confirmed': return 'status-confirmed';
+                case 'completed': return 'status-completed';
+                case 'cancelled': return 'status-cancelled';
+                default: return 'status-pending';
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'pending': return 'En attente';
+                case 'confirmed': return 'Confirmé';
+                case 'completed': return 'Terminé';
+                case 'cancelled': return 'Annulé';
+                default: return 'En attente';
+            }
+        }
+
+        function getTypeText(type) {
+            switch(type) {
+                case 'moncash-to-natcash': return 'MonCash → NatCash';
+                case 'natcash-to-moncash': return 'NatCash → MonCash';
+                default: return type || 'Non spécifié';
+            }
+        }
+
+        // Charger les transactions au démarrage
+        loadAllTransactions();
+    </script>
+</body>
+</html>
