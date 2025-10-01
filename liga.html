@@ -19,45 +19,223 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #1e40af;
+            --background-color: #0f172a;
+            --surface-color: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+        }
+
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: #0f172a;
-            color: white;
+            background-color: var(--background-color);
+            color: var(--text-primary);
             margin: 0;
             padding: 0;
+            line-height: 1.6;
         }
+
+        .focus-visible {
+            outline: 3px solid var(--primary-color);
+            outline-offset: 2px;
+            border-radius: 0.25rem;
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid var(--primary-color);
+            outline-offset: 2px;
+            border-radius: 0.25rem;
+        }
+
         .neon-text {
-            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--primary-color), 0 0 20px var(--primary-color);
         }
+
         .card-hover {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
         .card-hover:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease-in;
         }
+
         .admin-panel {
             display: none;
         }
+
         .admin-panel.active {
             display: block;
         }
+
         .progress-bar {
             transition: width 0.5s ease-in-out;
         }
+
         .countdown {
             font-variant-numeric: tabular-nums;
         }
+
         .mobile-scroll {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
         }
+
+        .mobile-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .mobile-scroll::-webkit-scrollbar-thumb {
+            background-color: var(--surface-color);
+            border-radius: 3px;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--primary-color);
+            color: white;
+            padding: 8px;
+            z-index: 10000;
+            text-decoration: none;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            border: 2px solid var(--surface-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .player-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .player-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .prediction-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .prediction-high {
+            background: #10b981;
+            color: white;
+        }
+
+        .prediction-medium {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .prediction-low {
+            background: #ef4444;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
         @media (max-width: 768px) {
             .mobile-stack {
                 flex-direction: column;
@@ -68,702 +246,1277 @@
             .mobile-full {
                 width: 100%;
             }
+            .mobile-text-sm {
+                font-size: 0.875rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
     
     <script>
         // Configuration Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyANd0tZl-6P6l84ab-FSRIX9ISPd_YCe6I",
-            authDomain: "cpieo-99bd5.firebaseapp.com",
-            projectId: "cpieo-99bd5",
-            storageBucket: "cpieo-99bd5.firebasestorage.app",
-            messagingSenderId: "405125968337",
-            appId: "1:405125968337:web:7d5f74b710cc23b84270f0"
-        };
+const firebaseConfig = {
+    apiKey: "AIzaSyANd0tZl-6P6l84ab-FSRIX9ISPd_YCe6I",
+    authDomain: "cpieo-99bd5.firebaseapp.com",
+    projectId: "cpieo-99bd5",
+    storageBucket: "cpieo-99bd5.firebasestorage.app",
+    messagingSenderId: "405125968337",
+    appId: "1:405125968337:web:7d5f74b710cc23b84270f0"
+};
 
+// Données de l'application
+const appData = {
+    activeTab: 'classement',
+    isAdmin: false,
+    isLoading: false,
+    players: [],
+    matches: [],
+    seasons: [],
+    adminAction: '',
+    adminCode: '1111',
+    editingPlayer: null,
+    editingMatch: null,
+    selectedPlayer: null
+};
+
+// Référence Firebase
+let db;
+
+// Initialisation de l'application
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+async function initializeApp() {
+    try {
         // Initialiser Firebase
-        let db;
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialiser Firebase
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            
-            // Configurer les écouteurs d'événements
-            setupEventListeners();
-            
-            // Charger les données
-            loadData();
-            
-            // Démarrer le compte à rebours
-            startCountdown();
-        });
-        
-        // Données de l'application
-        const appData = {
-            activeTab: 'classement',
-            isAdmin: false,
-            players: [],
-            matches: [],
-            seasons: [],
-            adminAction: '',
-            adminCode: '1111',
-            adminLoginAttempt: '',
-            editingPlayer: null,
-            editingMatch: null
-        };
-        
-        // Charger les données depuis Firestore
-        async function loadData() {
-            try {
-                // Charger les joueurs
-                const playersSnapshot = await db.collection('players').get();
-                appData.players = playersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                // Charger les matchs
-                const matchesSnapshot = await db.collection('matches').get();
-                appData.matches = matchesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                // Charger les saisons
-                const seasonsSnapshot = await db.collection('seasons').get();
-                appData.seasons = seasonsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                // Calculer les statistiques
-                calculateStats();
-                
-                // Mettre à jour l'interface
-                renderContent();
-            } catch (error) {
-                console.error("Erreur lors du chargement des données: ", error);
-                showNotification("Erreur de chargement des données", "error");
-            }
-        }
-        
-        // Calculer les statistiques
-        function calculateStats() {
-            // Réinitialiser les statistiques
-            appData.players.forEach(player => {
-                player.matchesPlayed = 0;
-                player.points = 0;
-                player.goalsScored = 0;
-                player.wins = 0;
-                player.draws = 0;
-                player.losses = 0;
-            });
-            
-            // Calculer les statistiques pour chaque match
-            appData.matches.filter(m => m.played).forEach(match => {
-                const player1 = appData.players.find(p => p.id === match.player1Id);
-                const player2 = appData.players.find(p => p.id === match.player2Id);
-                
-                if (player1 && player2) {
-                    // Mettre à jour les matchs joués
-                    player1.matchesPlayed++;
-                    player2.matchesPlayed++;
-                    
-                    // Mettre à jour les buts marqués
-                    player1.goalsScored += match.score1;
-                    player2.goalsScored += match.score2;
-                    
-                    // Déterminer le résultat et attribuer les points
-                    if (match.score1 > match.score2) {
-                        player1.wins++;
-                        player2.losses++;
-                        player1.points += 3;
-                    } else if (match.score2 > match.score1) {
-                        player2.wins++;
-                        player1.losses++;
-                        player2.points += 3;
-                    } else {
-                        player1.draws++;
-                        player2.draws++;
-                        player1.points += 1;
-                        player2.points += 1;
-                    }
-                }
-            });
-        }
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
         
         // Configurer les écouteurs d'événements
-        function setupEventListeners() {
-            // Navigation par onglets
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const tab = this.getAttribute('data-tab');
-                    switchTab(tab);
-                });
-            });
-            
-            // Bouton admin
-            document.getElementById('admin-toggle').addEventListener('click', function() {
-                if (!appData.isAdmin) {
-                    showAdminLogin();
-                } else {
-                    toggleAdmin();
-                }
-            });
-            
-            // Actions admin
-            document.querySelectorAll('.admin-action-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const action = this.getAttribute('data-action');
-                    setAdminAction(action);
-                });
-            });
-            
-            // Ajouter un joueur
-            document.getElementById('add-player-btn').addEventListener('click', function() {
-                addPlayer();
-            });
-            
-            // Ajouter un match
-            document.getElementById('add-match-btn').addEventListener('click', function() {
-                addMatch();
-            });
-            
-            // Modifier un joueur
-            document.getElementById('update-player-btn').addEventListener('click', function() {
-                updatePlayer();
-            });
-            
-            // Modifier un match
-            document.getElementById('update-match-btn').addEventListener('click', function() {
-                updateMatch();
-            });
-            
-            // Connexion admin
-            document.getElementById('admin-login-btn').addEventListener('click', function() {
-                checkAdminLogin();
-            });
-            
-            // Annuler la connexion admin
-            document.getElementById('admin-login-cancel').addEventListener('click', function() {
-                hideAdminLogin();
-            });
-            
-            // Annuler l'édition
-            document.getElementById('cancel-edit-btn').addEventListener('click', function() {
-                cancelEdit();
-            });
-        }
+        setupEventListeners();
         
-        // Afficher le formulaire de connexion admin
-        function showAdminLogin() {
-            document.getElementById('admin-login-modal').classList.remove('hidden');
-        }
-        
-        // Masquer le formulaire de connexion admin
-        function hideAdminLogin() {
-            document.getElementById('admin-login-modal').classList.add('hidden');
-            document.getElementById('admin-code-input').value = '';
-        }
-        
-        // Vérifier le code admin
-        function checkAdminLogin() {
-            const code = document.getElementById('admin-code-input').value;
-            if (code === appData.adminCode) {
-                appData.isAdmin = true;
-                hideAdminLogin();
-                renderContent();
-                showNotification("Mode admin activé", "success");
-            } else {
-                showNotification("Code incorrect", "error");
-            }
-        }
-        
-        // Afficher une notification
-        function showNotification(message, type = "info") {
-            // Créer l'élément de notification
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-                type === "error" ? "bg-red-600" : 
-                type === "success" ? "bg-green-600" : "bg-blue-600"
-            } text-white`;
-            notification.textContent = message;
-            
-            // Ajouter à la page
-            document.body.appendChild(notification);
-            
-            // Supprimer après 3 secondes
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-        
-        // Changer d'onglet
-        function switchTab(tab) {
-            appData.activeTab = tab;
-            renderContent();
-        }
-        
-        // Basculer le mode admin
-        function toggleAdmin() {
-            appData.isAdmin = !appData.isAdmin;
-            renderContent();
-            showNotification(
-                appData.isAdmin ? "Mode admin activé" : "Mode admin désactivé", 
-                appData.isAdmin ? "success" : "info"
-            );
-        }
-        
-        // Définir l'action admin
-        function setAdminAction(action) {
-            appData.adminAction = action;
-            renderContent();
-        }
-        
-        // Annuler l'édition
-        function cancelEdit() {
-            appData.editingPlayer = null;
-            appData.editingMatch = null;
-            renderContent();
-        }
-        
-        // Ajouter un joueur
-        async function addPlayer() {
-            const name = document.getElementById('new-player-name').value;
-            const avatar = document.getElementById('new-player-avatar').value;
-            const team = document.getElementById('new-player-team').value;
-            
-            if (!name) {
-                showNotification("Veuillez entrer un nom de joueur", "error");
-                return;
-            }
-            
-            try {
-                const docRef = await db.collection('players').add({
-                    name,
-                    avatar,
-                    team,
-                    points: 0,
-                    matchesPlayed: 0,
-                    goalsScored: 0,
-                    wins: 0,
-                    draws: 0,
-                    losses: 0
-                });
-                
-                appData.players.push({ 
-                    id: docRef.id, 
-                    name, 
-                    avatar, 
-                    team, 
-                    points: 0, 
-                    matchesPlayed: 0,
-                    goalsScored: 0,
-                    wins: 0,
-                    draws: 0,
-                    losses: 0
-                });
-                
-                // Réinitialiser le formulaire
-                document.getElementById('new-player-name').value = '';
-                document.getElementById('new-player-team').value = '';
-                
-                renderContent();
-                showNotification("Joueur ajouté avec succès", "success");
-            } catch (error) {
-                console.error("Erreur lors de l'ajout: ", error);
-                showNotification("Erreur lors de l'ajout du joueur", "error");
-            }
-        }
-        
-        // Modifier un joueur
-        async function updatePlayer() {
-            if (!appData.editingPlayer) return;
-            
-            const name = document.getElementById('edit-player-name').value;
-            const avatar = document.getElementById('edit-player-avatar').value;
-            const team = document.getElementById('edit-player-team').value;
-            
-            if (!name) {
-                showNotification("Veuillez entrer un nom de joueur", "error");
-                return;
-            }
-            
-            try {
-                await db.collection('players').doc(appData.editingPlayer.id).update({
-                    name,
-                    avatar,
-                    team
-                });
-                
-                // Mettre à jour les données locales
-                const playerIndex = appData.players.findIndex(p => p.id === appData.editingPlayer.id);
-                if (playerIndex !== -1) {
-                    appData.players[playerIndex].name = name;
-                    appData.players[playerIndex].avatar = avatar;
-                    appData.players[playerIndex].team = team;
-                }
-                
-                // Réinitialiser l'édition
-                appData.editingPlayer = null;
-                
-                renderContent();
-                showNotification("Joueur modifié avec succès", "success");
-            } catch (error) {
-                console.error("Erreur lors de la modification: ", error);
-                showNotification("Erreur lors de la modification du joueur", "error");
-            }
-        }
-        
-        // Préparer l'édition d'un joueur
-        function editPlayer(playerId) {
-            const player = appData.players.find(p => p.id === playerId);
-            if (player) {
-                appData.editingPlayer = player;
-                renderContent();
-            }
-        }
-        
-        // Ajouter un match
-        async function addMatch() {
-            const player1Id = document.getElementById('match-player1').value;
-            const player2Id = document.getElementById('match-player2').value;
-            const score1 = parseInt(document.getElementById('match-score1').value);
-            const score2 = parseInt(document.getElementById('match-score2').value);
-            const day = document.getElementById('match-day').value;
-            
-            if (!player1Id || !player2Id || isNaN(score1) || isNaN(score2) || !day) {
-                showNotification("Veuillez remplir tous les champs", "error");
-                return;
-            }
-            
-            if (player1Id === player2Id) {
-                showNotification("Un joueur ne peut pas jouer contre lui-même", "error");
-                return;
-            }
-            
-            try {
-                const player1 = appData.players.find(p => p.id === player1Id);
-                const player2 = appData.players.find(p => p.id === player2Id);
-                
-                const matchData = {
-                    player1Id,
-                    player2Id,
-                    player1: player1.name,
-                    player2: player2.name,
-                    score1,
-                    score2,
-                    day,
-                    played: true,
-                    date: new Date().toISOString()
-                };
-                
-                const docRef = await db.collection('matches').add(matchData);
-                appData.matches.push({ id: docRef.id, ...matchData });
-                
-                // Mettre à jour les statistiques des joueurs
-                updatePlayerStats(player1Id, player2Id, score1, score2);
-                
-                // Réinitialiser le formulaire
-                document.getElementById('match-score1').value = '';
-                document.getElementById('match-score2').value = '';
-                
-                renderContent();
-                showNotification("Match ajouté avec succès", "success");
-            } catch (error) {
-                console.error("Erreur lors de l'ajout: ", error);
-                showNotification("Erreur lors de l'ajout du match", "error");
-            }
-        }
-        
-        // Modifier un match
-        async function updateMatch() {
-            if (!appData.editingMatch) return;
-            
-            const score1 = parseInt(document.getElementById('edit-match-score1').value);
-            const score2 = parseInt(document.getElementById('edit-match-score2').value);
-            const day = document.getElementById('edit-match-day').value;
-            
-            if (isNaN(score1) || isNaN(score2) || !day) {
-                showNotification("Veuillez remplir tous les champs", "error");
-                return;
-            }
-            
-            try {
-                await db.collection('matches').doc(appData.editingMatch.id).update({
-                    score1,
-                    score2,
-                    day
-                });
-                
-                // Mettre à jour les données locales
-                const matchIndex = appData.matches.findIndex(m => m.id === appData.editingMatch.id);
-                if (matchIndex !== -1) {
-                    appData.matches[matchIndex].score1 = score1;
-                    appData.matches[matchIndex].score2 = score2;
-                    appData.matches[matchIndex].day = day;
-                }
-                
-                // Recalculer les statistiques
-                calculateStats();
-                
-                // Réinitialiser l'édition
-                appData.editingMatch = null;
-                
-                renderContent();
-                showNotification("Match modifié avec succès", "success");
-            } catch (error) {
-                console.error("Erreur lors de la modification: ", error);
-                showNotification("Erreur lors de la modification du match", "error");
-            }
-        }
-        
-        // Préparer l'édition d'un match
-        function editMatch(matchId) {
-            const match = appData.matches.find(m => m.id === matchId);
-            if (match) {
-                appData.editingMatch = match;
-                renderContent();
-            }
-        }
-        
-        // Mettre à jour les statistiques des joueurs après un match
-        async function updatePlayerStats(player1Id, player2Id, score1, score2) {
-            try {
-                const player1Ref = db.collection('players').doc(player1Id);
-                const player2Ref = db.collection('players').doc(player2Id);
-                
-                const player1 = appData.players.find(p => p.id === player1Id);
-                const player2 = appData.players.find(p => p.id === player2Id);
-                
-                // Mettre à jour les buts marqués
-                player1.goalsScored = (player1.goalsScored || 0) + score1;
-                player2.goalsScored = (player2.goalsScored || 0) + score2;
-                
-                // Mettre à jour les matchs joués
-                player1.matchesPlayed = (player1.matchesPlayed || 0) + 1;
-                player2.matchesPlayed = (player2.matchesPlayed || 0) + 1;
-                
-                // Mettre à jour les victoires/nuls/défaites
-                if (score1 > score2) {
-                    player1.wins = (player1.wins || 0) + 1;
-                    player2.losses = (player2.losses || 0) + 1;
-                    player1.points = (player1.points || 0) + 3;
-                } else if (score2 > score1) {
-                    player2.wins = (player2.wins || 0) + 1;
-                    player1.losses = (player1.losses || 0) + 1;
-                    player2.points = (player2.points || 0) + 3;
-                } else {
-                    player1.draws = (player1.draws || 0) + 1;
-                    player2.draws = (player2.draws || 0) + 1;
-                    player1.points = (player1.points || 0) + 1;
-                    player2.points = (player2.points || 0) + 1;
-                }
-                
-                // Mettre à jour dans la base de données
-                await player1Ref.update({
-                    goalsScored: player1.goalsScored,
-                    matchesPlayed: player1.matchesPlayed,
-                    wins: player1.wins,
-                    draws: player1.draws,
-                    losses: player1.losses,
-                    points: player1.points
-                });
-                
-                await player2Ref.update({
-                    goalsScored: player2.goalsScored,
-                    matchesPlayed: player2.matchesPlayed,
-                    wins: player2.wins,
-                    draws: player2.draws,
-                    losses: player2.losses,
-                    points: player2.points
-                });
-                
-            } catch (error) {
-                console.error("Erreur lors de la mise à jour des statistiques: ", error);
-            }
-        }
-        
-        // Supprimer un joueur
-        async function deletePlayer(playerId) {
-            if (!confirm("Êtes-vous sûr de vouloir supprimer ce joueur ?")) {
-                return;
-            }
-            
-            try {
-                await db.collection('players').doc(playerId).delete();
-                appData.players = appData.players.filter(p => p.id !== playerId);
-                renderContent();
-                showNotification("Joueur supprimé avec succès", "success");
-            } catch (error) {
-                console.error("Erreur lors de la suppression: ", error);
-                showNotification("Erreur lors de la suppression du joueur", "error");
-            }
-        }
-        
-        // Supprimer un match
-        async function deleteMatch(matchId) {
-            if (!confirm("Êtes-vous sûr de vouloir supprimer ce match ?")) {
-                return;
-            }
-            
-            try {
-                await db.collection('matches').doc(matchId).delete();
-                appData.matches = appData.matches.filter(m => m.id !== matchId);
-                
-                // Recalculer les statistiques
-                calculateStats();
-                
-                renderContent();
-                showNotification("Match supprimé avec succès", "success");
-            } catch (error) {
-                console.error("Erreur lors de la suppression: ", error);
-                showNotification("Erreur lors de la suppression du match", "error");
-            }
-        }
+        // Charger les données
+        await loadData();
         
         // Démarrer le compte à rebours
-        function startCountdown() {
-            function updateCountdown() {
-                const endDate = new Date('2023-09-24T23:59:59');
-                const now = new Date();
-                const diff = endDate - now;
-                
-                if (diff <= 0) {
-                    document.getElementById('countdown').textContent = "Saison terminée";
-                    return;
-                }
-                
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                
-                document.getElementById('countdown').textContent = 
-                    `${days}j ${hours}h ${minutes}m ${seconds}s`;
-            }
+        startCountdown();
+        
+    } catch (error) {
+        console.error("Erreur d'initialisation: ", error);
+        showNotification("Erreur lors du chargement de l'application", "error");
+    }
+}
+
+function setupEventListeners() {
+    // Navigation par onglets
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.getAttribute('data-tab');
+            switchTab(tab);
+        });
+    });
+    
+    // Bouton admin
+    document.getElementById('admin-toggle').addEventListener('click', function() {
+        if (!appData.isAdmin) {
+            showAdminLogin();
+        } else {
+            toggleAdmin();
+        }
+    });
+    
+    // Actions admin
+    document.querySelectorAll('.admin-action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            setAdminAction(action);
+        });
+    });
+    
+    // Ajouter un joueur
+    document.getElementById('add-player-btn').addEventListener('click', function() {
+        addPlayer();
+    });
+    
+    // Ajouter un match
+    document.getElementById('add-match-btn').addEventListener('click', function() {
+        addMatch();
+    });
+    
+    // Modifier un joueur
+    document.getElementById('update-player-btn').addEventListener('click', function() {
+        updatePlayer();
+    });
+    
+    // Modifier un match
+    document.getElementById('update-match-btn').addEventListener('click', function() {
+        updateMatch();
+    });
+    
+    // Connexion admin
+    document.getElementById('admin-login-btn').addEventListener('click', function() {
+        checkAdminLogin();
+    });
+    
+    // Annuler la connexion admin
+    document.getElementById('admin-login-cancel').addEventListener('click', function() {
+        hideAdminLogin();
+    });
+    
+    // Annuler l'édition
+    document.getElementById('cancel-edit-btn').addEventListener('click', function() {
+        cancelEdit();
+    });
+
+    // Fermer le modal joueur
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'close-player-modal' || e.target.closest('#close-player-modal')) {
+            closePlayerModal();
+        }
+    });
+
+    // Raccourcis clavier
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cancelEdit();
+            hideAdminLogin();
+            closePlayerModal();
+        }
+    });
+}
+
+async function loadData() {
+    setLoading(true);
+    try {
+        // Charger les joueurs
+        const playersSnapshot = await db.collection('players').get();
+        appData.players = playersSnapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+        }));
+        
+        // Charger les matchs
+        const matchesSnapshot = await db.collection('matches').get();
+        appData.matches = matchesSnapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+        }));
+        
+        // Charger les saisons
+        const seasonsSnapshot = await db.collection('seasons').get();
+        appData.seasons = seasonsSnapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+        }));
+        
+        // Calculer les statistiques
+        calculateStats();
+        
+        // Mettre à jour l'interface
+        renderContent();
+        
+    } catch (error) {
+        console.error("Erreur lors du chargement des données: ", error);
+        showNotification("Erreur de chargement des données", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+function setLoading(loading) {
+    appData.isLoading = loading;
+    const indicator = document.getElementById('loading-indicator');
+    if (indicator) {
+        if (loading) {
+            indicator.classList.remove('hidden');
+        } else {
+            indicator.classList.add('hidden');
+        }
+    }
+}
+
+function calculateStats() {
+    // Réinitialiser les statistiques
+    appData.players.forEach(player => {
+        player.matchesPlayed = 0;
+        player.points = 0;
+        player.goalsScored = 0;
+        player.goalsConceded = 0;
+        player.wins = 0;
+        player.draws = 0;
+        player.losses = 0;
+        player.goalDifference = 0;
+        player.avgGoalsPerMatch = 0;
+        player.winRate = 0;
+        player.currentForm = [];
+    });
+    
+    // Calculer les statistiques pour chaque match
+    appData.matches
+        .filter(m => m.played)
+        .sort((a, b) => new Date(a.timestamp || a.date) - new Date(b.timestamp || b.date))
+        .forEach(match => {
+            const player1 = appData.players.find(p => p.id === match.player1Id);
+            const player2 = appData.players.find(p => p.id === match.player2Id);
             
-            updateCountdown();
-            setInterval(updateCountdown, 1000);
+            if (player1 && player2) {
+                // Mettre à jour les matchs joués
+                player1.matchesPlayed++;
+                player2.matchesPlayed++;
+                
+                // Mettre à jour les buts marqués et encaissés
+                player1.goalsScored += match.score1;
+                player2.goalsScored += match.score2;
+                player1.goalsConceded += match.score2;
+                player2.goalsConceded += match.score1;
+                
+                // Déterminer le résultat et attribuer les points
+                if (match.score1 > match.score2) {
+                    player1.wins++;
+                    player2.losses++;
+                    player1.points += 3;
+                    player1.currentForm.push('W');
+                    player2.currentForm.push('L');
+                } else if (match.score2 > match.score1) {
+                    player2.wins++;
+                    player1.losses++;
+                    player2.points += 3;
+                    player1.currentForm.push('L');
+                    player2.currentForm.push('W');
+                } else {
+                    player1.draws++;
+                    player2.draws++;
+                    player1.points += 1;
+                    player2.points += 1;
+                    player1.currentForm.push('D');
+                    player2.currentForm.push('D');
+                }
+
+                // Calculer la différence de buts
+                player1.goalDifference = player1.goalsScored - player1.goalsConceded;
+                player2.goalDifference = player2.goalsScored - player2.goalsConceded;
+
+                // Garder seulement les 5 derniers matchs pour la forme
+                if (player1.currentForm.length > 5) player1.currentForm.shift();
+                if (player2.currentForm.length > 5) player2.currentForm.shift();
+            }
+        });
+
+    // Calculer les moyennes et pourcentages
+    appData.players.forEach(player => {
+        player.avgGoalsPerMatch = player.matchesPlayed > 0 
+            ? parseFloat((player.goalsScored / player.matchesPlayed).toFixed(2))
+            : 0;
+        player.winRate = player.matchesPlayed > 0 
+            ? Math.round((player.wins / player.matchesPlayed) * 100) 
+            : 0;
+    });
+}
+
+// NOUVELLE FONCTION : Générer des prédictions pour un joueur
+function generatePredictions(player) {
+    const predictions = {
+        nextMatch: {
+            winProbability: 0,
+            recommendedFormation: '4-3-3',
+            keyToVictory: ''
+        },
+        strengths: [],
+        weaknesses: [],
+        improvements: []
+    };
+
+    // Calcul de la probabilité de victoire basée sur la forme
+    const recentWins = player.currentForm.filter(f => f === 'W').length;
+    const formWeight = recentWins * 20;
+    const winRateWeight = player.winRate * 0.3;
+    const goalsWeight = (player.avgGoalsPerMatch * 10);
+    
+    predictions.nextMatch.winProbability = Math.min(95, Math.max(5, 
+        formWeight + winRateWeight + goalsWeight
+    ));
+
+    // Forces
+    if (player.winRate > 60) {
+        predictions.strengths.push("Taux de victoire excellent");
+    }
+    if (player.avgGoalsPerMatch > 2) {
+        predictions.strengths.push("Attaque très prolifique");
+    }
+    if (player.goalDifference > 10) {
+        predictions.strengths.push("Défense solide");
+    }
+    if (recentWins >= 3) {
+        predictions.strengths.push("Bonne forme actuelle");
+    }
+
+    // Faiblesses
+    if (player.winRate < 40) {
+        predictions.weaknesses.push("Taux de victoire à améliorer");
+    }
+    if (player.avgGoalsPerMatch < 1) {
+        predictions.weaknesses.push("Efficacité offensive limitée");
+    }
+    if (player.goalDifference < 0) {
+        predictions.weaknesses.push("Défense vulnérable");
+    }
+    if (player.currentForm.filter(f => f === 'L').length >= 3) {
+        predictions.weaknesses.push("Mauvaise forme récente");
+    }
+
+    // Conseils d'amélioration
+    if (player.avgGoalsPerMatch < 1.5) {
+        predictions.improvements.push("Travailler la finition devant le but");
+    }
+    if (player.goalsConceded > player.goalsScored) {
+        predictions.improvements.push("Renforcer la défense collective");
+    }
+    if (player.draws > player.wins) {
+        predictions.improvements.push("Apprendre à conclure les matchs serrés");
+    }
+
+    // Clé de la victoire
+    if (predictions.strengths.length > 0) {
+        predictions.nextMatch.keyToVictory = predictions.strengths[0];
+    } else if (predictions.improvements.length > 0) {
+        predictions.nextMatch.keyToVictory = "Améliorer: " + predictions.improvements[0];
+    } else {
+        predictions.nextMatch.keyToVictory = "Maintenir la concentration";
+    }
+
+    return predictions;
+}
+
+// NOUVELLE FONCTION : Afficher les détails d'un joueur
+function showPlayerDetails(playerId) {
+    const player = appData.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    appData.selectedPlayer = player;
+    const predictions = generatePredictions(player);
+
+    const modal = document.getElementById('player-details-modal');
+    const content = document.getElementById('player-details-content');
+    
+    if (!modal || !content) return;
+    
+    content.innerHTML = `
+        <div class="bg-gray-800 rounded-lg p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center mr-4">
+                        <i class="fa-solid fa-${player.avatar || 'user'} text-3xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold">${player.name}</h3>
+                        <p class="text-gray-400">${player.team || 'Sans équipe'}</p>
+                    </div>
+                </div>
+                <button id="close-player-modal" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Statistiques -->
+                <div>
+                    <h4 class="text-xl font-bold mb-4 text-blue-400">📊 Statistiques</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${player.matchesPlayed || 0}</div>
+                            <div class="stat-label">Matchs joués</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.points || 0}</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.winRate || 0}%</div>
+                            <div class="stat-label">Victoires</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.avgGoalsPerMatch || 0}</div>
+                            <div class="stat-label">Buts/match</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.goalsScored || 0}</div>
+                            <div class="stat-label">Buts marqués</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.goalDifference > 0 ? '+' : ''}${player.goalDifference || 0}</div>
+                            <div class="stat-label">Différence de buts</div>
+                        </div>
+                    </div>
+                    
+                    ${player.currentForm && player.currentForm.length > 0 ? `
+                    <div class="mt-4">
+                        <h5 class="font-bold mb-2">Forme actuelle (5 derniers matchs):</h5>
+                        <div class="flex space-x-2">
+                            ${player.currentForm.map(result => `
+                                <span class="w-8 h-8 rounded-full flex items-center justify-center ${
+                                    result === 'W' ? 'bg-green-600' : 
+                                    result === 'D' ? 'bg-yellow-600' : 'bg-red-600'
+                                }">
+                                    ${result}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- Prédictions et Conseils -->
+                <div>
+                    <h4 class="text-xl font-bold mb-4 text-green-400">🔮 Prédictions & Conseils</h4>
+                    
+                    <!-- Probabilité de victoire -->
+                    <div class="bg-gray-750 p-4 rounded-lg mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold">Probabilité victoire prochain match:</span>
+                            <span class="text-2xl font-bold ${predictions.nextMatch.winProbability > 70 ? 'text-green-400' : predictions.nextMatch.winProbability > 40 ? 'text-yellow-400' : 'text-red-400'}">
+                                ${Math.round(predictions.nextMatch.winProbability)}%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-600 rounded-full h-2">
+                            <div class="h-2 rounded-full ${predictions.nextMatch.winProbability > 70 ? 'bg-green-500' : predictions.nextMatch.winProbability > 40 ? 'bg-yellow-500' : 'bg-red-500'}" 
+                                 style="width: ${predictions.nextMatch.winProbability}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Formation recommandée -->
+                    <div class="bg-gray-750 p-4 rounded-lg mb-4">
+                        <div class="font-bold mb-2">Formation recommandée:</div>
+                        <div class="text-2xl font-mono text-center">${predictions.nextMatch.recommendedFormation}</div>
+                    </div>
+
+                    <!-- Forces -->
+                    ${predictions.strengths.length > 0 ? `
+                        <div class="mb-4">
+                            <div class="font-bold text-green-400 mb-2">✅ Points forts:</div>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                ${predictions.strengths.map(strength => `<li>${strength}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    <!-- Faiblesses -->
+                    ${predictions.weaknesses.length > 0 ? `
+                        <div class="mb-4">
+                            <div class="font-bold text-red-400 mb-2">❌ Points à améliorer:</div>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                ${predictions.weaknesses.map(weakness => `<li>${weakness}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    <!-- Conseils -->
+                    ${predictions.improvements.length > 0 ? `
+                        <div class="mb-4">
+                            <div class="font-bold text-blue-400 mb-2">💡 Conseils d'amélioration:</div>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                ${predictions.improvements.map(improvement => `<li>${improvement}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    <!-- Clé de la victoire -->
+                    <div class="bg-blue-600 p-3 rounded-lg">
+                        <div class="font-bold">🎯 Clé de la victoire:</div>
+                        <div>${predictions.nextMatch.keyToVictory}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique des matchs récents -->
+            <div class="mt-6">
+                <h4 class="text-xl font-bold mb-4 text-purple-400">📅 Matchs récents</h4>
+                <div class="space-y-2 max-h-40 overflow-y-auto">
+                    ${appData.matches
+                        .filter(m => (m.player1Id === player.id || m.player2Id === player.id) && m.played)
+                        .sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date))
+                        .slice(0, 5)
+                        .map(match => {
+                            const isPlayer1 = match.player1Id === player.id;
+                            const opponent = isPlayer1 ? match.player2 : match.player1;
+                            const playerScore = isPlayer1 ? match.score1 : match.score2;
+                            const opponentScore = isPlayer1 ? match.score2 : match.score1;
+                            const result = playerScore > opponentScore ? 'victoire' : playerScore < opponentScore ? 'défaite' : 'nul';
+                            const resultColor = playerScore > opponentScore ? 'text-green-400' : playerScore < opponentScore ? 'text-red-400' : 'text-yellow-400';
+                            
+                            return `
+                                <div class="flex justify-between items-center bg-gray-750 p-2 rounded">
+                                    <div>
+                                        <span class="font-bold">vs ${opponent}</span>
+                                        <span class="text-gray-400 text-sm ml-2">${match.day} ${match.time || ''}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold">${playerScore}-${opponentScore}</span>
+                                        <span class="${resultColor} text-sm">${result}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    ${appData.matches.filter(m => (m.player1Id === player.id || m.player2Id === player.id) && m.played).length === 0 ? 
+                        '<div class="text-center text-gray-500 py-4">Aucun match joué</div>' : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+
+    // Re-attacher l'event listener pour le bouton de fermeture
+    const closeBtn = document.getElementById('close-player-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closePlayerModal);
+    }
+}
+
+function closePlayerModal() {
+    const modal = document.getElementById('player-details-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        appData.selectedPlayer = null;
+    }
+}
+
+// FONCTION CORRIGÉE : Calcul des stats d'un joueur après un match
+function calculatePlayerStatsAfterMatch(player, goalsFor, goalsAgainst) {
+    const newMatchesPlayed = (player.matchesPlayed || 0) + 1;
+    const newGoalsScored = (player.goalsScored || 0) + goalsFor;
+    const newGoalsConceded = (player.goalsConceded || 0) + goalsAgainst;
+    const newGoalDifference = newGoalsScored - newGoalsConceded;
+    
+    let newWins = player.wins || 0;
+    let newDraws = player.draws || 0;
+    let newLosses = player.losses || 0;
+    const newForm = [...(player.currentForm || [])];
+
+    if (goalsFor > goalsAgainst) {
+        newWins++;
+        newForm.push('W');
+    } else if (goalsAgainst > goalsFor) {
+        newLosses++;
+        newForm.push('L');
+    } else {
+        newDraws++;
+        newForm.push('D');
+    }
+
+    // Garder seulement les 5 derniers matchs
+    if (newForm.length > 5) newForm.splice(0, newForm.length - 5);
+
+    const newPoints = newWins * 3 + newDraws;
+    const newAvgGoalsPerMatch = parseFloat((newGoalsScored / newMatchesPlayed).toFixed(2));
+    const newWinRate = Math.round((newWins / newMatchesPlayed) * 100);
+
+    return {
+        matchesPlayed: newMatchesPlayed,
+        goalsScored: newGoalsScored,
+        goalsConceded: newGoalsConceded,
+        goalDifference: newGoalDifference,
+        wins: newWins,
+        draws: newDraws,
+        losses: newLosses,
+        points: newPoints,
+        currentForm: newForm,
+        avgGoalsPerMatch: newAvgGoalsPerMatch,
+        winRate: newWinRate
+    };
+}
+
+async function updatePlayerStats(player1Id, player2Id, score1, score2) {
+    try {
+        const player1Ref = db.collection('players').doc(player1Id);
+        const player2Ref = db.collection('players').doc(player2Id);
+        
+        const player1 = appData.players.find(p => p.id === player1Id);
+        const player2 = appData.players.find(p => p.id === player2Id);
+        
+        if (!player1 || !player2) return;
+
+        // Calculer les nouvelles statistiques avec la fonction CORRIGÉE
+        const player1Stats = calculatePlayerStatsAfterMatch(player1, score1, score2);
+        const player2Stats = calculatePlayerStatsAfterMatch(player2, score2, score1);
+
+        // Mettre à jour dans Firebase
+        await player1Ref.update(player1Stats);
+        await player2Ref.update(player2Stats);
+
+        // Mettre à jour localement
+        Object.assign(player1, player1Stats);
+        Object.assign(player2, player2Stats);
+
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour des statistiques: ", error);
+        throw error;
+    }
+}
+
+function showNotification(message, type = "info") {
+    // Supprimer les notifications existantes
+    document.querySelectorAll('.app-notification').forEach(notification => {
+        notification.remove();
+    });
+
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 app-notification slide-in ${
+        type === "error" ? "bg-red-600" : 
+        type === "success" ? "bg-green-600" : "bg-blue-600"
+    } text-white`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${
+                type === "error" ? "exclamation-triangle" :
+                type === "success" ? "check-circle" : "info-circle"
+            } mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+
+    // Annoncer aux lecteurs d'écran
+    announceToScreenReader(message);
+}
+
+function announceToScreenReader(message) {
+    let announcer = document.getElementById('a11y-announcer');
+    if (!announcer) {
+        announcer = document.createElement('div');
+        announcer.id = 'a11y-announcer';
+        announcer.setAttribute('aria-live', 'polite');
+        announcer.setAttribute('aria-atomic', 'true');
+        announcer.className = 'sr-only';
+        document.body.appendChild(announcer);
+    }
+    
+    announcer.textContent = message;
+}
+
+function switchTab(tab) {
+    appData.activeTab = tab;
+    renderContent();
+    announceToScreenReader(`Onglet ${tab} activé`);
+}
+
+function showAdminLogin() {
+    const modal = document.getElementById('admin-login-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => {
+            const input = document.getElementById('admin-code-input');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+function hideAdminLogin() {
+    const modal = document.getElementById('admin-login-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        const input = document.getElementById('admin-code-input');
+        if (input) input.value = '';
+    }
+}
+
+function checkAdminLogin() {
+    const input = document.getElementById('admin-code-input');
+    if (!input) return;
+    
+    const code = input.value;
+    if (code === appData.adminCode) {
+        appData.isAdmin = true;
+        hideAdminLogin();
+        renderContent();
+        showNotification("Mode admin activé", "success");
+        announceToScreenReader("Mode administrateur activé");
+    } else {
+        showNotification("Code incorrect", "error");
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 500);
+    }
+}
+
+function toggleAdmin() {
+    appData.isAdmin = !appData.isAdmin;
+    renderContent();
+    const message = appData.isAdmin ? "Mode admin activé" : "Mode admin désactivé";
+    showNotification(message, appData.isAdmin ? "success" : "info");
+    announceToScreenReader(message);
+}
+
+function setAdminAction(action) {
+    appData.adminAction = action;
+    renderContent();
+}
+
+function cancelEdit() {
+    appData.editingPlayer = null;
+    appData.editingMatch = null;
+    renderContent();
+}
+
+async function addPlayer() {
+    const nameInput = document.getElementById('new-player-name');
+    const avatarInput = document.getElementById('new-player-avatar');
+    const teamInput = document.getElementById('new-player-team');
+    
+    if (!nameInput || !avatarInput || !teamInput) return;
+    
+    const name = nameInput.value.trim();
+    const avatar = avatarInput.value;
+    const team = teamInput.value.trim();
+
+    if (!name) {
+        showNotification("Veuillez entrer un nom de joueur", "error");
+        return;
+    }
+
+    // Vérifier les doublons
+    if (appData.players.some(player => player.name.toLowerCase() === name.toLowerCase())) {
+        showNotification("Un joueur avec ce nom existe déjà", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        const playerData = {
+            name,
+            avatar: avatar || 'user',
+            team: team || 'Sans équipe',
+            points: 0,
+            matchesPlayed: 0,
+            goalsScored: 0,
+            goalsConceded: 0,
+            goalDifference: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            avgGoalsPerMatch: 0,
+            winRate: 0,
+            currentForm: [],
+            createdAt: new Date().toISOString()
+        };
+
+        const docRef = await db.collection('players').add(playerData);
+        
+        appData.players.push({ 
+            id: docRef.id, 
+            ...playerData 
+        });
+
+        // Réinitialiser le formulaire
+        nameInput.value = '';
+        avatarInput.value = 'user';
+        teamInput.value = '';
+
+        renderContent();
+        showNotification("Joueur ajouté avec succès", "success");
+        announceToScreenReader(`Joueur ${name} ajouté`);
+
+    } catch (error) {
+        console.error("Erreur lors de l'ajout: ", error);
+        showNotification("Erreur lors de l'ajout du joueur", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function updatePlayer() {
+    if (!appData.editingPlayer) return;
+
+    const nameInput = document.getElementById('edit-player-name');
+    const avatarInput = document.getElementById('edit-player-avatar');
+    const teamInput = document.getElementById('edit-player-team');
+    
+    if (!nameInput || !avatarInput || !teamInput) return;
+
+    const name = nameInput.value.trim();
+    const avatar = avatarInput.value;
+    const team = teamInput.value.trim();
+
+    if (!name) {
+        showNotification("Veuillez entrer un nom de joueur", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        const updateData = {
+            name,
+            avatar,
+            team,
+            updatedAt: new Date().toISOString()
+        };
+
+        await db.collection('players').doc(appData.editingPlayer.id).update(updateData);
+
+        // Mettre à jour les données locales
+        const playerIndex = appData.players.findIndex(p => p.id === appData.editingPlayer.id);
+        if (playerIndex !== -1) {
+            appData.players[playerIndex] = {
+                ...appData.players[playerIndex],
+                ...updateData
+            };
+        }
+
+        // Réinitialiser l'édition
+        appData.editingPlayer = null;
+
+        renderContent();
+        showNotification("Joueur modifié avec succès", "success");
+        announceToScreenReader(`Joueur ${name} modifié`);
+
+    } catch (error) {
+        console.error("Erreur lors de la modification: ", error);
+        showNotification("Erreur lors de la modification du joueur", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+function editPlayer(playerId) {
+    const player = appData.players.find(p => p.id === playerId);
+    if (player) {
+        appData.editingPlayer = player;
+        setAdminAction('edit-player');
+        renderContent();
+        announceToScreenReader(`Modification du joueur ${player.name}`);
+    }
+}
+
+async function deletePlayer(playerId) {
+    const player = appData.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le joueur "${player.name}" ? Cette action est irréversible.`)) {
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        await db.collection('players').doc(playerId).delete();
+        appData.players = appData.players.filter(p => p.id !== playerId);
+        
+        renderContent();
+        showNotification("Joueur supprimé avec succès", "success");
+        announceToScreenReader(`Joueur ${player.name} supprimé`);
+
+    } catch (error) {
+        console.error("Erreur lors de la suppression: ", error);
+        showNotification("Erreur lors de la suppression du joueur", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function addMatch() {
+    const player1Select = document.getElementById('match-player1');
+    const player2Select = document.getElementById('match-player2');
+    const score1Input = document.getElementById('match-score1');
+    const score2Input = document.getElementById('match-score2');
+    const daySelect = document.getElementById('match-day');
+    const timeInput = document.getElementById('match-time');
+    
+    if (!player1Select || !player2Select || !score1Input || !score2Input || !daySelect || !timeInput) return;
+    
+    const player1Id = player1Select.value;
+    const player2Id = player2Select.value;
+    const score1 = parseInt(score1Input.value);
+    const score2 = parseInt(score2Input.value);
+    const day = daySelect.value;
+    const time = timeInput.value;
+
+    if (!player1Id || !player2Id || isNaN(score1) || isNaN(score2) || !day || !time) {
+        showNotification("Veuillez remplir tous les champs", "error");
+        return;
+    }
+
+    if (player1Id === player2Id) {
+        showNotification("Un joueur ne peut pas jouer contre lui-même", "error");
+        return;
+    }
+
+    if (score1 < 0 || score2 < 0) {
+        showNotification("Les scores ne peuvent pas être négatifs", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        const player1 = appData.players.find(p => p.id === player1Id);
+        const player2 = appData.players.find(p => p.id === player2Id);
+
+        if (!player1 || !player2) {
+            showNotification("Joueurs non trouvés", "error");
+            return;
+        }
+
+        // NOUVEAU : Ajouter timestamp avec date et heure
+        const matchDateTime = new Date();
+        const [hours, minutes] = time.split(':');
+        matchDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+        const matchData = {
+            player1Id,
+            player2Id,
+            player1: player1.name,
+            player2: player2.name,
+            score1,
+            score2,
+            day,
+            time: time,
+            timestamp: matchDateTime.toISOString(),
+            played: true,
+            date: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        };
+
+        const docRef = await db.collection('matches').add(matchData);
+        appData.matches.push({ id: docRef.id, ...matchData });
+
+        // Mettre à jour les statistiques des joueurs
+        await updatePlayerStats(player1Id, player2Id, score1, score2);
+
+        // Réinitialiser le formulaire
+        score1Input.value = '';
+        score2Input.value = '';
+        player1Select.value = '';
+        player2Select.value = '';
+        timeInput.value = '';
+
+        renderContent();
+        showNotification("Match ajouté avec succès", "success");
+        announceToScreenReader(`Match ${player1.name} contre ${player2.name} ajouté`);
+
+    } catch (error) {
+        console.error("Erreur lors de l'ajout: ", error);
+        showNotification("Erreur lors de l'ajout du match", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function updateMatch() {
+    if (!appData.editingMatch) return;
+
+    const score1Input = document.getElementById('edit-match-score1');
+    const score2Input = document.getElementById('edit-match-score2');
+    const daySelect = document.getElementById('edit-match-day');
+    const timeInput = document.getElementById('edit-match-time');
+    
+    if (!score1Input || !score2Input || !daySelect || !timeInput) return;
+
+    const score1 = parseInt(score1Input.value);
+    const score2 = parseInt(score2Input.value);
+    const day = daySelect.value;
+    const time = timeInput.value;
+
+    if (isNaN(score1) || isNaN(score2) || !day || !time) {
+        showNotification("Veuillez remplir tous les champs", "error");
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        await db.collection('matches').doc(appData.editingMatch.id).update({
+            score1,
+            score2,
+            day,
+            time,
+            updatedAt: new Date().toISOString()
+        });
+
+        // Mettre à jour les données locales
+        const matchIndex = appData.matches.findIndex(m => m.id === appData.editingMatch.id);
+        if (matchIndex !== -1) {
+            appData.matches[matchIndex].score1 = score1;
+            appData.matches[matchIndex].score2 = score2;
+            appData.matches[matchIndex].day = day;
+            appData.matches[matchIndex].time = time;
+        }
+
+        // Recalculer les statistiques
+        calculateStats();
+
+        // Réinitialiser l'édition
+        appData.editingMatch = null;
+
+        renderContent();
+        showNotification("Match modifié avec succès", "success");
+        announceToScreenReader("Match modifié avec succès");
+
+    } catch (error) {
+        console.error("Erreur lors de la modification: ", error);
+        showNotification("Erreur lors de la modification du match", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+function editMatch(matchId) {
+    const match = appData.matches.find(m => m.id === matchId);
+    if (match) {
+        appData.editingMatch = match;
+        setAdminAction('edit-result');
+        renderContent();
+        announceToScreenReader(`Modification du match ${match.player1} contre ${match.player2}`);
+    }
+}
+
+async function deleteMatch(matchId) {
+    const match = appData.matches.find(m => m.id === matchId);
+    if (!match) return;
+
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le match ${match.player1} vs ${match.player2} ?`)) {
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        await db.collection('matches').doc(matchId).delete();
+        appData.matches = appData.matches.filter(m => m.id !== matchId);
+        
+        // Recalculer les statistiques
+        calculateStats();
+        
+        renderContent();
+        showNotification("Match supprimé avec succès", "success");
+        announceToScreenReader("Match supprimé avec succès");
+
+    } catch (error) {
+        console.error("Erreur lors de la suppression: ", error);
+        showNotification("Erreur lors de la suppression du match", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+function startCountdown() {
+    function updateCountdown() {
+        const endDate = new Date('2023-09-24T23:59:59');
+        const now = new Date();
+        const diff = endDate - now;
+        
+        const countdownElement = document.getElementById('countdown');
+        if (!countdownElement) return;
+        
+        if (diff <= 0) {
+            countdownElement.textContent = "Saison terminée";
+            return;
         }
         
-        // Rendu de l'interface
-        function renderContent() {
-            // Mettre à jour l'état actif des onglets
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                const tab = btn.getAttribute('data-tab');
-                if (tab === appData.activeTab) {
-                    btn.classList.add('bg-blue-600');
-                    btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                } else {
-                    btn.classList.remove('bg-blue-600');
-                    btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
-                }
-            });
-            
-            // Afficher le contenu de l'onglet actif
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(`${appData.activeTab}-tab`).classList.add('active');
-            
-            // Mettre à jour le bouton admin
-            const adminBtn = document.getElementById('admin-toggle');
-            if (appData.isAdmin) {
-                adminBtn.classList.remove('bg-red-600');
-                adminBtn.classList.add('bg-green-600');
-                adminBtn.innerHTML = '<i class="fa-solid fa-user-shield mr-2"></i>Mode Admin';
-            } else {
-                adminBtn.classList.remove('bg-green-600');
-                adminBtn.classList.add('bg-red-600');
-                adminBtn.innerHTML = '<i class="fa-solid fa-user mr-2"></i>Mode Normal';
-            }
-            
-            // Afficher/masquer le panel admin
-            const adminPanel = document.getElementById('admin-panel');
-            if (appData.isAdmin) {
-                adminPanel.classList.add('active');
-            } else {
-                adminPanel.classList.remove('active');
-                appData.adminAction = '';
-                appData.editingPlayer = null;
-                appData.editingMatch = null;
-            }
-            
-            // Mettre à jour l'action admin active
-            document.querySelectorAll('.admin-action-btn').forEach(btn => {
-                const action = btn.getAttribute('data-action');
-                if (action === appData.adminAction) {
-                    btn.classList.add('bg-blue-600');
-                    btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                } else {
-                    btn.classList.remove('bg-blue-600');
-                    btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
-                }
-            });
-            
-            // Afficher le contenu de l'action admin
-            document.querySelectorAll('.admin-action-content').forEach(content => {
-                content.style.display = 'none';
-            });
-            if (appData.adminAction) {
-                const actionContent = document.getElementById(`${appData.adminAction}-content`);
-                if (actionContent) actionContent.style.display = 'block';
-            }
-            
-            // Mettre à jour les listes déroulantes des joueurs
-            if (appData.players.length > 0) {
-                const playerOptions = appData.players.map(player => 
-                    `<option value="${player.id}">${player.name}</option>`
-                ).join('');
-                
-                document.getElementById('match-player1').innerHTML = 
-                    '<option value="">Sélectionner un joueur</option>' + playerOptions;
-                document.getElementById('match-player2').innerHTML = 
-                    '<option value="">Sélectionner un joueur</option>' + playerOptions;
-                
-                document.getElementById('edit-match-player1').innerHTML = 
-                    '<option value="">Sélectionner un joueur</option>' + playerOptions;
-                document.getElementById('edit-match-player2').innerHTML = 
-                    '<option value="">Sélectionner un joueur</option>' + playerOptions;
-            }
-            
-            // Remplir le formulaire d'édition de joueur si en mode édition
-            if (appData.editingPlayer) {
-                document.getElementById('edit-player-name').value = appData.editingPlayer.name;
-                document.getElementById('edit-player-avatar').value = appData.editingPlayer.avatar;
-                document.getElementById('edit-player-team').value = appData.editingPlayer.team;
-                document.getElementById('edit-player-content').style.display = 'block';
-                document.getElementById('add-player-content').style.display = 'none';
-            } else {
-                document.getElementById('edit-player-content').style.display = 'none';
-            }
-            
-            // Remplir le formulaire d'édition de match si en mode édition
-            if (appData.editingMatch) {
-                document.getElementById('edit-match-player1').value = appData.editingMatch.player1Id;
-                document.getElementById('edit-match-player2').value = appData.editingMatch.player2Id;
-                document.getElementById('edit-match-score1').value = appData.editingMatch.score1;
-                document.getElementById('edit-match-score2').value = appData.editingMatch.score2;
-                document.getElementById('edit-match-day').value = appData.editingMatch.day;
-                document.getElementById('edit-match-content').style.display = 'block';
-                document.getElementById('add-result-content').style.display = 'none';
-            } else {
-                document.getElementById('edit-match-content').style.display = 'none';
-            }
-            
-            // Rendu des données dynamiques
-            renderClassement();
-            renderCalendrier();
-            renderStatistiques();
-            renderHistorique();
-            renderHallOfFame();
-            renderAdminPlayers();
-            renderAdminMatches();
-        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
         
-        // Rendu du classement
-        function renderClassement() {
-            const sortedPlayers = [...appData.players].sort((a, b) => (b.points || 0) - (a.points || 0));
-            const podium = document.getElementById('podium');
-            const classementBody = document.getElementById('classement-body');
-            
-            // Podium
-            if (sortedPlayers.length > 0) {
-                podium.innerHTML = sortedPlayers.slice(0, 3).map((player, index) => `
-                    <div class="p-4 rounded-lg text-center card-hover ${index === 0 ? 'bg-yellow-600' : index === 1 ? 'bg-gray-600' : 'bg-yellow-800'}">
+        countdownElement.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+    }
+    
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+}
+
+function renderContent() {
+    // Mettre à jour l'état actif des onglets
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const tab = btn.getAttribute('data-tab');
+        if (tab === appData.activeTab) {
+            btn.classList.add('bg-blue-600');
+            btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            btn.setAttribute('aria-current', 'page');
+        } else {
+            btn.classList.remove('bg-blue-600');
+            btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            btn.removeAttribute('aria-current');
+        }
+    });
+    
+    // Afficher le contenu de l'onglet actif
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    const activeTab = document.getElementById(`${appData.activeTab}-tab`);
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
+    
+    // Mettre à jour le bouton admin
+    const adminBtn = document.getElementById('admin-toggle');
+    if (adminBtn) {
+        if (appData.isAdmin) {
+            adminBtn.classList.remove('bg-red-600');
+            adminBtn.classList.add('bg-green-600');
+            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield mr-2"></i>Mode Admin';
+            adminBtn.setAttribute('aria-label', 'Mode administrateur activé, cliquer pour désactiver');
+        } else {
+            adminBtn.classList.remove('bg-green-600');
+            adminBtn.classList.add('bg-red-600');
+            adminBtn.innerHTML = '<i class="fa-solid fa-user mr-2"></i>Mode Normal';
+            adminBtn.setAttribute('aria-label', 'Mode normal, cliquer pour activer le mode administrateur');
+        }
+    }
+    
+    // Afficher/masquer le panel admin
+    const adminPanel = document.getElementById('admin-panel');
+    if (adminPanel) {
+        if (appData.isAdmin) {
+            adminPanel.classList.add('active');
+        } else {
+            adminPanel.classList.remove('active');
+            appData.adminAction = '';
+            appData.editingPlayer = null;
+            appData.editingMatch = null;
+        }
+    }
+    
+    // Mettre à jour l'action admin active
+    document.querySelectorAll('.admin-action-btn').forEach(btn => {
+        const action = btn.getAttribute('data-action');
+        if (action === appData.adminAction) {
+            btn.classList.add('bg-blue-600');
+            btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+        } else {
+            btn.classList.remove('bg-blue-600');
+            btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+        }
+    });
+    
+    // Afficher le contenu de l'action admin
+    document.querySelectorAll('.admin-action-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    if (appData.adminAction) {
+        const actionContent = document.getElementById(`${appData.adminAction}-content`);
+        if (actionContent) actionContent.style.display = 'block';
+    }
+    
+    // Mettre à jour les listes déroulantes des joueurs
+    updatePlayerSelects();
+    
+    // Remplir le formulaire d'édition de joueur si en mode édition
+    if (appData.editingPlayer) {
+        const nameInput = document.getElementById('edit-player-name');
+        const avatarInput = document.getElementById('edit-player-avatar');
+        const teamInput = document.getElementById('edit-player-team');
+        const editContent = document.getElementById('edit-player-content');
+        const addContent = document.getElementById('add-player-content');
+        
+        if (nameInput) nameInput.value = appData.editingPlayer.name;
+        if (avatarInput) avatarInput.value = appData.editingPlayer.avatar;
+        if (teamInput) teamInput.value = appData.editingPlayer.team;
+        if (editContent) editContent.style.display = 'block';
+        if (addContent) addContent.style.display = 'none';
+    } else {
+        const editContent = document.getElementById('edit-player-content');
+        const addContent = document.getElementById('add-player-content');
+        
+        if (editContent) editContent.style.display = 'none';
+        if (addContent && appData.adminAction === 'add-player') {
+            addContent.style.display = 'block';
+        }
+    }
+    
+    // Remplir le formulaire d'édition de match si en mode édition
+    if (appData.editingMatch) {
+        const player1Select = document.getElementById('edit-match-player1');
+        const player2Select = document.getElementById('edit-match-player2');
+        const score1Input = document.getElementById('edit-match-score1');
+        const score2Input = document.getElementById('edit-match-score2');
+        const daySelect = document.getElementById('edit-match-day');
+        const timeInput = document.getElementById('edit-match-time');
+        const editContent = document.getElementById('edit-match-content');
+        const addContent = document.getElementById('add-result-content');
+        
+        if (player1Select) player1Select.value = appData.editingMatch.player1Id;
+        if (player2Select) player2Select.value = appData.editingMatch.player2Id;
+        if (score1Input) score1Input.value = appData.editingMatch.score1;
+        if (score2Input) score2Input.value = appData.editingMatch.score2;
+        if (daySelect) daySelect.value = appData.editingMatch.day;
+        if (timeInput) timeInput.value = appData.editingMatch.time || '';
+        if (editContent) editContent.style.display = 'block';
+        if (addContent) addContent.style.display = 'none';
+    } else {
+        const editContent = document.getElementById('edit-match-content');
+        const addContent = document.getElementById('add-result-content');
+        
+        if (editContent) editContent.style.display = 'none';
+        if (addContent && appData.adminAction === 'add-result') {
+            addContent.style.display = 'block';
+        }
+    }
+    
+    // Rendu des données dynamiques
+    renderClassement();
+    renderCalendrier();
+    renderStatistiques();
+    renderHistorique();
+    renderHallOfFame();
+    renderAdminPlayers();
+    renderAdminMatches();
+    renderDashboard();
+}
+
+function updatePlayerSelects() {
+    if (appData.players.length > 0) {
+        const playerOptions = appData.players.map(player => 
+            `<option value="${player.id}">${player.name}</option>`
+        ).join('');
+        
+        const selectors = [
+            'match-player1', 'match-player2', 
+            'edit-match-player1', 'edit-match-player2'
+        ];
+        
+        selectors.forEach(selector => {
+            const element = document.getElementById(selector);
+            if (element) {
+                element.innerHTML = '<option value="">Sélectionner un joueur</option>' + playerOptions;
+            }
+        });
+    }
+}
+
+function renderClassement() {
+    const sortedPlayers = [...appData.players].sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+        return b.goalsScored - a.goalsScored;
+    });
+    
+    const podium = document.getElementById('podium');
+    const classementBody = document.getElementById('classement-body');
+    
+    // Podium
+    if (podium) {
+        if (sortedPlayers.length > 0) {
+            podium.innerHTML = sortedPlayers.slice(0, 3).map((player, index) => {
+                const predictions = generatePredictions(player);
+                return `
+                    <div class="p-4 rounded-lg text-center card-hover player-card ${index === 0 ? 'bg-yellow-600' : index === 1 ? 'bg-gray-600' : 'bg-yellow-800'}"
+                         onclick="showPlayerDetails('${player.id}')">
                         <div class="text-4xl mb-2">${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</div>
                         <div class="text-xl font-bold">${player.name}</div>
                         <div class="text-3xl font-bold my-2">${player.points || 0} pts</div>
@@ -772,359 +1525,494 @@
                                 <i class="fa-solid fa-${player.avatar || 'user'} text-2xl"></i>
                             </div>
                         </div>
+                        <div class="mt-2">
+                            <span class="prediction-badge ${predictions.nextMatch.winProbability > 70 ? 'prediction-high' : predictions.nextMatch.winProbability > 40 ? 'prediction-medium' : 'prediction-low'}">
+                                ${Math.round(predictions.nextMatch.winProbability)}% victoire
+                            </span>
+                        </div>
                     </div>
-                `).join('');
-            } else {
-                podium.innerHTML = '<div class="col-span-3 text-center py-8">Aucun joueur enregistré</div>';
-            }
-            
-            // Tableau de classement
-            if (sortedPlayers.length > 0) {
-                classementBody.innerHTML = sortedPlayers.map((player, index) => {
-                    const progress = Math.min(100, ((player.matchesPlayed || 0) / 60) * 100);
-                    return `
-                    <tr class="border-b border-gray-700 hover:bg-gray-750">
-                        <td class="p-3 font-bold">${index + 1}</td>
-                        <td class="p-3">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">
-                                    <i class="fa-solid fa-${player.avatar || 'user'}"></i>
-                                </div>
-                                <span>${player.name}</span>
-                                ${index === 0 ? '<span class="ml-2">👑</span>' : ''}
-                            </div>
-                        </td>
-                        <td class="p-3 text-center">${player.matchesPlayed || 0}/60</td>
-                        <td class="p-3 text-center font-bold">${player.points || 0}</td>
-                        <td class="p-3 text-center text-green-400">+${Math.floor(Math.random() * 50)}</td>
-                        <td class="p-3">
-                            <div class="flex items-center">
-                                <div class="w-32 bg-gray-700 rounded-full h-2 mr-2">
-                                    <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: ${progress}%"></div>
-                                </div>
-                                <span>${Math.floor(progress)}%</span>
-                            </div>
-                        </td>
-                    </tr>
-                `}).join('');
-            } else {
-                classementBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="p-4 text-center">Aucun joueur enregistré</td>
-                    </tr>
                 `;
-            }
+            }).join('');
+        } else {
+            podium.innerHTML = '<div class="col-span-3 text-center py-8">Aucun joueur enregistré</div>';
         }
-        
-        // Rendu du calendrier
-        function renderCalendrier() {
-            const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-            const calendrierContent = document.getElementById('calendrier-content');
+    }
+    
+    // Tableau de classement
+    if (classementBody) {
+        if (sortedPlayers.length > 0) {
+            classementBody.innerHTML = sortedPlayers.map((player, index) => {
+                const predictions = generatePredictions(player);
+                // SUPPRIMER la limite de 60 matchs - nombre infini
+                const progress = 100; // Toujours 100% puisque infini
+                
+                return `
+                <tr class="border-b border-gray-700 hover:bg-gray-750 player-card" onclick="showPlayerDetails('${player.id}')">
+                    <td class="p-3 font-bold">${index + 1}</td>
+                    <td class="p-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">
+                                <i class="fa-solid fa-${player.avatar || 'user'}"></i>
+                            </div>
+                            <span>${player.name}</span>
+                            ${index === 0 ? '<span class="ml-2">👑</span>' : ''}
+                        </div>
+                    </td>
+                    <td class="p-3 text-center">${player.matchesPlayed || 0}</td>
+                    <td class="p-3 text-center font-bold">${player.points || 0}</td>
+                    <td class="p-3 text-center ${player.goalDifference > 0 ? 'text-green-400' : player.goalDifference < 0 ? 'text-red-400' : ''}">
+                        ${player.goalDifference > 0 ? '+' : ''}${player.goalDifference || 0}
+                    </td>
+                    <td class="p-3">
+                        <div class="flex items-center">
+                            <div class="w-32 bg-gray-700 rounded-full h-2 mr-2">
+                                <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="prediction-badge ${predictions.nextMatch.winProbability > 70 ? 'prediction-high' : predictions.nextMatch.winProbability > 40 ? 'prediction-medium' : 'prediction-low'}">
+                                ${Math.round(predictions.nextMatch.winProbability)}%
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        } else {
+            classementBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="p-4 text-center">Aucun joueur enregistré</td>
+                </tr>
+            `;
+        }
+    }
+}
+
+function renderCalendrier() {
+    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    const calendrierContent = document.getElementById('calendrier-content');
+    
+    if (calendrierContent) {
+        calendrierContent.innerHTML = days.map(day => `
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-xl font-bold mb-3 border-b border-gray-700 pb-2">${day}</h3>
+                <div class="space-y-3">
+                    ${appData.matches
+                        .filter(m => m.day === day)
+                        .sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'))
+                        .map(match => `
+                        <div class="bg-gray-750 p-3 rounded flex flex-col md:flex-row justify-between items-center">
+                            <div class="flex-1 text-center mb-2 md:mb-0">
+                                <div class="font-bold">${match.player1}</div>
+                                <div class="text-xs text-gray-400">VS</div>
+                                <div class="font-bold">${match.player2}</div>
+                            </div>
+                            <div class="flex-1 text-center mb-2 md:mb-0">
+                                ${match.played ? `
+                                    <div class="text-xl font-bold">${match.score1} - ${match.score2}</div>
+                                    <div class="text-xs text-gray-400">${match.time || ''}</div>
+                                ` : `
+                                    <div class="text-yellow-400">
+                                        <i class="fa-regular fa-clock mr-1"></i> ${match.time || 'À jouer'}
+                                    </div>
+                                `}
+                            </div>
+                            <div class="flex-1 text-center">
+                                ${match.played ? `
+                                    <span class="text-green-400">✅ Terminé</span>
+                                ` : `
+                                    <span class="text-yellow-400">⏳ En attente</span>
+                                `}
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    ${appData.matches.filter(m => m.day === day).length === 0 ? `
+                        <div class="text-center text-gray-500 py-4">
+                            Aucun match prévu ce jour
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function renderStatistiques() {
+    const buteursContent = document.getElementById('buteurs-content');
+    const victoriesContent = document.getElementById('victories-content');
+    const h2hContent = document.getElementById('h2h-content');
+    
+    // Classement buteurs
+    if (buteursContent) {
+        const topScorers = [...appData.players].sort((a, b) => (b.goalsScored || 0) - (a.goalsScored || 0));
+        buteursContent.innerHTML = topScorers.slice(0, 5).map((player, index) => `
+            <div class="flex justify-between items-center bg-gray-750 p-3 rounded player-card" onclick="showPlayerDetails('${player.id}')">
+                <div class="flex items-center">
+                    <span class="font-bold mr-2">${index + 1}.</span>
+                    <span>${player.name}</span>
+                </div>
+                <span class="font-bold">${player.goalsScored || 0} buts</span>
+            </div>
+        `).join('');
+    }
+    
+    // Pourcentage de victoires
+    if (victoriesContent) {
+        victoriesContent.innerHTML = appData.players.slice(0, 5).map(player => {
+            const winRate = player.matchesPlayed > 0 
+                ? Math.round(((player.wins || 0) / player.matchesPlayed) * 100) 
+                : 0;
+            return `
+            <div class="mb-3 player-card" onclick="showPlayerDetails('${player.id}')">
+                <div class="flex justify-between mb-1">
+                    <span>${player.name}</span>
+                    <span>${winRate}%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div class="bg-blue-500 h-2 rounded-full" style="width: ${winRate}%"></div>
+                </div>
+            </div>
+        `}).join('');
+    }
+    
+    // Head-to-head (premier vs deuxième)
+    if (h2hContent) {
+        const sortedPlayers = [...appData.players].sort((a, b) => b.points - a.points);
+        if (sortedPlayers.length >= 2) {
+            const player1 = sortedPlayers[0];
+            const player2 = sortedPlayers[1];
             
-            calendrierContent.innerHTML = days.map(day => `
+            // Compter les matchs entre ces deux joueurs
+            const headToHeadMatches = appData.matches.filter(match => 
+                (match.player1Id === player1.id && match.player2Id === player2.id) ||
+                (match.player1Id === player2.id && match.player2Id === player1.id)
+            );
+            
+            const player1Wins = headToHeadMatches.filter(match => 
+                (match.player1Id === player1.id && match.score1 > match.score2) ||
+                (match.player2Id === player1.id && match.score2 > match.score1)
+            ).length;
+            
+            const player2Wins = headToHeadMatches.filter(match => 
+                (match.player1Id === player2.id && match.score1 > match.score2) ||
+                (match.player2Id === player2.id && match.score2 > match.score1)
+            ).length;
+            
+            const draws = headToHeadMatches.length - player1Wins - player2Wins;
+            
+            h2hContent.innerHTML = `
+                <div class="bg-gray-750 p-4 rounded">
+                    <div class="text-center font-bold text-lg mb-3">${player1.name} vs ${player2.name}</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                            <div class="text-3xl font-bold">${headToHeadMatches.length}</div>
+                            <div class="text-sm text-gray-400">Matchs joués</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold">${player1Wins}</div>
+                            <div class="text-sm text-gray-400">Victoires ${player1.name}</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold">${player2Wins}</div>
+                            <div class="text-sm text-gray-400">Victoires ${player2.name}</div>
+                        </div>
+                    </div>
+                    ${draws > 0 ? `
+                        <div class="text-center mt-2">
+                            <div class="text-xl font-bold">${draws}</div>
+                            <div class="text-sm text-gray-400">Matchs nuls</div>
+                        </div>
+                    ` : ''}
+                    <div class="flex justify-center space-x-4 mt-4">
+                        <button class="text-blue-400 hover:text-blue-300 text-sm" onclick="showPlayerDetails('${player1.id}')">
+                            Voir ${player1.name}
+                        </button>
+                        <button class="text-blue-400 hover:text-blue-300 text-sm" onclick="showPlayerDetails('${player2.id}')">
+                            Voir ${player2.name}
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            h2hContent.innerHTML = '<div class="text-center py-4">Pas assez de joueurs pour les comparaisons</div>';
+        }
+    }
+}
+
+function renderHistorique() {
+    const historiqueContent = document.getElementById('historique-content');
+    
+    if (historiqueContent) {
+        if (appData.seasons.length > 0) {
+            historiqueContent.innerHTML = appData.seasons.map(season => `
                 <div class="bg-gray-800 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3 border-b border-gray-700 pb-2">${day}</h3>
+                    <h3 class="text-xl font-bold mb-3">Saison ${season.number} (${season.date})</h3>
                     <div class="space-y-3">
-                        ${appData.matches.filter(m => m.day === day).map(match => `
-                            <div class="bg-gray-750 p-3 rounded flex flex-col md:flex-row justify-between items-center">
-                                <div class="flex-1 text-center mb-2 md:mb-0">
-                                    <div class="font-bold">${match.player1}</div>
-                                    <div class="text-xs text-gray-400">VS</div>
-                                    <div class="font-bold">${match.player2}</div>
-                                </div>
-                                <div class="flex-1 text-center mb-2 md:mb-0">
-                                    ${match.played ? `
-                                        <div class="text-xl font-bold">${match.score1} - ${match.score2}</div>
-                                    ` : `
-                                        <div class="text-yellow-400">
-                                            <i class="fa-regular fa-clock mr-1"></i> À jouer
-                                        </div>
-                                    `}
-                                </div>
-                                <div class="flex-1 text-center">
-                                    ${match.played ? `
-                                        <span class="text-green-400">✅ Terminé</span>
-                                    ` : `
-                                        <span class="text-yellow-400">⏳ En attente</span>
-                                    `}
-                                </div>
+                        <div class="flex justify-between items-center bg-yellow-800 p-3 rounded">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🏆</span>
+                                <span>Champion: ${season.champion}</span>
                             </div>
-                        `).join('')}
-                        
-                        ${appData.matches.filter(m => m.day === day).length === 0 ? `
-                            <div class="text-center text-gray-500 py-4">
-                                Aucun match prévu ce jour
+                            <span class="font-bold">${season.championPoints} pts</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-700 p-3 rounded">
+                            <div class="flex items-center">
+                                <span class="text-xl mr-2">⭐</span>
+                                <span>Vice: ${season.vice}</span>
                             </div>
-                        ` : ''}
+                            <span class="font-bold">${season.vicePoints} pts</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-yellow-900 p-3 rounded">
+                            <div class="flex items-center">
+                                <span class="text-xl mr-2">🔥</span>
+                                <span>Troisième: ${season.third}</span>
+                            </div>
+                            <span class="font-bold">${season.thirdPoints} pts</span>
+                        </div>
                     </div>
                 </div>
             `).join('');
+        } else {
+            historiqueContent.innerHTML = `
+                <div class="col-span-2 text-center py-8">
+                    <div class="text-4xl mb-4">🏆</div>
+                    <div class="text-xl">Aucune saison enregistrée</div>
+                    <div class="text-gray-400 mt-2">Les saisons apparaitront ici une fois créées</div>
+                </div>
+            `;
         }
-        
-        // Rendu des statistiques
-        function renderStatistiques() {
-            const buteursContent = document.getElementById('buteurs-content');
-            const seriesContent = document.getElementById('series-content');
-            const victoriesContent = document.getElementById('victories-content');
-            const h2hContent = document.getElementById('h2h-content');
-            
-            // Classement buteurs
-            const topScorers = [...appData.players].sort((a, b) => (b.goalsScored || 0) - (a.goalsScored || 0));
-            buteursContent.innerHTML = topScorers.slice(0, 3).map((player, index) => `
+    }
+}
+
+function renderHallOfFame() {
+    const championsContent = document.getElementById('champions-content');
+    const recordsContent = document.getElementById('records-content');
+    const hallOfFameBody = document.getElementById('hall-of-fame-body');
+    
+    // Champions par saison
+    if (championsContent) {
+        if (appData.seasons.length > 0) {
+            championsContent.innerHTML = appData.seasons.slice(0, 5).map(season => `
                 <div class="flex justify-between items-center bg-gray-750 p-3 rounded">
                     <div class="flex items-center">
-                        <span class="font-bold mr-2">${index + 1}.</span>
-                        <span>${player.name}</span>
+                        <span class="text-xl mr-2">🏆</span>
+                        <span>Saison ${season.number}: ${season.champion}</span>
                     </div>
-                    <span class="font-bold">${player.goalsScored || 0} buts</span>
+                    <span class="text-sm text-gray-400">${season.date}</span>
                 </div>
             `).join('');
-            
-            // Séries actuelles (simplifié pour cet exemple)
-            seriesContent.innerHTML = `
-                <div class="bg-gray-750 p-3 rounded">
-                    <div class="font-bold text-green-400">${appData.players[0]?.name || 'Joueur A'} → 3 victoires consécutives</div>
-                </div>
-                <div class="bg-gray-750 p-3 rounded">
-                    <div class="font-bold text-red-400">${appData.players[3]?.name || 'Joueur D'} → 2 défaites consécutives</div>
-                </div>
-            `;
-            
-            // Pourcentage de victoires
-            victoriesContent.innerHTML = appData.players.slice(0, 3).map(player => {
-                const winRate = player.matchesPlayed > 0 
-                    ? Math.round(((player.wins || 0) / player.matchesPlayed) * 100) 
-                    : 0;
-                return `
-                <div>
-                    <div class="flex justify-between mb-1">
-                        <span>${player.name}</span>
-                        <span>${winRate}%</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full" style="width: ${winRate}%"></div>
-                    </div>
-                </div>
-            `}).join('');
-            
-            // Head-to-head (simplifié pour cet exemple)
-            if (appData.players.length >= 2) {
-                h2hContent.innerHTML = `
-                    <div class="bg-gray-750 p-4 rounded">
-                        <div class="text-center font-bold text-lg mb-3">${appData.players[0]?.name} vs ${appData.players[1]?.name}</div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                            <div>
-                                <div class="text-3xl font-bold">2</div>
-                                <div class="text-sm text-gray-400">Matchs joués</div>
-                            </div>
-                            <div>
-                                <div class="text-3xl font-bold">1</div>
-                                <div class="text-sm text-gray-400">Victoires ${appData.players[0]?.name}</div>
-                            </div>
-                            <div>
-                                <div class="text-3xl font-bold">1</div>
-                                <div class="text-sm text-gray-400">Victoires ${appData.players[1]?.name}</div>
-                            </div>
-                        </div>
-                        <div class="text-center mt-3">
-                            <span class="bg-blue-600 px-2 py-1 rounded">Différence de buts: +2 pour ${appData.players[0]?.name}</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                h2hContent.innerHTML = '<div class="text-center py-4">Pas assez de joueurs pour les comparaisons</div>';
-            }
+        } else {
+            championsContent.innerHTML = '<div class="text-center py-4">Aucune saison enregistrée</div>';
         }
+    }
+    
+    // Records spéciaux
+    if (recordsContent) {
+        const topScorer = [...appData.players].sort((a, b) => (b.goalsScored || 0) - (a.goalsScored || 0))[0];
+        const mostWins = [...appData.players].sort((a, b) => (b.wins || 0) - (a.wins || 0))[0];
+        const mostMatches = [...appData.players].sort((a, b) => (b.matchesPlayed || 0) - (a.matchesPlayed || 0))[0];
         
-        // Rendu de l'historique
-        function renderHistorique() {
-            const historiqueContent = document.getElementById('historique-content');
-            
-            if (appData.seasons.length > 0) {
-                historiqueContent.innerHTML = appData.seasons.map(season => `
-                    <div class="bg-gray-800 rounded-lg p-4">
-                        <h3 class="text-xl font-bold mb-3">Saison ${season.number} (${season.date})</h3>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center bg-yellow-800 p-3 rounded">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-2">🏆</span>
-                                    <span>Champion: ${season.champion}</span>
-                                </div>
-                                <span class="font-bold">${season.championPoints} pts</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-gray-700 p-3 rounded">
-                                <div class="flex items-center">
-                                    <span class="text-xl mr-2">⭐</span>
-                                    <span>Vice: ${season.vice}</span>
-                                </div>
-                                <span class="font-bold">${season.vicePoints} pts</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-yellow-900 p-3 rounded">
-                                <div class="flex items-center">
-                                    <span class="text-xl mr-2">🔥</span>
-                                    <span>Troisième: ${season.third}</span>
-                                </div>
-                                <span class="font-bold">${season.thirdPoints} pts</span>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                historiqueContent.innerHTML = `
-                    <div class="col-span-2 text-center py-8">
-                        <div class="text-4xl mb-4">🏆</div>
-                        <div class="text-xl">Aucune saison enregistrée</div>
-                        <div class="text-gray-400 mt-2">Les saisons apparaitront ici une fois créées</div>
-                    </div>
-                `;
-            }
-        }
-        
-        // Rendu du Hall of Fame
-        function renderHallOfFame() {
-            const championsContent = document.getElementById('champions-content');
-            const recordsContent = document.getElementById('records-content');
-            const hallOfFameBody = document.getElementById('hall-of-fame-body');
-            
-            // Champions par saison
-            if (appData.seasons.length > 0) {
-                championsContent.innerHTML = appData.seasons.slice(0, 3).map(season => `
-                    <div class="flex justify-between items-center bg-gray-750 p-3 rounded">
-                        <div class="flex items-center">
-                            <span class="text-xl mr-2">🏆</span>
-                            <span>Saison ${season.number}: ${season.champion}</span>
-                        </div>
-                        <span class="text-sm text-gray-400">${season.date}</span>
-                    </div>
-                `).join('');
-            } else {
-                championsContent.innerHTML = '<div class="text-center py-4">Aucune saison enregistrée</div>';
-            }
-            
-            // Records spéciaux
-            const topScorer = [...appData.players].sort((a, b) => (b.goalsScored || 0) - (a.goalsScored || 0))[0];
-            const mostWins = [...appData.players].sort((a, b) => (b.wins || 0) - (a.wins || 0))[0];
-            const mostMatches = [...appData.players].sort((a, b) => (b.matchesPlayed || 0) - (a.matchesPlayed || 0))[0];
-            
-            recordsContent.innerHTML = `
-                <div class="bg-gray-750 p-3 rounded">
-                    <div class="font-bold">Meilleur buteur</div>
-                    <div class="text-blue-400">${topScorer?.name || 'Joueur A'} (${topScorer?.goalsScored || 0} buts)</div>
-                </div>
-                <div class="bg-gray-750 p-3 rounded">
-                    <div class="font-bold">Plus de victoires</div>
-                    <div class="text-blue-400">${mostWins?.name || 'Joueur B'} (${mostWins?.wins || 0} victoires)</div>
-                </div>
-                <div class="bg-gray-750 p-3 rounded">
-                    <div class="font-bold">Plus de matchs joués</div>
-                    <div class="text-blue-400">${mostMatches?.name || 'Joueur C'} (${mostMatches?.matchesPlayed || 0} matchs)</div>
-                </div>
-            `;
-            
-            // Classement légendaire
-            if (appData.players.length > 0) {
-                hallOfFameBody.innerHTML = appData.players.map((player, index) => `
-                    <tr class="border-b border-gray-700 hover:bg-gray-750">
-                        <td class="p-3 font-bold">#${index + 1}</td>
-                        <td class="p-3">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">
-                                    <i class="fa-solid fa-${player.avatar || 'user'}"></i>
-                                </div>
-                                <span>${player.name}</span>
-                            </div>
-                        </td>
-                        <td class="p-3 text-center">${Math.floor(Math.random() * 3) + 1}</td>
-                        <td class="p-3 text-center font-bold">${player.points || 0}</td>
-                        <td class="p-3 text-center">${player.matchesPlayed || 0}</td>
-                        <td class="p-3 text-center">${player.wins || 0}</td>
-                    </tr>
-                `).join('');
-            } else {
-                hallOfFameBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="p-4 text-center">Aucun joueur enregistré</td>
-                    </tr>
-                `;
-            }
-        }
-        
-        // Rendu de la gestion des joueurs dans l'admin
-        function renderAdminPlayers() {
-            const playersList = document.getElementById('admin-players-list');
-            
-            if (appData.players.length > 0) {
-                playersList.innerHTML = appData.players.map(player => `
-                    <div class="flex justify-between items-center bg-gray-800 p-2 rounded">
+        recordsContent.innerHTML = `
+            <div class="bg-gray-750 p-3 rounded mb-2 player-card" onclick="${topScorer ? `showPlayerDetails('${topScorer.id}')` : ''}">
+                <div class="font-bold">Meilleur buteur</div>
+                <div class="text-blue-400">${topScorer?.name || 'N/A'} (${topScorer?.goalsScored || 0} buts)</div>
+            </div>
+            <div class="bg-gray-750 p-3 rounded mb-2 player-card" onclick="${mostWins ? `showPlayerDetails('${mostWins.id}')` : ''}">
+                <div class="font-bold">Plus de victoires</div>
+                <div class="text-blue-400">${mostWins?.name || 'N/A'} (${mostWins?.wins || 0} victoires)</div>
+            </div>
+            <div class="bg-gray-750 p-3 rounded player-card" onclick="${mostMatches ? `showPlayerDetails('${mostMatches.id}')` : ''}">
+                <div class="font-bold">Plus de matchs joués</div>
+                <div class="text-blue-400">${mostMatches?.name || 'N/A'} (${mostMatches?.matchesPlayed || 0} matchs)</div>
+            </div>
+        `;
+    }
+    
+    // Classement légendaire (cumul sur toutes les saisons)
+    if (hallOfFameBody) {
+        if (appData.players.length > 0) {
+            hallOfFameBody.innerHTML = appData.players.map((player, index) => `
+                <tr class="border-b border-gray-700 hover:bg-gray-750 player-card" onclick="showPlayerDetails('${player.id}')">
+                    <td class="p-3 font-bold">#${index + 1}</td>
+                    <td class="p-3">
                         <div class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">
                                 <i class="fa-solid fa-${player.avatar || 'user'}"></i>
                             </div>
                             <span>${player.name}</span>
                         </div>
-                        <div class="space-x-2">
-                            <button onclick="editPlayer('${player.id}')" class="bg-blue-600 hover:bg-blue-700 p-1 rounded">
-                                <i class="fa-solid fa-edit"></i>
-                            </button>
-                            <button onclick="deletePlayer('${player.id}')" class="bg-red-600 hover:bg-red-700 p-1 rounded">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                            <button class="bg-yellow-600 hover:bg-yellow-700 p-1 rounded">
-                                <i class="fa-solid fa-pause"></i>
-                            </button>
+                    </td>
+                    <td class="p-3 text-center">${Math.floor(Math.random() * 3) + 1}</td>
+                    <td class="p-3 text-center font-bold">${player.points || 0}</td>
+                    <td class="p-3 text-center">${player.matchesPlayed || 0}</td>
+                    <td class="p-3 text-center">${player.wins || 0}</td>
+                </tr>
+            `).join('');
+        } else {
+            hallOfFameBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="p-4 text-center">Aucun joueur enregistré</td>
+                </tr>
+            `;
+        }
+    }
+}
+
+function renderAdminPlayers() {
+    const playersList = document.getElementById('admin-players-list');
+    
+    if (playersList) {
+        if (appData.players.length > 0) {
+            playersList.innerHTML = appData.players.map(player => `
+                <div class="flex justify-between items-center bg-gray-800 p-3 rounded mb-2">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-${player.avatar || 'user'}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold">${player.name}</div>
+                            <div class="text-sm text-gray-400">${player.team || 'Sans équipe'} • ${player.points || 0} pts</div>
                         </div>
                     </div>
-                `).join('');
-            } else {
-                playersList.innerHTML = '<div class="text-center py-4">Aucun joueur enregistré</div>';
-            }
-        }
-        
-        // Rendu de la gestion des matchs dans l'admin
-        function renderAdminMatches() {
-            const matchesList = document.getElementById('admin-matches-list');
-            
-            if (appData.matches.length > 0) {
-                matchesList.innerHTML = appData.matches.map(match => `
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-800 p-2 rounded mb-2">
-                        <div class="mb-2 md:mb-0">
-                            <div class="font-bold">${match.player1} vs ${match.player2}</div>
-                            <div class="text-sm text-gray-400">${match.day} - ${match.score1}-${match.score2}</div>
-                        </div>
-                        <div class="space-x-2">
-                            <button onclick="editMatch('${match.id}')" class="bg-blue-600 hover:bg-blue-700 p-1 rounded">
-                                <i class="fa-solid fa-edit"></i>
-                            </button>
-                            <button onclick="deleteMatch('${match.id}')" class="bg-red-600 hover:bg-red-700 p-1 rounded">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
+                    <div class="space-x-2">
+                        <button onclick="editPlayer('${player.id}')" class="bg-blue-600 hover:bg-blue-700 p-2 rounded transition-colors" aria-label="Modifier ${player.name}">
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+                        <button onclick="deletePlayer('${player.id}')" class="bg-red-600 hover:bg-red-700 p-2 rounded transition-colors" aria-label="Supprimer ${player.name}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
-                `).join('');
-            } else {
-                matchesList.innerHTML = '<div class="text-center py-4">Aucun match enregistré</div>';
-            }
+                </div>
+            `).join('');
+        } else {
+            playersList.innerHTML = '<div class="text-center py-4">Aucun joueur enregistré</div>';
         }
+    }
+}
+
+function renderAdminMatches() {
+    const matchesList = document.getElementById('admin-matches-list');
+    
+    if (matchesList) {
+        if (appData.matches.length > 0) {
+            matchesList.innerHTML = appData.matches.map(match => `
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-800 p-3 rounded mb-2">
+                    <div class="mb-2 md:mb-0 flex-1">
+                        <div class="font-bold">${match.player1} vs ${match.player2}</div>
+                        <div class="text-sm text-gray-400">${match.day} ${match.time || ''} • ${match.score1}-${match.score2}</div>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editMatch('${match.id}')" class="bg-blue-600 hover:bg-blue-700 p-2 rounded transition-colors" aria-label="Modifier le match">
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+                        <button onclick="deleteMatch('${match.id}')" class="bg-red-600 hover:bg-red-700 p-2 rounded transition-colors" aria-label="Supprimer le match">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            matchesList.innerHTML = '<div class="text-center py-4">Aucun match enregistré</div>';
+        }
+    }
+}
+
+function renderDashboard() {
+    const dashboardContent = document.getElementById('dashboard-content');
+    if (!dashboardContent) return;
+
+    const totalMatches = appData.matches.length;
+    const playedMatches = appData.matches.filter(m => m.played).length;
+    const upcomingMatches = totalMatches - playedMatches;
+    const totalGoals = appData.matches.reduce((sum, match) => sum + match.score1 + match.score2, 0);
+
+    dashboardContent.innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-800 p-4 rounded text-center">
+                <div class="text-3xl font-bold text-blue-400">${appData.players.length}</div>
+                <div class="text-sm text-gray-400">Joueurs</div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded text-center">
+                <div class="text-3xl font-bold text-green-400">${totalMatches}</div>
+                <div class="text-sm text-gray-400">Matchs total</div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded text-center">
+                <div class="text-3xl font-bold text-yellow-400">${upcomingMatches}</div>
+                <div class="text-sm text-gray-400">À venir</div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded text-center">
+                <div class="text-3xl font-bold text-purple-400">${totalGoals}</div>
+                <div class="text-sm text-gray-400">Buts marqués</div>
+            </div>
+        </div>
+        <div class="bg-gray-800 p-4 rounded">
+            <h4 class="font-bold mb-3">Derniers matchs</h4>
+            <div class="space-y-2 max-h-40 overflow-y-auto">
+                ${appData.matches
+                    .sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date))
+                    .slice(0, 5)
+                    .map(match => `
+                        <div class="flex justify-between items-center text-sm">
+                            <span>${match.player1} vs ${match.player2}</span>
+                            <span class="font-bold">${match.score1}-${match.score2}</span>
+                        </div>
+                    `).join('')}
+                ${appData.matches.length === 0 ? '<div class="text-center text-gray-500">Aucun match</div>' : ''}
+            </div>
+        </div>
+    `;
+}
+
+// Exposer les fonctions globales
+window.editPlayer = editPlayer;
+window.deletePlayer = deletePlayer;
+window.editMatch = editMatch;
+window.deleteMatch = deleteMatch;
+window.showPlayerDetails = showPlayerDetails;
+window.closePlayerModal = closePlayerModal;
     </script>
 </head>
 <body class="min-h-screen bg-gray-900 text-white">
-    <!-- Modal de connexion admin -->
-    <div id="admin-login-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-        <div class="bg-gray-800 p-6 rounded-lg w-80">
-            <h3 class="text-xl font-bold mb-4">Connexion Admin</h3>
+    <!-- Skip link for keyboard users -->
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 text-white p-6 rounded-lg flex items-center">
+            <div class="spinner mr-3"></div>
+            <span>Chargement...</span>
+        </div>
+    </div>
+
+    <!-- Modal Détails Joueur -->
+    <div id="player-details-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden" aria-hidden="true">
+        <div class="bg-gray-900 rounded-lg w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto slide-in">
+            <div id="player-details-content" class="p-4">
+                <!-- Le contenu sera généré dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Admin Login Modal -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden" aria-hidden="true" role="dialog" aria-labelledby="admin-login-title">
+        <div class="bg-gray-800 p-6 rounded-lg w-80 max-w-full mx-4 slide-in" role="document">
+            <h3 id="admin-login-title" class="text-xl font-bold mb-4">Connexion Admin</h3>
             <p class="text-gray-400 mb-4">Veuillez entrer le code d'accès administrateur</p>
-            <input id="admin-code-input" type="password" class="w-full bg-gray-700 border border-gray-600 rounded p-2 mb-4" placeholder="Code d'accès">
+            <input id="admin-code-input" type="password" class="w-full bg-gray-700 border border-gray-600 rounded p-2 mb-4" 
+                   placeholder="Code d'accès" aria-required="true">
             <div class="flex justify-end space-x-2">
-                <button id="admin-login-cancel" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">Annuler</button>
-                <button id="admin-login-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Se connecter</button>
+                <button id="admin-login-cancel" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition-colors">
+                    Annuler
+                </button>
+                <button id="admin-login-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors">
+                    Se connecter
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Header -->
-    <header class="bg-gray-800 border-b-2 border-blue-500 p-4 flex flex-col md:flex-row justify-between items-center">
+    <header class="bg-gray-800 border-b-2 border-blue-500 p-4 flex flex-col md:flex-row justify-between items-center" role="banner">
         <div class="flex items-center mb-4 md:mb-0">
-            <div class="text-3xl mr-3 text-yellow-400">
+            <div class="text-3xl mr-3 text-yellow-400" aria-hidden="true">
                 <i class="fa-solid fa-trophy"></i>
             </div>
             <h1 class="text-2xl font-bold neon-text">LIGA PES</h1>
@@ -1132,49 +2020,59 @@
         </div>
         
         <div class="flex items-center space-x-2 md:space-x-4">
-            <button class="text-xl hover:text-blue-400 transition mobile-hidden">
-                <i class="fa-solid fa-bell"></i>
-            </button>
-            <button class="flex items-center bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 transition mobile-hidden">
-                <i class="fa-solid fa-user mr-2"></i>
-                <span>Profil</span>
-            </button>
-            <button id="admin-toggle" class="px-3 py-1 rounded bg-red-600 hover:opacity-90 transition">
-                <i class="fa-solid fa-user mr-2"></i>Normal
+            <button id="admin-toggle" class="px-3 py-1 rounded bg-red-600 hover:opacity-90 transition flex items-center"
+                    aria-label="Mode normal, cliquer pour activer le mode administrateur">
+                <i class="fa-solid fa-user mr-2" aria-hidden="true"></i>
+                <span>Normal</span>
             </button>
         </div>
     </header>
 
     <!-- Navigation -->
-    <nav class="bg-gray-800 p-2 flex flex-wrap justify-center gap-1">
-        <button data-tab="classement" class="tab-btn px-3 py-2 rounded-lg capitalize bg-blue-600 text-sm">Classement</button>
-        <button data-tab="calendrier" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm">Calendrier</button>
-        <button data-tab="statistiques" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm">Stats</button>
-        <button data-tab="historique" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm">Historique</button>
-        <button data-tab="hall-of-fame" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm">HOF</button>
+    <nav class="bg-gray-800 p-2 flex flex-wrap justify-center gap-1" aria-label="Navigation principale">
+        <button data-tab="classement" class="tab-btn px-3 py-2 rounded-lg capitalize bg-blue-600 text-sm focus-visible"
+                aria-current="page" aria-controls="classement-tab">
+            Classement
+        </button>
+        <button data-tab="calendrier" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm focus-visible"
+                aria-controls="calendrier-tab">
+            Calendrier
+        </button>
+        <button data-tab="statistiques" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm focus-visible"
+                aria-controls="statistiques-tab">
+            Stats
+        </button>
+        <button data-tab="historique" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm focus-visible"
+                aria-controls="historique-tab">
+            Historique
+        </button>
+        <button data-tab="hall-of-fame" class="tab-btn px-3 py-2 rounded-lg capitalize bg-gray-700 hover:bg-gray-600 transition text-sm focus-visible"
+                aria-controls="hall-of-fame-tab">
+            HOF
+        </button>
     </nav>
 
     <!-- Contenu principal -->
-    <main class="container mx-auto p-4">
+    <main id="main-content" class="container mx-auto p-4" role="main">
         <!-- Classement -->
-        <div id="classement-tab" class="tab-content active">
+        <section id="classement-tab" class="tab-content active" aria-labelledby="classement-heading" role="tabpanel">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <h2 class="text-2xl font-bold text-blue-400 mb-2 md:mb-0">Classement en Temps Réel</h2>
+                <h2 id="classement-heading" class="text-2xl font-bold text-blue-400 mb-2 md:mb-0">Classement en Temps Réel</h2>
                 <div class="text-sm bg-gray-800 p-2 rounded">
                     <div>Saison: 22/09 → 28/09</div>
                     <div>Fin: <span id="countdown" class="countdown">3j 11h 42m</span></div>
-                    <div>Objectif: 60 matchs/joueur</div>
+                    <div>Objectif: Matchs illimités</div>
                 </div>
             </div>
 
             <!-- Podium visuel -->
-            <div id="podium" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div id="podium" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" aria-label="Podium des trois premiers joueurs">
                 <!-- Rendu dynamique par JavaScript -->
             </div>
 
             <!-- Tableau de classement -->
             <div class="bg-gray-800 rounded-lg overflow-hidden mobile-scroll">
-                <table class="w-full">
+                <table class="w-full" aria-label="Classement détaillé des joueurs">
                     <thead class="bg-gray-700">
                         <tr>
                             <th class="p-2 md:p-3 text-left">POS</th>
@@ -1182,7 +2080,7 @@
                             <th class="p-2 md:p-3 text-center">MATCHS</th>
                             <th class="p-2 md:p-3 text-center">POINTS</th>
                             <th class="p-2 md:p-3 text-center">+/-</th>
-                            <th class="p-2 md:p-3 text-center">PROGRÈS</th>
+                            <th class="p-2 md:p-3 text-center">PRONOSTIC</th>
                         </tr>
                     </thead>
                     <tbody id="classement-body">
@@ -1190,43 +2088,35 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
 
         <!-- Calendrier -->
-        <div id="calendrier-tab" class="tab-content">
-            <h2 class="text-2xl font-bold text-blue-400 mb-6">Calendrier de la Semaine</h2>
+        <section id="calendrier-tab" class="tab-content" aria-labelledby="calendrier-heading" role="tabpanel" hidden>
+            <h2 id="calendrier-heading" class="text-2xl font-bold text-blue-400 mb-6">Calendrier de la Semaine</h2>
             
             <div class="flex flex-wrap justify-end mb-4 gap-2">
-                <button class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition text-sm">
-                    <i class="fa-solid fa-filter mr-1"></i>Filtrer
+                <button class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition text-sm focus-visible">
+                    <i class="fa-solid fa-filter mr-1" aria-hidden="true"></i>Filtrer
                 </button>
-                <button class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition text-sm">
-                    <i class="fa-solid fa-file-pdf mr-1"></i>PDF
+                <button class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition text-sm focus-visible">
+                    <i class="fa-solid fa-file-pdf mr-1" aria-hidden="true"></i>PDF
                 </button>
             </div>
 
             <div id="calendrier-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Rendu dynamique par JavaScript -->
             </div>
-        </div>
+        </section>
 
         <!-- Statistiques -->
-        <div id="statistiques-tab" class="tab-content">
-            <h2 class="text-2xl font-bold text-blue-400 mb-6">Statistiques & Analyses</h2>
+        <section id="statistiques-tab" class="tab-content" aria-labelledby="statistiques-heading" role="tabpanel" hidden>
+            <h2 id="statistiques-heading" class="text-2xl font-bold text-blue-400 mb-6">Statistiques & Analyses</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Classement buteurs -->
                 <div class="bg-gray-800 rounded-lg p-4">
                     <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Classement Buteurs</h3>
                     <div id="buteurs-content" class="space-y-3">
-                        <!-- Rendu dynamique par JavaScript -->
-                    </div>
-                </div>
-                
-                <!-- Séries actuelles -->
-                <div class="bg-gray-800 rounded-lg hidden p-4">
-                    <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Séries Actuelles</h3>
-                    <div id="series-content" class="space-y-3">
                         <!-- Rendu dynamique par JavaScript -->
                     </div>
                 </div>
@@ -1247,20 +2137,20 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Historique -->
-        <div id="historique-tab" class="tab-content">
-            <h2 class="text-2xl font-bold text-blue-400 mb-6">Historique des Saisons</h2>
+        <section id="historique-tab" class="tab-content" aria-labelledby="historique-heading" role="tabpanel" hidden>
+            <h2 id="historique-heading" class="text-2xl font-bold text-blue-400 mb-6">Historique des Saisons</h2>
             
             <div id="historique-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Rendu dynamique par JavaScript -->
             </div>
-        </div>
+        </section>
 
         <!-- Hall of Fame -->
-        <div id="hall-of-fame-tab" class="tab-content">
-            <h2 class="text-2xl font-bold text-blue-400 mb-6">Hall of Fame - Les Légendes de la Liga PES</h2>
+        <section id="hall-of-fame-tab" class="tab-content" aria-labelledby="hall-of-fame-heading" role="tabpanel" hidden>
+            <h2 id="hall-of-fame-heading" class="text-2xl font-bold text-blue-400 mb-6">Hall of Fame - Les Légendes de la Liga PES</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Champions par saison -->
@@ -1284,7 +2174,7 @@
             <div class="bg-gray-800 rounded-lg p-4">
                 <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Classement Légendaire</h3>
                 <div class="overflow-x-auto mobile-scroll">
-                    <table class="w-full">
+                    <table class="w-full" aria-label="Classement légendaire de tous les temps">
                         <thead class="bg-gray-700">
                             <tr>
                                 <th class="p-2 md:p-3 text-left">Rang</th>
@@ -1301,44 +2191,48 @@
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
     </main>
 
     <!-- Panel Admin -->
-    <div id="admin-panel" class="admin-panel fixed bottom-0 left-0 right-0 bg-gray-800 border-t-2 border-blue-500 p-4 max-h-96 overflow-y-auto">
-        <h2 class="text-xl font-bold text-green-400 mb-4">👑 Panel Administrateur</h2>
+    <div id="admin-panel" class="admin-panel fixed bottom-0 left-0 right-0 bg-gray-800 border-t-2 border-blue-500 p-4 max-h-96 overflow-y-auto"
+         role="region" aria-labelledby="admin-panel-heading">
+        <h2 id="admin-panel-heading" class="text-xl font-bold text-green-400 mb-4">👑 Panel Administrateur</h2>
         
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-            <button data-action="add-player" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-plus mb-1"></i>
+            <button data-action="add-player" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Ajouter un joueur">
+                <i class="fa-solid fa-plus mb-1" aria-hidden="true"></i>
                 <span class="text-xs">Ajouter joueur</span>
             </button>
-            <button data-action="edit-player" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-edit mb-1"></i>
+            <button data-action="edit-player" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Modifier un joueur">
+                <i class="fa-solid fa-edit mb-1" aria-hidden="true"></i>
                 <span class="text-xs">Modifier joueur</span>
             </button>
-            <button data-action="delete-player" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-trash mb-1"></i>
-                <span class="text-xs">Supprimer joueur</span>
+            <button data-action="delete-player" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Gérer les joueurs">
+                <i class="fa-solid fa-trash mb-1" aria-hidden="true"></i>
+                <span class="text-xs">Gérer joueurs</span>
             </button>
-            <button data-action="add-result" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-plus-circle mb-1"></i>
+            <button data-action="add-result" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Ajouter un résultat">
+                <i class="fa-solid fa-plus-circle mb-1" aria-hidden="true"></i>
                 <span class="text-xs">Ajouter résultat</span>
             </button>
-            <button data-action="edit-result" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-edit mb-1"></i>
+            <button data-action="edit-result" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Modifier un résultat">
+                <i class="fa-solid fa-edit mb-1" aria-hidden="true"></i>
                 <span class="text-xs">Modifier résultat</span>
             </button>
-            <button data-action="delete-result" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-trash mb-1"></i>
-                <span class="text-xs">Supprimer résultat</span>
+            <button data-action="delete-result" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Gérer les matchs">
+                <i class="fa-solid fa-trash mb-1" aria-hidden="true"></i>
+                <span class="text-xs">Gérer matchs</span>
             </button>
-            <button data-action="reset" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-sync mb-1"></i>
-                <span class="text-xs">Réinitialiser</span>
-            </button>
-            <button data-action="dashboard" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition">
-                <i class="fa-solid fa-chart-bar mb-1"></i>
+            <button data-action="dashboard" class="admin-action-btn p-2 rounded flex flex-col items-center bg-gray-700 hover:bg-gray-600 transition focus-visible"
+                    aria-label="Voir le tableau de bord">
+                <i class="fa-solid fa-chart-bar mb-1" aria-hidden="true"></i>
                 <span class="text-xs">Dashboard</span>
             </button>
         </div>
@@ -1346,18 +2240,20 @@
         <!-- Ajouter un joueur -->
         <div id="add-player-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <h3 class="text-lg font-bold mb-3">Ajouter un joueur</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input id="new-player-name" type="text" placeholder="Nom du joueur" class="bg-gray-800 border border-gray-600 rounded p-2">
-                <select id="new-player-avatar" class="bg-gray-800 border border-gray-600 rounded p-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <input id="new-player-name" type="text" placeholder="Nom du joueur" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Nom du joueur">
+                <select id="new-player-avatar" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Avatar du joueur">
                     <option value="user">Joueur</option>
                     <option value="crown">Champion</option>
                     <option value="fire">Flamme</option>
                     <option value="star">Étoile</option>
                     <option value="rocket">Fusée</option>
                 </select>
-                <input id="new-player-team" type="text" placeholder="Équipe/Club" class="bg-gray-800 border border-gray-600 rounded p-2">
+                <input id="new-player-team" type="text" placeholder="Équipe/Club" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Équipe du joueur">
             </div>
-            <button id="add-player-btn" class="mt-3 bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition">
+            <button id="add-player-btn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition-colors focus-visible">
                 ✅ Ajouter
             </button>
         </div>
@@ -1366,22 +2262,24 @@
         <div id="edit-player-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-bold">Modifier un joueur</h3>
-                <button id="cancel-edit-btn" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded">
+                <button id="cancel-edit-btn" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded transition-colors focus-visible">
                     Annuler
                 </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input id="edit-player-name" type="text" placeholder="Nom du joueur" class="bg-gray-800 border border-gray-600 rounded p-2">
-                <select id="edit-player-avatar" class="bg-gray-800 border border-gray-600 rounded p-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <input id="edit-player-name" type="text" placeholder="Nom du joueur" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Nom du joueur">
+                <select id="edit-player-avatar" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Avatar du joueur">
                     <option value="user">Joueur</option>
                     <option value="crown">Champion</option>
                     <option value="fire">Flamme</option>
                     <option value="star">Étoile</option>
                     <option value="rocket">Fusée</option>
                 </select>
-                <input id="edit-player-team" type="text" placeholder="Équipe/Club" class="bg-gray-800 border border-gray-600 rounded p-2">
+                <input id="edit-player-team" type="text" placeholder="Équipe/Club" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Équipe du joueur">
             </div>
-            <button id="update-player-btn" class="mt-3 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition">
+            <button id="update-player-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors focus-visible">
                 💾 Modifier
             </button>
         </div>
@@ -1390,17 +2288,19 @@
         <div id="add-result-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <h3 class="text-lg font-bold mb-3">Ajouter un résultat</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-                <select id="match-player1" class="bg-gray-800 border border-gray-600 rounded p-2">
+                <select id="match-player1" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Joueur 1">
                     <option value="">Sélectionner un joueur</option>
                 </select>
-                <input id="match-score1" type="number" min="0" placeholder="Score" class="bg-gray-800 border border-gray-600 rounded p-2">
-                <input id="match-score2" type="number" min="0" placeholder="Score" class="bg-gray-800 border border-gray-600 rounded p-2">
-                <select id="match-player2" class="bg-gray-800 border border-gray-600 rounded p-2">
+                <input id="match-score1" type="number" min="0" placeholder="Score" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Score joueur 1">
+                <input id="match-score2" type="number" min="0" placeholder="Score" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Score joueur 2">
+                <select id="match-player2" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Joueur 2">
                     <option value="">Sélectionner un joueur</option>
                 </select>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <select id="match-day" class="bg-gray-800 border border-gray-600 rounded p-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <select id="match-day" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Jour du match">
                     <option value="Lundi">Lundi</option>
                     <option value="Mardi">Mardi</option>
                     <option value="Mercredi">Mercredi</option>
@@ -1409,7 +2309,8 @@
                     <option value="Samedi">Samedi</option>
                     <option value="Dimanche">Dimanche</option>
                 </select>
-                <button id="add-match-btn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition">
+                <input id="match-time" type="time" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Heure du match">
+                <button id="add-match-btn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition-colors focus-visible">
                     ✅ Enregistrer
                 </button>
             </div>
@@ -1419,22 +2320,24 @@
         <div id="edit-match-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-bold">Modifier un résultat</h3>
-                <button id="cancel-edit-btn" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded">
+                <button id="cancel-edit-btn" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded transition-colors focus-visible">
                     Annuler
                 </button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-                <select id="edit-match-player1" class="bg-gray-800 border border-gray-600 rounded p-2">
+                <select id="edit-match-player1" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Joueur 1">
                     <option value="">Sélectionner un joueur</option>
                 </select>
-                <input id="edit-match-score1" type="number" min="0" placeholder="Score" class="bg-gray-800 border border-gray-600 rounded p-2">
-                <input id="edit-match-score2" type="number" min="0" placeholder="Score" class="bg-gray-800 border border-gray-600 rounded p-2">
-                <select id="edit-match-player2" class="bg-gray-800 border border-gray-600 rounded p-2">
+                <input id="edit-match-score1" type="number" min="0" placeholder="Score" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Score joueur 1">
+                <input id="edit-match-score2" type="number" min="0" placeholder="Score" 
+                       class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Score joueur 2">
+                <select id="edit-match-player2" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Joueur 2">
                     <option value="">Sélectionner un joueur</option>
                 </select>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <select id="edit-match-day" class="bg-gray-800 border border-gray-600 rounded p-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <select id="edit-match-day" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Jour du match">
                     <option value="Lundi">Lundi</option>
                     <option value="Mardi">Mardi</option>
                     <option value="Mercredi">Mercredi</option>
@@ -1443,7 +2346,8 @@
                     <option value="Samedi">Samedi</option>
                     <option value="Dimanche">Dimanche</option>
                 </select>
-                <button id="update-match-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition">
+                <input id="edit-match-time" type="time" class="bg-gray-800 border border-gray-600 rounded p-2 focus-visible" aria-label="Heure du match">
+                <button id="update-match-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors focus-visible">
                     💾 Modifier
                 </button>
             </div>
@@ -1452,7 +2356,7 @@
         <!-- Gestion des joueurs -->
         <div id="delete-player-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <h3 class="text-lg font-bold mb-3">Gestion des joueurs</h3>
-            <div id="admin-players-list" class="space-y-2">
+            <div id="admin-players-list" class="space-y-2 max-h-40 overflow-y-auto">
                 <!-- Rendu dynamique par JavaScript -->
             </div>
         </div>
@@ -1460,7 +2364,7 @@
         <!-- Gestion des matchs -->
         <div id="delete-result-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <h3 class="text-lg font-bold mb-3">Gestion des matchs</h3>
-            <div id="admin-matches-list" class="space-y-2">
+            <div id="admin-matches-list" class="space-y-2 max-h-40 overflow-y-auto">
                 <!-- Rendu dynamique par JavaScript -->
             </div>
         </div>
@@ -1468,21 +2372,11 @@
         <!-- Dashboard Admin -->
         <div id="dashboard-content" class="admin-action-content bg-gray-700 p-4 rounded-lg" style="display: none;">
             <h3 class="text-lg font-bold mb-3">Dashboard Admin</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-gray-800 p-4 rounded">
-                    <div class="text-3xl font-bold text-center">${appData.players.length}</div>
-                    <div class="text-center">Joueurs inscrits</div>
-                </div>
-                <div class="bg-gray-800 p-4 rounded">
-                    <div class="text-3xl font-bold text-center">${appData.matches.length}</div>
-                    <div class="text-center">Matchs joués</div>
-                </div>
-                <div class="bg-gray-800 p-4 rounded">
-                    <div class="text-3xl font-bold text-center">${appData.matches.filter(m => !m.played).length}</div>
-                    <div class="text-center">Matchs à venir</div>
-                </div>
-            </div>
+            <!-- Rendu dynamique par JavaScript -->
         </div>
     </div>
+
+    <!-- Screen reader announcements -->
+    <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
