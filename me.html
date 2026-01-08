@@ -3,33 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lettre Mélancolique</title>
+    <title>Lettre d'Amour Éternelle</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Parisienne&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
     <!-- Anime.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <style>
         body {
-            font-family: 'Crimson Text', serif;
+            font-family: 'Cormorant Garamond', serif;
             overflow: hidden;
             height: 100vh;
-            background-color: #1a1a2e;
-            color: #c9c9c9;
         }
         
         .letter-text {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Dancing Script', cursive;
             line-height: 1.8;
-            font-weight: 300;
-        }
-        
-        .poem-text {
-            font-family: 'Parisienne', cursive;
-            font-size: 1.5rem;
-            line-height: 2.2;
-            color: #e6e6e6;
         }
         
         .scroll-container {
@@ -43,28 +33,38 @@
             width: 100%;
         }
         
-        .raindrop {
+        .heart {
             position: absolute;
-            width: 2px;
-            background: linear-gradient(to bottom, rgba(120, 119, 163, 0.7), transparent);
-            border-radius: 0 0 2px 2px;
-        }
-        
-        .tear {
-            position: absolute;
-            background-color: rgba(168, 216, 234, 0.3);
-            border-radius: 50%;
+            background-color: rgba(192, 132, 252, 0.3);
             display: inline-block;
+            height: 30px;
+            width: 30px;
+            transform: rotate(-45deg);
         }
         
-        @keyframes float-down {
-            0% { transform: translateY(-100px) rotate(0deg); opacity: 0.8; }
-            100% { transform: translateY(100vh) rotate(10deg); opacity: 0; }
+        .heart:before,
+        .heart:after {
+            content: "";
+            background-color: rgba(192, 132, 252, 0.3);
+            border-radius: 50%;
+            height: 30px;
+            position: absolute;
+            width: 30px;
         }
         
-        @keyframes fade-in-out {
-            0%, 100% { opacity: 0.1; }
-            50% { opacity: 0.4; }
+        .heart:before {
+            top: -15px;
+            left: 0;
+        }
+        
+        .heart:after {
+            left: 15px;
+            top: 0;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
         
         .controls {
@@ -78,72 +78,44 @@
         }
         
         .control-btn {
-            background: rgba(45, 45, 65, 0.85);
-            color: #b0b0b0;
-            border: 1px solid #555;
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+            border: none;
             padding: 10px 20px;
             border-radius: 50px;
             cursor: pointer;
-            font-family: 'Crimson Text', serif;
+            font-family: 'Cormorant Garamond', serif;
             font-weight: 500;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
         }
         
         .control-btn:hover {
-            background: rgba(60, 60, 80, 0.9);
-            color: #d0d0d0;
+            background: rgba(124, 58, 237, 0.9);
             transform: scale(1.05);
-            border-color: #777;
         }
         
         .scroll-direction {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(45, 45, 65, 0.85);
-            color: #b0b0b0;
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
             backdrop-filter: blur(10px);
-            border: 1px solid #555;
-        }
-        
-        .moon {
-            position: fixed;
-            top: 30px;
-            left: 30px;
-            width: 60px;
-            height: 60px;
-            background: radial-gradient(circle at 30% 30%, #4a4a6d, #2d2d42);
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(120, 119, 163, 0.3);
-            z-index: 1;
-        }
-        
-        .moon-crater {
-            position: absolute;
-            background-color: #3a3a5a;
-            border-radius: 50%;
-        }
-        
-        .page-stain {
-            position: absolute;
-            background: radial-gradient(circle, rgba(60, 60, 80, 0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
         }
     </style>
 </head>
-<body class="p-4">
+<body class="bg-gradient-to-b from-purple-50 to-purple-100 p-4">
     <!-- Indication de direction -->
     <div id="directionIndicator" class="scroll-direction">
         Défilement: ↑ Haut
     </div>
 
     <!-- Bouton de contrôle audio -->
-    <button id="musicToggle" class="fixed top-6 right-6 z-50 bg-gray-800 text-gray-300 p-3 rounded-full shadow-lg hover:bg-gray-700 transition-all duration-300 transform hover:scale-110 border border-gray-600">
+    <button id="musicToggle" class="fixed top-6 right-6 z-50 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 transition-all duration-300 transform hover:scale-110">
         <svg id="playIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
         </svg>
@@ -151,24 +123,15 @@
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
         </svg>
     </button>
-
-    <!-- Lune décorative -->
-    <div class="moon">
-        <div class="moon-crater" style="width: 10px; height: 10px; top: 15px; left: 20px;"></div>
-        <div class="moon-crater" style="width: 8px; height: 8px; top: 30px; left: 35px;"></div>
-        <div class="moon-crater" style="width: 12px; height: 12px; top: 40px; left: 15px;"></div>
-    </div>
-
-    <!-- Taches sur la page -->
-    <div class="page-stain" style="width: 200px; height: 200px; top: 30%; right: 10%; animation: fade-in-out 8s infinite;"></div>
-    <div class="page-stain" style="width: 150px; height: 150px; top: 60%; left: 5%; animation: fade-in-out 12s infinite 2s;"></div>
-
+     
+   
     <!-- Conteneur principal -->
     <div class="scroll-container w-full max-w-2xl mx-auto">
-        <div id="letterContent" class="letter-content bg-gradient-to-b from-gray-900/80 to-gray-800/80 backdrop-blur-sm p-8 rounded-lg shadow-2xl border border-gray-700">
-            <h1 class="text-3xl font-bold text-center mb-10 text-gray-300 letter-text" style="letter-spacing: 2px;">Au fond,</h1>
-            
-            <div class="poem-text space-y-8">
+        <div id="letterContent" class="letter-content bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-purple-200">
+            <h1 class="text-4xl font-bold text-center mb-8 text-purple-800 letter-text">Deuil</h1>
+     
+<div class="letter-text text-xl text-purple-900 space-y-6">
+  <div class="poem-text space-y-8">
                 <p>la nuit m'a choisi<br>
                 le jour où je n'ai plus su le faire.</p>
                 
@@ -309,11 +272,11 @@
                 <p class="text-center text-2xl mt-6">Il n'y a plus personne<br>
                 pour le remarquer.</p>
             </div>
-            
-            <div class="mt-12 text-center">
-                <div class="inline-block tear mx-3" style="width: 8px; height: 12px;"></div>
-                <div class="inline-block tear mx-3" style="width: 6px; height: 10px;"></div>
-                <div class="inline-block tear mx-3" style="width: 8px; height: 12px;"></div>
+</div>
+            <div class="mt-10 text-center">
+                <div class="inline-block heart opacity-70 mx-2"></div>
+                <div class="inline-block heart opacity-70 mx-2"></div>
+                <div class="inline-block heart opacity-70 mx-2"></div>
             </div>
         </div>
     </div>
@@ -336,7 +299,8 @@
 
     <!-- Élément Audio -->
     <audio id="backgroundMusic" loop>
-        <source src="https://assets.mixkit.co/music/preview/mixkit-sad-romantic-piano-217.mp3" type="audio/mpeg">
+        <!-- Remplacez cette URL par le lien vers votre fichier audio -->
+        <source src="musique.m4a" type="audio/mpeg">
         Votre navigateur ne supporte pas l'élément audio.
     </audio>
 
@@ -369,27 +333,6 @@
             }
         }
 
-        // Fonction pour créer des gouttes de pluie
-        function createRaindrops() {
-            const container = document.querySelector('body');
-            
-            for (let i = 0; i < 40; i++) {
-                const raindrop = document.createElement('div');
-                raindrop.classList.add('raindrop');
-                
-                const left = Math.random() * 100;
-                const height = Math.random() * 20 + 10;
-                const delay = Math.random() * 20;
-                const duration = Math.random() * 3 + 2;
-                
-                raindrop.style.left = `${left}vw`;
-                raindrop.style.height = `${height}px`;
-                raindrop.style.animation = `float-down ${duration}s linear ${delay}s infinite`;
-                
-                container.appendChild(raindrop);
-            }
-        }
-
         // Fonction pour démarrer le défilement
         function startScrolling() {
             if (scrollAnimation) {
@@ -404,7 +347,7 @@
             scrollAnimation = anime({
                 targets: '#letterContent',
                 translateY: isScrollingUp ? [containerHeight, -letterHeight] : [-letterHeight, containerHeight],
-                duration: 200000, // Durée plus longue pour lire tranquillement
+                duration: 180000, // Durée plus longue pour votre belle lettre
                 easing: 'linear',
                 complete: function() {
                     // Inverser la direction
@@ -439,27 +382,23 @@
 
         // Initialisation au chargement de la page
         document.addEventListener('DOMContentLoaded', () => {
-            // Créer l'effet de pluie mélancolique
-            createRaindrops();
-            
             // Démarrer le défilement automatique
             startScrolling();
 
-            // Animation des larmes
-            const tears = document.querySelectorAll('.tear');
-            tears.forEach(tear => {
-                const size = Math.random() * 4 + 4;
-                const duration = Math.random() * 3 + 2;
-                const delay = Math.random() * 5;
+            // Animation des cœurs flottants
+            const hearts = document.querySelectorAll('.heart');
+            hearts.forEach(heart => {
+                const size = Math.random() * 20 + 10;
+                const duration = Math.random() * 20 + 20;
+                const delay = Math.random() * 10;
                 
-                tear.style.width = `${size}px`;
-                tear.style.height = `${size * 1.5}px`;
+                heart.style.width = `${size}px`;
+                heart.style.height = `${size}px`;
                 
-                tear.style.animation = `float-down ${duration}s linear ${delay}s infinite`;
+                heart.style.animation = `float ${duration}s linear ${delay}s infinite`;
             });
 
             // Tentative de lecture automatique de la musique
-            music.volume = 0.3; // Volume réduit pour une ambiance subtile
             music.play().then(() => {
                 playIcon.classList.add('hidden');
                 pauseIcon.classList.remove('hidden');
