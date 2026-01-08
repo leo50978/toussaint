@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lettre Mélancolique</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Parisienne&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            font-family: 'Crimson Text', serif;
+            overflow: hidden;
+            height: 100vh;
+            background-color: #1a1a2e;
+            color: #c9c9c9;
+        }
+        
+        .letter-text {
+            font-family: 'Playfair Display', serif;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+        
+        .poem-text {
+            font-family: 'Parisienne', cursive;
+            font-size: 1.5rem;
+            line-height: 2.2;
+            color: #e6e6e6;
+        }
+        
+        .scroll-container {
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .letter-content {
+            position: absolute;
+            width: 100%;
+        }
+        
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(120, 119, 163, 0.7), transparent);
+            border-radius: 0 0 2px 2px;
+        }
+        
+        .tear {
+            position: absolute;
+            background-color: rgba(168, 216, 234, 0.3);
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        @keyframes float-down {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(10deg); opacity: 0; }
+        }
+        
+        @keyframes fade-in-out {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.4; }
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .control-btn {
+            background: rgba(45, 45, 65, 0.85);
+            color: #b0b0b0;
+            border: 1px solid #555;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Crimson Text', serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-btn:hover {
+            background: rgba(60, 60, 80, 0.9);
+            color: #d0d0d0;
+            transform: scale(1.05);
+            border-color: #777;
+        }
+        
+        .scroll-direction {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(45, 45, 65, 0.85);
+            color: #b0b0b0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #555;
+        }
+        
+        .moon {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, #4a4a6d, #2d2d42);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(120, 119, 163, 0.3);
+            z-index: 1;
+        }
+        
+        .moon-crater {
+            position: absolute;
+            background-color: #3a3a5a;
+            border-radius: 50%;
+        }
+        
+        .page-stain {
+            position: absolute;
+            background: radial-gradient(circle, rgba(60, 60, 80, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Indication de direction -->
+    <div id="directionIndicator" class="scroll-direction">
+        Défilement: ↑ Haut
+    </div>
+
+    <!-- Bouton de contrôle audio -->
+    <button id="musicToggle" class="fixed top-6 right-6 z-50 bg-gray-800 text-gray-300 p-3 rounded-full shadow-lg hover:bg-gray-700 transition-all duration-300 transform hover:scale-110 border border-gray-600">
+        <svg id="playIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+        </svg>
+        <svg id="pauseIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+
+    <!-- Lune décorative -->
+    <div class="moon">
+        <div class="moon-crater" style="width: 10px; height: 10px; top: 15px; left: 20px;"></div>
+        <div class="moon-crater" style="width: 8px; height: 8px; top: 30px; left: 35px;"></div>
+        <div class="moon-crater" style="width: 12px; height: 12px; top: 40px; left: 15px;"></div>
+    </div>
+
+    <!-- Taches sur la page -->
+    <div class="page-stain" style="width: 200px; height: 200px; top: 30%; right: 10%; animation: fade-in-out 8s infinite;"></div>
+    <div class="page-stain" style="width: 150px; height: 150px; top: 60%; left: 5%; animation: fade-in-out 12s infinite 2s;"></div>
+
+    <!-- Conteneur principal -->
+    <div class="scroll-container w-full max-w-2xl mx-auto">
+        <div id="letterContent" class="letter-content bg-gradient-to-b from-gray-900/80 to-gray-800/80 backdrop-blur-sm p-8 rounded-lg shadow-2xl border border-gray-700">
+            <h1 class="text-3xl font-bold text-center mb-10 text-gray-300 letter-text" style="letter-spacing: 2px;">Au fond,</h1>
+            
+            <div class="poem-text space-y-8">
+                <p>la nuit m'a choisi<br>
+                le jour où je n'ai plus su le faire.</p>
+                
+                <p>Comment demander à une âme<br>
+                de t'oublier<br>
+                quand elle est trop lasse<br>
+                pour se rappeler son nom.</p>
+                
+                <p>Comment lui dire d'avancer<br>
+                quand elle ne sait plus<br>
+                où poser le poids d'exister.</p>
+                
+                <p>Il est 2h17.<br>
+                Le monde dort sans moi.<br>
+                Même le silence<br>
+                a trouvé quelqu'un.</p>
+                
+                <p>Le téléphone est là.<br>
+                Écran noir.<br>
+                Je le regarde<br>
+                comme une porte qui ne s'ouvre plus<br>
+                mais qui pourrait<br>
+                se tromper.</p>
+                
+                <p>Je sais que tu n'écriras pas.<br>
+                Je le sais.<br>
+                Et pourtant, je vérifie.<br>
+                Comme on ment à un enfant.<br>
+                Comme on se ment<br>
+                quand il ne reste rien d'autre.</p>
+                
+                <p>Jusqu'où un amour peut aller<br>
+                avant qu'il n'y ait<br>
+                plus personne.</p>
+                
+                <p>Je ne suis plus.<br>
+                Pas même ce que j'étais.<br>
+                Je suis ce qui reste<br>
+                après l'attente.</p>
+                
+                <p>Je respire encore.<br>
+                Personne ne m'a demandé pourquoi.</p>
+                
+                <p>Autrefois,<br>
+                j'étais quelqu'un.<br>
+                Blessé.<br>
+                Cassé.<br>
+                Mais regardé.<br>
+                Et ça suffisait.</p>
+                
+                <p>Il m'arrive encore<br>
+                de penser "nous".<br>
+                Puis je corrige.<br>
+                Comme on referme une porte<br>
+                après avoir compris<br>
+                que le bruit venait du départ.</p>
+                
+                <p>Ce soir, je renonce.<br>
+                Je laisse tomber mon nom,<br>
+                mon visage,<br>
+                celui que tu appelais<br>
+                sans y penser.</p>
+                
+                <p>J'ai failli t'écrire.<br>
+                Juste ton prénom.<br>
+                Pas pour parler.<br>
+                Pour vérifier<br>
+                que j'existais encore<br>
+                quelque part.</p>
+                
+                <p>Puis j'ai eu peur.<br>
+                Pas de toi.<br>
+                De redevenir quelqu'un<br>
+                que tu ne reconnaîtrais pas.</p>
+                
+                <p>Je regarde ce que nous étions<br>
+                comme un objet perdu :<br>
+                je sais qu'il était à moi,<br>
+                je ne sais plus<br>
+                où le poser.</p>
+                
+                <p>Ce n'est pas toi<br>
+                que j'ai peur d'oublier.<br>
+                C'est celui que j'étais<br>
+                quand quelqu'un<br>
+                me choisissait.</p>
+                
+                <p>Je ne serai plus jamais moi.<br>
+                Ni à toi.<br>
+                Je serai<br>
+                quelqu'un qui a aimé<br>
+                au-delà de lui-même.</p>
+                
+                <p>Ce soir, je porte le deuil.<br>
+                Le noir ne promet rien.<br>
+                Il ne demande rien.<br>
+                Il reste.</p>
+                
+                <p>Les souvenirs ne font plus mal.<br>
+                Ils prennent la place<br>
+                où je devrais être.</p>
+                
+                <p>Où suis-je<br>
+                quand même mon absence<br>
+                me précède.</p>
+                
+                <p>Je me cherche.<br>
+                Je ne trouve que le silence<br>
+                que j'ai laissé grandir.</p>
+                
+                <p>La douleur est calme.<br>
+                Elle n'a plus besoin de crier.<br>
+                Elle sait<br>
+                que je ne partirai pas.</p>
+                
+                <p>Je la regarde<br>
+                prendre cet amour<br>
+                et le jeter au feu —<br>
+                pas pour le détruire,<br>
+                juste pour qu'il cesse<br>
+                de me reconnaître.</p>
+                
+                <p>Ça brûle lentement.<br>
+                Sans lumière.<br>
+                Sans bruit.</p>
+                
+                <p>Et moi,<br>
+                je reste là<br>
+                pendant que quelque chose<br>
+                s'éteint<br>
+                sans témoin,<br>
+                sans trace.</p>
+                
+                <p class="text-center mt-12 text-xl">Demain,<br>
+                personne ne verra<br>
+                que je manque.</p>
+                
+                <p class="text-center text-2xl mt-6">Il n'y a plus personne<br>
+                pour le remarquer.</p>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <div class="inline-block tear mx-3" style="width: 8px; height: 12px;"></div>
+                <div class="inline-block tear mx-3" style="width: 6px; height: 10px;"></div>
+                <div class="inline-block tear mx-3" style="width: 8px; height: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrôles de défilement -->
+    <div class="controls">
+        <button id="pauseBtn" class="control-btn">
+            <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            Pause
+        </button>
+        <button id="playBtn" class="control-btn hidden">
+            <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+            </svg>
+            Play
+        </button>
+    </div>
+
+    <!-- Élément Audio -->
+    <audio id="backgroundMusic" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-sad-romantic-piano-217.mp3" type="audio/mpeg">
+        Votre navigateur ne supporte pas l'élément audio.
+    </audio>
+
+    <script>
+        // Variables globales
+        let scrollAnimation = null;
+        let isScrollingUp = true;
+        let isPaused = false;
+
+        // Gestion de la musique de fond
+        const music = document.getElementById('backgroundMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const directionIndicator = document.getElementById('directionIndicator');
+
+        // Fonction pour basculer entre lecture et pause de la musique
+        function toggleMusic() {
+            if (music.paused) {
+                music.play().then(() => {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                }).catch(error => {
+                    console.error("Erreur de lecture:", error);
+                });
+            } else {
+                music.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        }
+
+        // Fonction pour créer des gouttes de pluie
+        function createRaindrops() {
+            const container = document.querySelector('body');
+            
+            for (let i = 0; i < 40; i++) {
+                const raindrop = document.createElement('div');
+                raindrop.classList.add('raindrop');
+                
+                const left = Math.random() * 100;
+                const height = Math.random() * 20 + 10;
+                const delay = Math.random() * 20;
+                const duration = Math.random() * 3 + 2;
+                
+                raindrop.style.left = `${left}vw`;
+                raindrop.style.height = `${height}px`;
+                raindrop.style.animation = `float-down ${duration}s linear ${delay}s infinite`;
+                
+                container.appendChild(raindrop);
+            }
+        }
+
+        // Fonction pour démarrer le défilement
+        function startScrolling() {
+            if (scrollAnimation) {
+                scrollAnimation.restart();
+                return;
+            }
+
+            const letterContent = document.getElementById('letterContent');
+            const containerHeight = document.querySelector('.scroll-container').offsetHeight;
+            const letterHeight = letterContent.offsetHeight;
+            
+            scrollAnimation = anime({
+                targets: '#letterContent',
+                translateY: isScrollingUp ? [containerHeight, -letterHeight] : [-letterHeight, containerHeight],
+                duration: 200000, // Durée plus longue pour lire tranquillement
+                easing: 'linear',
+                complete: function() {
+                    // Inverser la direction
+                    isScrollingUp = !isScrollingUp;
+                    directionIndicator.textContent = isScrollingUp ? 'Défilement: ↑ Haut' : 'Défilement: ↓ Bas';
+                    
+                    // Redémarrer l'animation dans la nouvelle direction
+                    startScrolling();
+                }
+            });
+        }
+
+        // Fonction pour mettre en pause le défilement
+        function pauseScrolling() {
+            if (scrollAnimation) {
+                scrollAnimation.pause();
+                isPaused = true;
+                document.getElementById('pauseBtn').classList.add('hidden');
+                document.getElementById('playBtn').classList.remove('hidden');
+            }
+        }
+
+        // Fonction pour reprendre le défilement
+        function resumeScrolling() {
+            if (scrollAnimation) {
+                scrollAnimation.play();
+                isPaused = false;
+                document.getElementById('playBtn').classList.add('hidden');
+                document.getElementById('pauseBtn').classList.remove('hidden');
+            }
+        }
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Créer l'effet de pluie mélancolique
+            createRaindrops();
+            
+            // Démarrer le défilement automatique
+            startScrolling();
+
+            // Animation des larmes
+            const tears = document.querySelectorAll('.tear');
+            tears.forEach(tear => {
+                const size = Math.random() * 4 + 4;
+                const duration = Math.random() * 3 + 2;
+                const delay = Math.random() * 5;
+                
+                tear.style.width = `${size}px`;
+                tear.style.height = `${size * 1.5}px`;
+                
+                tear.style.animation = `float-down ${duration}s linear ${delay}s infinite`;
+            });
+
+            // Tentative de lecture automatique de la musique
+            music.volume = 0.3; // Volume réduit pour une ambiance subtile
+            music.play().then(() => {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            }).catch(error => {
+                console.log("Lecture automatique bloquée, attente d'interaction utilisateur.");
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            });
+
+            // Événements pour les boutons de contrôle
+            document.getElementById('pauseBtn').addEventListener('click', pauseScrolling);
+            document.getElementById('playBtn').addEventListener('click', resumeScrolling);
+        });
+
+        // Événement de clic sur le bouton de musique
+        musicToggle.addEventListener('click', toggleMusic);
+    </script>
+</body>
+</html>
