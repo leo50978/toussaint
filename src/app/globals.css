@@ -1,26 +1,288 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #efe8d8;
+  --foreground: #1e1b16;
+  --surface: rgba(255, 249, 239, 0.8);
+  --surface-solid: #fffdf7;
+  --primary: #0f5c4d;
+  --accent: #c2410c;
+  --border: rgba(30, 27, 22, 0.08);
+  --app-screen-width: 100vw;
+  --app-screen-height: 100svh;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  width: 100%;
+  min-height: 100%;
+  background: #03060b;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  min-height: var(--app-screen-height);
+  background: transparent;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+.app-root {
+  position: relative;
+  width: 100%;
+  min-height: var(--app-screen-height);
+  isolation: isolate;
+}
+
+.app-content-layer {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: var(--app-screen-height);
+}
+
+.global-video-background {
+  position: fixed;
+  inset: 0;
+  width: var(--app-screen-width);
+  height: var(--app-screen-height);
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #03060b;
+}
+
+.global-video-background__poster {
+  position: absolute;
+  inset: 0;
+  width: var(--app-screen-width);
+  height: var(--app-screen-height);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(20, 184, 166, 0.18), transparent 30%),
+    radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.14), transparent 24%),
+    radial-gradient(circle at 58% 78%, rgba(244, 114, 182, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(1, 4, 9, 0.92), rgba(3, 6, 11, 0.98));
+  transition: opacity 360ms ease;
+}
+
+.global-video-background__poster--ready {
+  opacity: 0;
+}
+
+.global-video-background__media {
+  position: absolute;
+  inset: 0;
+  width: var(--app-screen-width);
+  height: var(--app-screen-height);
+  object-fit: cover;
+  object-position: center center;
+  filter: none;
+}
+
+::selection {
+  background: #b7ead5;
+  color: #052e25;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.page-shell {
+  animation: page-fade-in 420ms ease-out;
+}
+
+.soft-card {
+  transform: translateY(0);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.soft-card:hover {
+  transform: translateY(-2px);
+}
+
+.stagger-grid > * {
+  animation: card-rise 420ms ease-out both;
+}
+
+.stagger-grid > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.stagger-grid > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.stagger-grid > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.loading-shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.loading-card {
+  width: min(100%, 540px);
+  border: 1px solid var(--border);
+  border-radius: 32px;
+  padding: 28px;
+  background: rgba(255, 253, 247, 0.9);
+  box-shadow: 0 24px 80px rgba(30, 27, 22, 0.08);
+}
+
+.loading-bar {
+  height: 14px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(15, 92, 77, 0.12) 0%,
+      rgba(15, 92, 77, 0.3) 50%,
+      rgba(15, 92, 77, 0.12) 100%
+    );
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.15s linear infinite;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.status-button-glow {
+  background-image: linear-gradient(
+    120deg,
+    rgba(16, 185, 129, 0.2),
+    rgba(59, 130, 246, 0.18),
+    rgba(244, 114, 182, 0.16),
+    rgba(16, 185, 129, 0.2)
+  );
+  background-size: 220% 220%;
+  animation: status-gradient-flow 3.2s linear infinite;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 12px 28px rgba(16, 185, 129, 0.12);
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loading-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes status-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-shell,
+  .stagger-grid > *,
+  .loading-bar,
+  .status-button-glow {
+    animation: none;
+  }
+
+  .global-video-background__media {
+    filter: none;
+  }
+
+  .soft-card {
+    transition: none;
+  }
+
+  .soft-card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .global-video-background__poster {
+    background:
+      radial-gradient(circle at 22% 18%, rgba(20, 184, 166, 0.12), transparent 26%),
+      radial-gradient(circle at 78% 14%, rgba(59, 130, 246, 0.1), transparent 22%),
+      linear-gradient(180deg, rgba(1, 4, 9, 0.96), rgba(3, 6, 11, 1));
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
 }

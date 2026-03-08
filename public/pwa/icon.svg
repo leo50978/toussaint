@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="vichlyBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f5c4d" />
+      <stop offset="55%" stop-color="#127564" />
+      <stop offset="100%" stop-color="#c2410c" />
+    </linearGradient>
+    <linearGradient id="vichlyGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff7ed" />
+      <stop offset="100%" stop-color="#d1fae5" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#vichlyBg)" />
+  <circle cx="398" cy="116" r="54" fill="rgba(255,255,255,0.14)" />
+  <path
+    d="M108 160c0-28.719 23.281-52 52-52h192c28.719 0 52 23.281 52 52v128c0 28.719-23.281 52-52 52H224l-86 64v-64h22c-28.719 0-52-23.281-52-52Z"
+    fill="url(#vichlyGlow)"
+  />
+  <path
+    d="M178 208h156M178 254h118M178 300h86"
+    fill="none"
+    stroke="#0f5c4d"
+    stroke-linecap="round"
+    stroke-width="28"
+  />
+  <path
+    d="M360 372c0-39.764 32.236-72 72-72v0c0 39.764-32.236 72-72 72Z"
+    fill="#fff7ed"
+  />
+</svg>
