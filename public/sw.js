@@ -59,10 +59,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname === "/bg.mp4") {
-    return;
-  }
-
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)

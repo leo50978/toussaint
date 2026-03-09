@@ -17,7 +17,11 @@
 html {
   width: 100%;
   min-height: 100%;
-  background: #03060b;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(15, 118, 110, 0.22), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(37, 99, 235, 0.18), transparent 24%),
+    radial-gradient(circle at 52% 74%, rgba(91, 33, 182, 0.16), transparent 30%),
+    linear-gradient(180deg, #03060b 0%, #07111a 42%, #02050a 100%);
 }
 
 body {
@@ -37,6 +41,12 @@ body {
   width: 100%;
   min-height: var(--app-screen-height);
   isolation: isolate;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(15, 118, 110, 0.22), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(37, 99, 235, 0.18), transparent 24%),
+    radial-gradient(circle at 52% 74%, rgba(91, 33, 182, 0.16), transparent 30%),
+    linear-gradient(180deg, #03060b 0%, #07111a 42%, #02050a 100%);
+  background-attachment: fixed;
 }
 
 .app-content-layer {
@@ -44,44 +54,6 @@ body {
   z-index: 1;
   width: 100%;
   min-height: var(--app-screen-height);
-}
-
-.global-video-background {
-  position: fixed;
-  inset: 0;
-  width: var(--app-screen-width);
-  height: var(--app-screen-height);
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  background: #03060b;
-}
-
-.global-video-background__poster {
-  position: absolute;
-  inset: 0;
-  width: var(--app-screen-width);
-  height: var(--app-screen-height);
-  background:
-    radial-gradient(circle at 15% 20%, rgba(20, 184, 166, 0.18), transparent 30%),
-    radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.14), transparent 24%),
-    radial-gradient(circle at 58% 78%, rgba(244, 114, 182, 0.12), transparent 28%),
-    linear-gradient(180deg, rgba(1, 4, 9, 0.92), rgba(3, 6, 11, 0.98));
-  transition: opacity 360ms ease;
-}
-
-.global-video-background__poster--ready {
-  opacity: 0;
-}
-
-.global-video-background__media {
-  position: absolute;
-  inset: 0;
-  width: var(--app-screen-width);
-  height: var(--app-screen-height);
-  object-fit: cover;
-  object-position: center center;
-  filter: none;
 }
 
 ::selection {
@@ -250,10 +222,6 @@ button,
     animation: none;
   }
 
-  .global-video-background__media {
-    filter: none;
-  }
-
   .soft-card {
     transition: none;
   }
@@ -264,13 +232,6 @@ button,
 }
 
 @media (max-width: 767px) {
-  .global-video-background__poster {
-    background:
-      radial-gradient(circle at 22% 18%, rgba(20, 184, 166, 0.12), transparent 26%),
-      radial-gradient(circle at 78% 14%, rgba(59, 130, 246, 0.1), transparent 22%),
-      linear-gradient(180deg, rgba(1, 4, 9, 0.96), rgba(3, 6, 11, 1));
-  }
-
   input,
   textarea,
   select {
