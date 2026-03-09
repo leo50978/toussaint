@@ -7,13 +7,20 @@ import {
   type App,
   type ServiceAccount,
 } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
-import { getStorage } from "firebase-admin/storage";
+import { getAuth, type Auth } from "firebase-admin/auth";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { getStorage, type Storage } from "firebase-admin/storage";
 
 import { getResolvedFirebaseStorageBucket } from "./config";
 
 const adminAppName = "vitchly-admin";
+
+export type FirebaseAdminServices = {
+  app: App;
+  auth: Auth;
+  db: Firestore;
+  storage: Storage;
+};
 
 function getFirebaseAdminEnv() {
   const projectId = process.env.FIREBASE_PROJECT_ID;
@@ -68,7 +75,7 @@ export function createFirebaseAdminApp(): App {
   );
 }
 
-export function getFirebaseAdminServices() {
+export function getFirebaseAdminServices(): FirebaseAdminServices {
   const app = createFirebaseAdminApp();
 
   return {
