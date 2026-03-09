@@ -337,41 +337,6 @@ function normalizeRegistryFile(input: unknown): ClientAccessRegistryFile {
   };
 }
 
-async function ensureClientAccessRegistryFile() {
-  await fs.mkdir(CLIENT_ACCESS_DATA_DIR, {
-    recursive: true,
-  });
-
-  try {
-    await fs.access(CLIENT_ACCESS_DATA_FILE);
-  } catch {
-    const emptyRegistry: ClientAccessRegistryFile = {
-      version: 1,
-      updatedAt: getNowIso(),
-      sessions: [],
-    };
-
-    await fs.writeFile(
-      CLIENT_ACCESS_DATA_FILE,
-      JSON.stringify(emptyRegistry, null, 2),
-      "utf8",
-    );
-  }
-}
-
-async function writeRegistryFile(registry: ClientAccessRegistryFile) {
-  const normalizedRegistry = normalizeRegistryFile(registry);
-
-  await ensureClientAccessRegistryFile();
-  await fs.writeFile(
-    CLIENT_ACCESS_DATA_FILE,
-    JSON.stringify(normalizedRegistry, null, 2),
-    "utf8",
-  );
-
-  return normalizedRegistry;
-}
-
 export function hashClientAccessKey(clientKey: string) {
   const currentSalt = getClientAccessSalt();
 

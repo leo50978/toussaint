@@ -390,46 +390,6 @@ function normalizeStateFile(input: unknown): PersistedStateFile {
   };
 }
 
-async function ensureStateFile() {
-  await fs.mkdir(CHAT_STATE_DIR, { recursive: true });
-
-  try {
-    await fs.access(CHAT_STATE_FILE);
-  } catch {
-    const emptyState: PersistedStateFile = {
-      version: 1,
-      updatedAt: getNowIso(),
-      conversations: [],
-    };
-
-    await fs.writeFile(CHAT_STATE_FILE, JSON.stringify(emptyState, null, 2), "utf8");
-  }
-}
-
-async function readStateFile() {
-  await ensureStateFile();
-
-  try {
-    const rawValue = await fs.readFile(CHAT_STATE_FILE, "utf8");
-    return normalizeStateFile(JSON.parse(rawValue));
-  } catch {
-    const emptyState: PersistedStateFile = {
-      version: 1,
-      updatedAt: getNowIso(),
-      conversations: [],
-    };
-    await fs.writeFile(CHAT_STATE_FILE, JSON.stringify(emptyState, null, 2), "utf8");
-    return emptyState;
-  }
-}
-
-async function writeStateFile(state: PersistedStateFile) {
-  const normalized = normalizeStateFile(state);
-  await ensureStateFile();
-  await fs.writeFile(CHAT_STATE_FILE, JSON.stringify(normalized, null, 2), "utf8");
-  return normalized;
-}
-
 type FirestoreLikeDb = {
   collection: (path: string) => {
     doc: (id: string) => {
