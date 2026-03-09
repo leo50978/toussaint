@@ -178,11 +178,7 @@ export async function POST(
       messages: aiContext.messages,
     });
     const filtered = filterGeneratedReply(result.suggestion, {
-      conversationId: conversation.id,
       clientName: conversation.clientName,
-      aiMode: "auto",
-      draft: "",
-      conversationSummary: aiContext.conversationSummary,
       conversationSettings: conversation.aiSettings,
       messages: aiContext.messages,
     });
