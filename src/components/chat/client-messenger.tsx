@@ -739,9 +739,10 @@ export default function ClientMessenger() {
   }, [conversation?.id, conversation?.unreadClientCount]);
 
   useEffect(() => {
+    const conversationId = conversation?.id ?? "";
     const lastMessage = conversation?.messages.at(-1);
     const nextAutoReplyMessageId =
-      conversation?.id &&
+      conversationId &&
       conversation.aiMode === "auto" &&
       lastMessage?.sender === "client"
         ? lastMessage.id
@@ -749,7 +750,7 @@ export default function ClientMessenger() {
 
     if (nextAutoReplyMessageId && lastAutoReplyRequestRef.current !== nextAutoReplyMessageId) {
       lastAutoReplyRequestRef.current = nextAutoReplyMessageId;
-      void requestAutoReplyIfNeeded(conversation.id);
+      void requestAutoReplyIfNeeded(conversationId);
     }
 
     if (!nextAutoReplyMessageId) {
