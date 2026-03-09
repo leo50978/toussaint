@@ -37,6 +37,11 @@ const STATUS_VIDEO_MIME_BY_EXTENSION = {
 const STATUS_IMAGE_MIME_TYPES = new Set(Object.values(STATUS_IMAGE_MIME_BY_EXTENSION));
 const STATUS_VIDEO_MIME_TYPES = new Set(Object.values(STATUS_VIDEO_MIME_BY_EXTENSION));
 
+type StatusImageMimeType =
+  (typeof STATUS_IMAGE_MIME_BY_EXTENSION)[keyof typeof STATUS_IMAGE_MIME_BY_EXTENSION];
+type StatusVideoMimeType =
+  (typeof STATUS_VIDEO_MIME_BY_EXTENSION)[keyof typeof STATUS_VIDEO_MIME_BY_EXTENSION];
+
 type StatusListResult = {
   ownerId: string;
   syncedAt: string;
@@ -95,6 +100,14 @@ function getFileExtension(fileName: string) {
   return normalized.slice(dotIndex);
 }
 
+function isStatusImageMimeType(value: string): value is StatusImageMimeType {
+  return STATUS_IMAGE_MIME_TYPES.has(value as StatusImageMimeType);
+}
+
+function isStatusVideoMimeType(value: string): value is StatusVideoMimeType {
+  return STATUS_VIDEO_MIME_TYPES.has(value as StatusVideoMimeType);
+}
+
 function resolveStatusMediaMimeType(type: StatusType, file: File) {
   const normalizedMimeType = normalizeMimeType(file.type);
   const extension = getFileExtension(file.name);
@@ -102,7 +115,7 @@ function resolveStatusMediaMimeType(type: StatusType, file: File) {
     !normalizedMimeType || normalizedMimeType === "application/octet-stream";
 
   if (type === "image") {
-    if (STATUS_IMAGE_MIME_TYPES.has(normalizedMimeType)) {
+    if (isStatusImageMimeType(normalizedMimeType)) {
       return normalizedMimeType;
     }
 
@@ -114,7 +127,7 @@ function resolveStatusMediaMimeType(type: StatusType, file: File) {
   }
 
   if (type === "video") {
-    if (STATUS_VIDEO_MIME_TYPES.has(normalizedMimeType)) {
+    if (isStatusVideoMimeType(normalizedMimeType)) {
       return normalizedMimeType;
     }
 

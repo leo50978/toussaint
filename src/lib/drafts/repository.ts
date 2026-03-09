@@ -377,7 +377,7 @@ export async function getOwnerDraft(draftId: string) {
       return null;
     }
 
-    const draft = fromFirestoreDraft(draftSnapshot.id, draftSnapshot.data());
+    const draft = fromFirestoreDraft(draftId, draftSnapshot.data());
 
     if (!draft || draft.ownerId !== ownerId || draft.isDeleted) {
       return null;
@@ -462,7 +462,7 @@ export async function updateOwnerDraft(
       return null;
     }
 
-    const currentDraft = fromFirestoreDraft(draftSnapshot.id, draftSnapshot.data());
+    const currentDraft = fromFirestoreDraft(draftId, draftSnapshot.data());
 
     if (!currentDraft || currentDraft.ownerId !== ownerId || currentDraft.isDeleted) {
       return null;
@@ -525,7 +525,7 @@ export async function deleteOwnerDraft(draftId: string) {
       return false;
     }
 
-    const currentDraft = fromFirestoreDraft(draftSnapshot.id, draftSnapshot.data());
+    const currentDraft = fromFirestoreDraft(draftId, draftSnapshot.data());
 
     if (!currentDraft || currentDraft.ownerId !== ownerId || currentDraft.isDeleted) {
       return false;

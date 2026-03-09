@@ -7,9 +7,9 @@ import {
   type App,
   type ServiceAccount,
 } from "firebase-admin/app";
-import { getAuth, type Auth } from "firebase-admin/auth";
-import { getFirestore, type Firestore } from "firebase-admin/firestore";
-import { getStorage, type Storage } from "firebase-admin/storage";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 import { getResolvedFirebaseStorageBucket } from "./config";
 
@@ -17,9 +17,23 @@ const adminAppName = "vitchly-admin";
 
 export type FirebaseAdminServices = {
   app: App;
-  auth: Auth;
-  db: Firestore;
-  storage: Storage;
+  auth: ReturnType<typeof getAuth>;
+  db: ReturnType<typeof getFirestore>;
+  storage: FirebaseAdminStorage;
+};
+
+export type FirebaseAdminStorageFile = {
+  save: (buffer: Buffer, options?: Record<string, unknown>) => Promise<unknown>;
+  download: () => Promise<[Buffer]>;
+  delete: (options?: { ignoreNotFound?: boolean }) => Promise<unknown>;
+};
+
+export type FirebaseAdminStorageBucket = {
+  file: (path: string) => FirebaseAdminStorageFile;
+};
+
+export type FirebaseAdminStorage = {
+  bucket: (name?: string) => FirebaseAdminStorageBucket;
 };
 
 function getFirebaseAdminEnv() {
@@ -82,6 +96,6 @@ export function getFirebaseAdminServices(): FirebaseAdminServices {
     app,
     auth: getAuth(app),
     db: getFirestore(app),
-    storage: getStorage(app),
+    storage: getStorage(app) as unknown as FirebaseAdminStorage,
   };
 }

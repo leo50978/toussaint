@@ -62,7 +62,14 @@ export async function GET(request: Request, context: RouteContext) {
     );
   }
 
-  return new NextResponse(payload.buffer, {
+  const arrayBuffer = new ArrayBuffer(payload.buffer.byteLength);
+  new Uint8Array(arrayBuffer).set(payload.buffer);
+
+  const responseBody = new Blob([arrayBuffer], {
+    type: payload.metadata.mimeType || "application/octet-stream",
+  });
+
+  return new NextResponse(responseBody, {
     status: 200,
     headers: {
       "Content-Type": payload.metadata.mimeType || "application/octet-stream",
