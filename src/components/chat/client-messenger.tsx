@@ -740,10 +740,11 @@ export default function ClientMessenger() {
 
   useEffect(() => {
     const conversationId = conversation?.id ?? "";
+    const conversationAiMode = conversation?.aiMode ?? "off";
     const lastMessage = conversation?.messages.at(-1);
     const nextAutoReplyMessageId =
       conversationId &&
-      conversation.aiMode === "auto" &&
+      conversationAiMode === "auto" &&
       lastMessage?.sender === "client"
         ? lastMessage.id
         : "";
