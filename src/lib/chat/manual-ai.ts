@@ -84,13 +84,13 @@ export function resolveManualAiTask(
   taskId: string,
   guidance: string,
   resolvedAt: string,
-) {
+): ConversationManualAiTask[] {
   return tasks.map((task) =>
     task.id === taskId
       ? {
           ...task,
           ownerGuidance: guidance.trim().slice(0, 2_000),
-          status: "resolved",
+          status: "resolved" as const,
           resolvedAt,
         }
       : task,
