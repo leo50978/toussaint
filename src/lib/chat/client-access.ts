@@ -359,26 +359,6 @@ async function ensureClientAccessRegistryFile() {
   }
 }
 
-async function readRegistryFile() {
-  await ensureClientAccessRegistryFile();
-
-  try {
-    const raw = await fs.readFile(CLIENT_ACCESS_DATA_FILE, "utf8");
-
-    return normalizeRegistryFile(JSON.parse(raw));
-  } catch {
-    const emptyRegistry: ClientAccessRegistryFile = {
-      version: 1,
-      updatedAt: getNowIso(),
-      sessions: [],
-    };
-
-    await writeRegistryFile(emptyRegistry);
-
-    return emptyRegistry;
-  }
-}
-
 async function writeRegistryFile(registry: ClientAccessRegistryFile) {
   const normalizedRegistry = normalizeRegistryFile(registry);
 
@@ -390,40 +370,6 @@ async function writeRegistryFile(registry: ClientAccessRegistryFile) {
   );
 
   return normalizedRegistry;
-}
-
-function findRegistrySessionByConversation(
-  registry: ClientAccessRegistryFile,
-  ownerId: string,
-  conversationId: string,
-) {
-  return (
-    registry.sessions.find(
-      (session) =>
-        session.ownerId === ownerId && session.conversationId === conversationId,
-    ) || null
-  );
-}
-
-function findRegistrySessionByClientKeyHash(
-  registry: ClientAccessRegistryFile,
-  ownerId: string,
-  clientKeyHash: string,
-  conversationId?: string,
-) {
-  return (
-    registry.sessions.find((session) => {
-      if (session.ownerId !== ownerId || session.clientKeyHash !== clientKeyHash) {
-        return false;
-      }
-
-      if (conversationId && session.conversationId !== conversationId) {
-        return false;
-      }
-
-      return true;
-    }) || null
-  );
 }
 
 export function hashClientAccessKey(clientKey: string) {

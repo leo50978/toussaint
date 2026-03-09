@@ -793,33 +793,6 @@ async function listOwnerConversationSummariesFromFirestore(
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
 }
 
-async function upsertConversationInLocalFile(seed: PersistedConversationRecord) {
-  const store = await readStateFile();
-  const existingConversation = store.conversations.find(
-    (conversation) => conversation.id === seed.id,
-  );
-  const nextConversation: PersistedConversationRecord = existingConversation
-    ? {
-        ...existingConversation,
-        ...seed,
-        messages: existingConversation.messages,
-      }
-    : seed;
-
-  const nextStore = await writeStateFile({
-    ...store,
-    updatedAt: nextConversation.updatedAt,
-    conversations: [
-      nextConversation,
-      ...store.conversations.filter((conversation) => conversation.id !== nextConversation.id),
-    ],
-  });
-
-  return (
-    nextStore.conversations.find((conversation) => conversation.id === nextConversation.id) || null
-  );
-}
-
 export async function ensureConversationAccessSeed(seed: ConversationAccessSeed) {
   const normalizedSeed = createConversationFromSeed(seed);
   const firestoreDb = await requireChatFirestoreDb();
