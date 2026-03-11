@@ -636,6 +636,7 @@ export default function OwnerMessagingDashboard() {
   const [reportData, setReportData] = useState<ConversationReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [showGeneralSettings, setShowGeneralSettings] = useState(false);
+  const [showConversationMenu, setShowConversationMenu] = useState(false);
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfile>(DEFAULT_OWNER_PROFILE);
   const [profileDraft, setProfileDraft] = useState({
     displayName: DEFAULT_OWNER_PROFILE.displayName,
@@ -668,6 +669,7 @@ export default function OwnerMessagingDashboard() {
   const [manualGuidanceDrafts, setManualGuidanceDrafts] = useState<Record<string, string>>({});
   const [submittingManualTaskId, setSubmittingManualTaskId] = useState("");
   const notifiedManualTaskIdsRef = useRef<Record<string, boolean>>({});
+  const conversationMenuRef = useRef<HTMLDivElement | null>(null);
 
   function runThreadSync(conversationId: string) {
     const requestId = threadSyncRequestRef.current + 1;
@@ -876,6 +878,30 @@ export default function OwnerMessagingDashboard() {
     setProfileErrorMessage("");
     setProfileStatusMessage("");
   }, [ownerProfile, showGeneralSettings]);
+
+  useEffect(() => {
+    if (!showConversationMenu) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      if (
+        conversationMenuRef.current &&
+        event.target instanceof Node &&
+        !conversationMenuRef.current.contains(event.target)
+      ) {
+        setShowConversationMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [showConversationMenu]);
 
   useEffect(() => {
     if (!selectedConversationId) {
@@ -2210,21 +2236,9 @@ export default function OwnerMessagingDashboard() {
 
                   <button
                     type="button"
-                    onClick={() => void handleCopyRecoveryId()}
-                    className="inline-flex max-w-44 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-emerald-100 transition-colors hover:bg-white/[0.08]"
-                    aria-label="Copier l ID de recuperation"
-                  >
-                    <Copy className="size-3.5 shrink-0" />
-                    <span className="truncate">
-                      {selectedRecoveryId || "ID indisponible"}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => void handleDeleteConversation()}
                     disabled={isDeletingConversation}
-                    className="inline-flex size-9 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="hidden size-9 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex"
                     aria-label="Supprimer la discussion"
                   >
                     {isDeletingConversation ? (
@@ -2236,7 +2250,7 @@ export default function OwnerMessagingDashboard() {
 
                   <button
                     type="button"
-                    className="inline-flex size-9 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                    className="hidden size-9 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/5 hover:text-white md:inline-flex"
                     aria-label="Rechercher dans la conversation"
                   >
                     <Search className="size-4.5" />
@@ -2250,6 +2264,73 @@ export default function OwnerMessagingDashboard() {
                   >
                     <Settings2 className="size-4.5" />
                   </button>
+
+                  <div ref={conversationMenuRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConversationMenu((currentValue) => !currentValue)
+                      }
+                      className="inline-flex size-9 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                      aria-label="Ouvrir le menu de conversation"
+                      aria-expanded={showConversationMenu}
+                    >
+                      <MoreVertical className="size-4.5" />
+                    </button>
+
+                    {showConversationMenu ? (
+                      <div className="absolute right-0 top-[calc(100%+0.65rem)] z-30 w-72 rounded-[1.2rem] border border-white/10 bg-[#111b21]/96 p-2 shadow-[0_24px_50px_rgba(0,0,0,0.38)] backdrop-blur-xl">
+                        <div className="rounded-[1rem] border border-white/8 bg-white/[0.04] px-3 py-3">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            ID de recuperation
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void handleCopyRecoveryId();
+                              setShowConversationMenu(false);
+                            }}
+                            className="mt-2 flex w-full items-center gap-2 rounded-[0.95rem] border border-white/10 bg-white/[0.05] px-3 py-2 text-left transition-colors hover:bg-white/[0.08]"
+                          >
+                            <Copy className="size-3.5 shrink-0 text-emerald-100" />
+                            <span className="truncate text-sm font-semibold text-emerald-100">
+                              {selectedRecoveryId || "ID indisponible"}
+                            </span>
+                          </button>
+                        </div>
+
+                        <div className="mt-2 space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowConversationMenu(false);
+                              setShowConversationSettings(true);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+                          >
+                            <Settings2 className="size-4 shrink-0 text-slate-400" />
+                            Parametres du contact
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowConversationMenu(false);
+                              void handleDeleteConversation();
+                            }}
+                            disabled={isDeletingConversation}
+                            className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-rose-100 transition-colors hover:bg-rose-500/12 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isDeletingConversation ? (
+                              <LoaderCircle className="size-4 shrink-0 animate-spin text-rose-200" />
+                            ) : (
+                              <Trash2 className="size-4 shrink-0 text-rose-200" />
+                            )}
+                            Supprimer la discussion
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 </header>
 
                 {pendingManualTasks.length ? (

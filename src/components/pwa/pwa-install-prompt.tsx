@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Download, PlusSquare, Share, Smartphone, X } from "lucide-react";
 
@@ -47,6 +49,10 @@ function isIosDevice() {
 }
 
 export default function PwaInstallPrompt() {
+  const pathname = usePathname();
+  const installTarget = pathname.startsWith("/owner") ? "owner" : "client";
+  const promptDismissedKey = `${PROMPT_DISMISSED_KEY}_${installTarget}`;
+  const promptInstalledKey = `${PROMPT_INSTALLED_KEY}_${installTarget}`;
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -64,11 +70,13 @@ export default function PwaInstallPrompt() {
     }
 
     if (installationMode === "native") {
-      return "Installe l application pour profiter d une ouverture plus rapide, d une interface plein ecran et d une experience mobile plus stable.";
+      return installTarget === "owner"
+        ? "Installe ce portail owner pour retrouver directement ton dashboard admin, avec une ouverture plus rapide et une experience plus stable sur mobile."
+        : "Installe l application pour profiter d une ouverture plus rapide, d une interface plein ecran et d une experience mobile plus stable.";
     }
 
     return "L installation n est pas disponible automatiquement sur ce navigateur. Tu peux continuer sur la version web.";
-  }, [installationMode]);
+  }, [installationMode, installTarget]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -81,11 +89,11 @@ export default function PwaInstallPrompt() {
       return;
     }
 
-    if (window.localStorage.getItem(PROMPT_INSTALLED_KEY) === "1") {
+    if (window.localStorage.getItem(promptInstalledKey) === "1") {
       return;
     }
 
-    if (window.localStorage.getItem(PROMPT_DISMISSED_KEY) === "1") {
+    if (window.localStorage.getItem(promptDismissedKey) === "1") {
       return;
     }
 
@@ -103,7 +111,7 @@ export default function PwaInstallPrompt() {
     };
 
     const handleAppInstalled = () => {
-      window.localStorage.setItem(PROMPT_INSTALLED_KEY, "1");
+      window.localStorage.setItem(promptInstalledKey, "1");
       setDeferredPrompt(null);
       setIsVisible(false);
     };
@@ -126,7 +134,7 @@ export default function PwaInstallPrompt() {
       );
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [promptDismissedKey, promptInstalledKey]);
 
   useEffect(() => {
     if (!hasMounted || isStandaloneMode() || !isMobileDevice()) {
@@ -148,7 +156,7 @@ export default function PwaInstallPrompt() {
   }
 
   const dismissPrompt = () => {
-    window.localStorage.setItem(PROMPT_DISMISSED_KEY, "1");
+    window.localStorage.setItem(promptDismissedKey, "1");
     setIsVisible(false);
   };
 
@@ -164,7 +172,7 @@ export default function PwaInstallPrompt() {
       const choice = await deferredPrompt.userChoice;
 
       if (choice.outcome === "accepted") {
-        window.localStorage.setItem(PROMPT_INSTALLED_KEY, "1");
+        window.localStorage.setItem(promptInstalledKey, "1");
         setIsVisible(false);
       }
     } finally {
@@ -192,12 +200,14 @@ export default function PwaInstallPrompt() {
 
         <div className="mt-4">
           <p className="text-lg font-semibold text-slate-50">
-            Installe Vichly Messenger
+            {installTarget === "owner"
+              ? "Installe le dashboard owner"
+              : "Installe Vichly Messenger"}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            Pour profiter pleinement de l application sur mobile, installe la
-            version PWA. Tu auras un acces plus direct, une experience plus
-            fluide en plein ecran et un usage plus proche d une vraie app.
+            {installTarget === "owner"
+              ? "Pour piloter tes conversations et tes statuts plus facilement sur mobile, installe la version PWA du dashboard owner."
+              : "Pour profiter pleinement de l application sur mobile, installe la version PWA. Tu auras un acces plus direct, une experience plus fluide en plein ecran et un usage plus proche d une vraie app."}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
             {helperText}
@@ -218,6 +228,14 @@ export default function PwaInstallPrompt() {
         ) : null}
 
         <div className="mt-5 flex items-center justify-end gap-3">
+          {installTarget === "owner" ? (
+            <Link
+              href="/"
+              className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.08]"
+            >
+              Version client
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={dismissPrompt}

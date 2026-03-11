@@ -1725,6 +1725,15 @@ export default function ClientMessenger() {
                   </button>
                 </form>
 
+                <Link
+                  href="https://toussaintleovitch.dev/portfolio"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/16 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-400/14"
+                >
+                  Visiter le portfolio
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -1808,6 +1817,15 @@ export default function ClientMessenger() {
                     Recuperer la discussion
                   </button>
                 </form>
+
+                <Link
+                  href="https://toussaintleovitch.dev/portfolio"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/16 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-400/14"
+                >
+                  Visiter le portfolio
+                </Link>
 
                 <button
                   type="button"
@@ -1932,20 +1950,31 @@ export default function ClientMessenger() {
             </button>
           </div>
 
-          <div className="flex h-[calc(100svh-5rem)] items-center justify-center overflow-hidden px-6 pb-6">
-            {ownerProfile.avatarUrl ? (
-              <div className="relative h-full w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/10">
-                <img
-                  src={ownerProfile.avatarUrl}
-                  alt={ownerProfile.displayName}
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            ) : (
-              <div className="flex h-72 w-72 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-700 text-6xl font-semibold text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-                {getInitials(ownerProfile.displayName)}
-              </div>
-            )}
+          <div className="flex h-[calc(100svh-5rem)] flex-col items-center justify-center overflow-hidden px-6 pb-6">
+            <div className="flex min-h-0 w-full max-w-3xl flex-1 items-center justify-center">
+              {ownerProfile.avatarUrl ? (
+                <div className="relative h-full w-full overflow-hidden rounded-[2rem] border border-white/10">
+                  <img
+                    src={ownerProfile.avatarUrl}
+                    alt={ownerProfile.displayName}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-72 w-72 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-700 text-6xl font-semibold text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                  {getInitials(ownerProfile.displayName)}
+                </div>
+              )}
+            </div>
+
+            <Link
+              href="https://toussaintleovitch.dev/portfolio"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1]"
+            >
+              Visiter le portfolio
+            </Link>
           </div>
         </div>
       ) : null}
