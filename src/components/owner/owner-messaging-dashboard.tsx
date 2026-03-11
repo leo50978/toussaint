@@ -1984,15 +1984,15 @@ export default function OwnerMessagingDashboard() {
     isThreadSyncing;
 
   return (
-    <main className="page-shell relative min-h-[100svh] overflow-hidden text-white md:min-h-dvh">
-      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-[1600px] flex-col px-0 py-0 md:min-h-dvh md:px-3 md:py-3">
+    <main className="page-shell relative h-[100svh] overflow-hidden text-white md:min-h-dvh md:h-auto">
+      <div className="relative mx-auto flex h-[100svh] w-full max-w-[1600px] flex-col px-0 py-0 md:min-h-dvh md:h-auto md:px-3 md:py-3">
         {activeFilter === "drafts" ? (
           <OwnerDraftsWorkspace
             onSelectFilter={setActiveFilter}
             onOpenStatuses={() => router.push("/dashboard/statuses")}
           />
         ) : (
-          <section className="flex min-h-[100svh] overflow-hidden bg-transparent md:h-[calc(100dvh-1rem)] md:min-h-0 md:rounded-[1.8rem] md:border md:border-white/8 md:bg-black/10 md:shadow-[0_24px_70px_rgba(0,0,0,0.34)]">
+          <section className="flex h-[100svh] overflow-hidden bg-transparent md:h-[calc(100dvh-1rem)] md:min-h-0 md:rounded-[1.8rem] md:border md:border-white/8 md:bg-black/10 md:shadow-[0_24px_70px_rgba(0,0,0,0.34)]">
           <aside
             className={`${
               mobilePanel === "thread" ? "hidden lg:flex" : "flex"

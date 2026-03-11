@@ -409,6 +409,7 @@ export default function ClientMessenger() {
     ChatMessageRecord[]
   >([]);
   const messagesViewportRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const headerMenuRef = useRef<HTMLDivElement | null>(null);
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -581,6 +582,26 @@ export default function ClientMessenger() {
       document.removeEventListener("touchstart", handlePointerDown);
     };
   }, [showHeaderMenu]);
+
+  useEffect(() => {
+    if (!showAvatarPreview) {
+      return;
+    }
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [showAvatarPreview]);
 
   useEffect(() => {
     if (!toastMessage) {
@@ -803,6 +824,8 @@ export default function ClientMessenger() {
 
   useEffect(() => {
     setVisibleMessageCount(THREAD_MESSAGE_RENDER_LIMIT);
+    shouldStickThreadToBottomRef.current = true;
+    setShowScrollToLatestButton(false);
   }, [conversation?.id]);
 
   const renderedMessages = useMemo(() => {
@@ -852,6 +875,27 @@ export default function ClientMessenger() {
     setToastMessage(message);
   }
 
+  function scrollViewportToBottom(behavior: ScrollBehavior) {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        block: "end",
+        behavior,
+      });
+      return;
+    }
+
+    const viewport = messagesViewportRef.current;
+
+    if (!viewport) {
+      return;
+    }
+
+    viewport.scrollTo({
+      top: viewport.scrollHeight,
+      behavior,
+    });
+  }
+
   useEffect(() => {
     const viewport = messagesViewportRef.current;
 
@@ -872,12 +916,10 @@ export default function ClientMessenger() {
     }
 
     const scrollToBottom = () => {
-      viewport.scrollTo({
-        top: viewport.scrollHeight,
-        behavior: "auto",
-      });
+      scrollViewportToBottom("auto");
       shouldStickThreadToBottomRef.current = true;
       setShowScrollToLatestButton(false);
+      updateMessagesViewportState(viewport);
     };
 
     const animationFrameId = window.requestAnimationFrame(() => {
@@ -921,10 +963,7 @@ export default function ClientMessenger() {
 
     shouldStickThreadToBottomRef.current = true;
     setShowScrollToLatestButton(false);
-    viewport.scrollTo({
-      top: viewport.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollViewportToBottom("smooth");
   }
 
   async function handleSendMessage(event: FormEvent<HTMLFormElement>) {
@@ -1330,7 +1369,7 @@ export default function ClientMessenger() {
   }
 
   return (
-    <main className="page-shell relative min-h-[100svh] overflow-hidden text-white md:min-h-dvh">
+    <main className="page-shell relative h-[100svh] overflow-hidden text-white md:min-h-dvh md:h-auto">
       <header className="fixed inset-x-0 top-0 z-20 border-b border-white/8 bg-[#111b21]/94 backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-3 py-3 md:px-4 md:py-4">
           <button
@@ -1418,7 +1457,7 @@ export default function ClientMessenger() {
         </div>
       </header>
 
-      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col px-0 pb-0 pt-[4.9rem] md:min-h-dvh md:px-4 md:pb-4 md:pt-28">
+      <div className="relative mx-auto flex h-[100svh] w-full max-w-5xl flex-col px-0 pb-0 pt-[4.9rem] md:min-h-dvh md:h-auto md:px-4 md:pb-4 md:pt-28">
         <section className="relative flex flex-1 flex-col overflow-hidden bg-transparent md:rounded-[2rem] md:border md:border-white/8 md:bg-black/10 md:backdrop-blur-[1px]">
           {isConversationSyncing && conversation ? (
             <div className="border-b border-white/8 px-3 py-2 md:px-6">
@@ -1500,6 +1539,7 @@ export default function ClientMessenger() {
                     ))}
                   </div>
                 ))}
+                <div ref={messagesEndRef} aria-hidden="true" className="h-px w-full" />
               </div>
             ) : (
               <div className="flex h-full min-h-64 flex-col items-center justify-center px-6 text-center">
@@ -1880,7 +1920,7 @@ export default function ClientMessenger() {
       ) : null}
 
       {showAvatarPreview ? (
-        <div className="absolute inset-0 z-40 bg-black/95">
+        <div className="fixed inset-0 z-40 overflow-hidden overscroll-none bg-black/95">
           <div className="flex items-center justify-between px-4 py-4">
             <button
               type="button"
@@ -1900,7 +1940,7 @@ export default function ClientMessenger() {
             </button>
           </div>
 
-          <div className="flex h-[calc(100dvh-5rem)] items-center justify-center px-6 pb-6">
+          <div className="flex h-[calc(100svh-5rem)] items-center justify-center overflow-hidden px-6 pb-6">
             {ownerProfile.avatarUrl ? (
               <div className="relative h-full w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/10">
                 <img

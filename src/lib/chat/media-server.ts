@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import { extname, join } from "path";
 
 import type { ChatMessageKind } from "@/lib/chat/types";
+import { ChatStorageUnavailableError } from "@/lib/chat/errors";
 import { getOpenAiRuntime } from "@/lib/config/bootstrap";
 import { getFirebaseAdminServices, hasFirebaseAdminConfig } from "@/lib/firebase/admin";
 import { hashSecurityValue } from "@/lib/security/rate-limiter";
@@ -17,6 +18,8 @@ const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
 const MAX_VOICE_BYTES = 12 * 1024 * 1024;
 const MAX_FILE_BYTES = 18 * 1024 * 1024;
 const DEFAULT_AUDIO_MODEL = process.env.OPENAI_AUDIO_MODEL || "gpt-4o-mini-transcribe";
+const LOCAL_CHAT_MEDIA_FALLBACK_ENABLED =
+  process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1";
 
 type ChatUploadFile = {
   name: string;
@@ -276,6 +279,12 @@ function getStoragePath(ownerId: string, conversationId: string, assetId: string
 }
 
 async function ensureChatMediaDir() {
+  if (!LOCAL_CHAT_MEDIA_FALLBACK_ENABLED) {
+    throw new ChatStorageUnavailableError(
+      "Firebase Storage est requis pour envoyer des vocaux et des fichiers en production.",
+    );
+  }
+
   await fs.mkdir(CHAT_MEDIA_DIR, {
     recursive: true,
   });
@@ -537,8 +546,6 @@ export async function saveChatUpload(
     throw new Error(`Fichier trop lourd (max ${Math.floor(maxBytes / (1024 * 1024))} MB).`);
   }
 
-  await ensureChatMediaDir();
-
   const assetId = createId();
   const accessKey = createId();
   const accessKeyHash = hashSecurityValue(`chat-asset:${accessKey}`);
@@ -551,6 +558,12 @@ export async function saveChatUpload(
       ? await transcribeVoiceMessage(dataBuffer, normalizedName, descriptor.mimeType)
       : "";
   const firestoreDb = getFirestoreDb();
+  if (!firestoreDb && !LOCAL_CHAT_MEDIA_FALLBACK_ENABLED) {
+    throw new ChatStorageUnavailableError(
+      "Firebase Admin est requis pour envoyer des fichiers en production.",
+    );
+  }
+
   const uploadedToFirebase = await uploadToFirebaseStorage(
     storagePath,
     dataBuffer,
@@ -563,6 +576,13 @@ export async function saveChatUpload(
   const resolvedStoragePath = uploadedToFirebase ? storagePath : storedFileName;
 
   if (!uploadedToFirebase) {
+    if (!LOCAL_CHAT_MEDIA_FALLBACK_ENABLED) {
+      throw new ChatStorageUnavailableError(
+        "Firebase Storage est requis pour envoyer des vocaux et des fichiers en production.",
+      );
+    }
+
+    await ensureChatMediaDir();
     await fs.writeFile(getBinaryPath(storedFileName), dataBuffer);
   }
 
@@ -589,6 +609,13 @@ export async function saveChatUpload(
   }
 
   if (!firestoreDb || storageBackend === "local") {
+    if (!LOCAL_CHAT_MEDIA_FALLBACK_ENABLED) {
+      throw new ChatStorageUnavailableError(
+        "Firebase Admin est requis pour stocker les metadonnees media en production.",
+      );
+    }
+
+    await ensureChatMediaDir();
     await fs.writeFile(getMetaPath(assetId), JSON.stringify(metadata, null, 2), "utf8");
   }
 
@@ -605,6 +632,10 @@ export async function saveChatUpload(
 }
 
 async function readLocalAsset(assetId: string) {
+  if (!LOCAL_CHAT_MEDIA_FALLBACK_ENABLED) {
+    return null;
+  }
+
   try {
     const rawMeta = await fs.readFile(getMetaPath(assetId), "utf8");
     const metadata = normalizeMeta(JSON.parse(rawMeta));

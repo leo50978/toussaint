@@ -243,7 +243,9 @@ button,
   body,
   .app-root,
   .app-content-layer {
+    height: 100svh;
     max-width: 100vw;
+    overflow: hidden;
   }
 
   input,
