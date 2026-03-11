@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
+import PwaInstallPrompt from "@/components/pwa/pwa-install-prompt";
 import RegisterServiceWorker from "@/components/pwa/register-service-worker";
 
 import "./globals.css";
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body className="app-root antialiased">
         <div className="app-content-layer">
           <RegisterServiceWorker />
+          <PwaInstallPrompt />
           {children}
         </div>
       </body>

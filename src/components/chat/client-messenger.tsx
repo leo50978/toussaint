@@ -9,6 +9,7 @@ import {
   KeyRound,
   LoaderCircle,
   MessageSquareMore,
+  MoreVertical,
   Paperclip,
   SendHorizontal,
   Shield,
@@ -400,12 +401,14 @@ export default function ClientMessenger() {
   const [isRestoringSavedSession, setIsRestoringSavedSession] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>("none");
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [hasUnreadStatuses, setHasUnreadStatuses] = useState(false);
   const [showScrollToLatestButton, setShowScrollToLatestButton] = useState(false);
   const [pendingOutgoingMessages, setPendingOutgoingMessages] = useState<
     ChatMessageRecord[]
   >([]);
   const messagesViewportRef = useRef<HTMLDivElement | null>(null);
+  const headerMenuRef = useRef<HTMLDivElement | null>(null);
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recorderChunksRef = useRef<Blob[]>([]);
@@ -553,6 +556,30 @@ export default function ClientMessenger() {
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [hasResolvedInitialState, runtime.ownerId]);
+
+  useEffect(() => {
+    if (!showHeaderMenu) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      if (
+        headerMenuRef.current &&
+        event.target instanceof Node &&
+        !headerMenuRef.current.contains(event.target)
+      ) {
+        setShowHeaderMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [showHeaderMenu]);
 
   useEffect(() => {
     removeOutdatedBrowserCacheVersions(PUBLIC_OWNER_PROFILE_CACHE_NAMESPACE);
@@ -1205,6 +1232,7 @@ export default function ClientMessenger() {
 
     try {
       await copyText(session.clientKey);
+      setShowHeaderMenu(false);
       setStatusMessage("ID de discussion copie.");
       setErrorMessage("");
     } catch {
@@ -1213,6 +1241,7 @@ export default function ClientMessenger() {
   }
 
   function handleOpenAccessModal() {
+    setShowHeaderMenu(false);
     setErrorMessage("");
     setStatusMessage("");
     setRecoverSecurityCode("");
@@ -1229,6 +1258,7 @@ export default function ClientMessenger() {
   }
 
   function handleStartFreshConversation() {
+    setShowHeaderMenu(false);
     clearClientChatSession(runtime.ownerId);
     setConversation(null);
     setSession(null);
@@ -1265,9 +1295,9 @@ export default function ClientMessenger() {
   }
 
   return (
-    <main className="page-shell relative min-h-dvh overflow-hidden text-white">
-      <header className="fixed inset-x-0 top-0 z-20 mx-auto w-full max-w-5xl px-3 pt-3 md:px-4 md:pt-4">
-        <div className="flex items-center gap-3 rounded-[1.4rem] border border-white/8 bg-[#111b21]/94 px-3 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-sm md:px-4">
+    <main className="page-shell relative min-h-[100svh] overflow-hidden text-white md:min-h-dvh">
+      <header className="fixed inset-x-0 top-0 z-20 border-b border-white/8 bg-[#111b21]/94 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-3 py-3 md:px-4 md:py-4">
           <button
             type="button"
             onClick={() => setShowAvatarPreview(true)}
@@ -1287,14 +1317,6 @@ export default function ClientMessenger() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleOpenAccessModal}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 transition-colors hover:bg-white/[0.08]"
-            >
-              <KeyRound className="size-3.5" />
-              Acces
-            </button>
             <Link
               href="/status"
               className={`inline-flex items-center rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate-100 transition-colors hover:bg-white/[0.08] ${
@@ -1305,25 +1327,64 @@ export default function ClientMessenger() {
             >
               Statuts
             </Link>
-            <button
-              type="button"
-              onClick={() => void handleCopyDiscussionId()}
-              className="max-w-36 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-right transition-colors hover:bg-white/[0.08]"
-              aria-label="Copier l ID de discussion"
-            >
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                ID
-              </p>
-              <p className="truncate text-xs font-semibold text-emerald-100">
-                {visibleDiscussionId}
-              </p>
-            </button>
+            <div ref={headerMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setShowHeaderMenu((currentValue) => !currentValue)}
+                className="inline-flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-100 transition-colors hover:bg-white/[0.08]"
+                aria-label="Ouvrir le menu de discussion"
+                aria-expanded={showHeaderMenu}
+              >
+                <MoreVertical className="size-4.5" />
+              </button>
+
+              {showHeaderMenu ? (
+                <div className="absolute right-0 top-[calc(100%+0.65rem)] z-30 w-64 rounded-[1.2rem] border border-white/12 bg-[linear-gradient(180deg,rgba(14,20,24,0.96),rgba(8,12,15,0.94))] p-2 shadow-[0_28px_70px_rgba(0,0,0,0.52)] backdrop-blur-xl">
+                  <div className="rounded-[1rem] border border-white/8 bg-white/[0.05] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      ID de discussion
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyDiscussionId()}
+                      className="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-white/[0.06] px-3 py-2 text-left transition-colors hover:bg-white/[0.1]"
+                    >
+                      <p className="truncate text-sm font-semibold text-emerald-100">
+                        {visibleDiscussionId}
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-400">
+                        Appuie pour copier
+                      </p>
+                    </button>
+                  </div>
+
+                  <div className="mt-2 space-y-1">
+                    <button
+                      type="button"
+                      onClick={handleOpenAccessModal}
+                      className="flex w-full items-center gap-3 rounded-[0.95rem] border border-transparent bg-white/[0.03] px-3 py-2.5 text-left text-sm font-medium text-slate-100 transition-colors hover:border-white/8 hover:bg-white/[0.08]"
+                    >
+                      <KeyRound className="size-4 shrink-0 text-slate-400" />
+                      Acceder a une discussion
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleStartFreshConversation}
+                      className="flex w-full items-center gap-3 rounded-[0.95rem] border border-transparent bg-white/[0.03] px-3 py-2.5 text-left text-sm font-medium text-rose-100 transition-colors hover:border-rose-400/12 hover:bg-rose-500/12"
+                    >
+                      <ArrowLeft className="size-4 shrink-0 text-rose-200" />
+                      Se deconnecter
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-3 pb-3 pt-24 md:px-4 md:pb-4 md:pt-28">
-        <section className="relative flex flex-1 flex-col overflow-hidden rounded-[1.6rem] border border-white/8 bg-black/10 backdrop-blur-[1px] md:rounded-[2rem]">
+      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col px-0 pb-0 pt-[4.9rem] md:min-h-dvh md:px-4 md:pb-4 md:pt-28">
+        <section className="relative flex flex-1 flex-col overflow-hidden bg-transparent md:rounded-[2rem] md:border md:border-white/8 md:bg-black/10 md:backdrop-blur-[1px]">
           {isConversationSyncing && conversation ? (
             <div className="border-b border-white/8 px-3 py-2 md:px-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-slate-300">
@@ -1334,7 +1395,7 @@ export default function ClientMessenger() {
           ) : null}
           <div
             ref={messagesViewportRef}
-            className="hide-scrollbar flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6"
+            className="hide-scrollbar flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 md:px-6 md:py-6"
           >
             {showConversationLoader ? (
               <div className="mx-auto flex h-full min-h-64 w-full max-w-2xl flex-col justify-center gap-3">

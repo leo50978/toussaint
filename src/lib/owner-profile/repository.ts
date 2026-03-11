@@ -260,7 +260,7 @@ export async function getOwnerProfile() {
 }
 
 export async function getPublicOwnerProfile(): Promise<PublicOwnerProfileRecord> {
-  const profile = await readOwnerProfileFile();
+  const profile = await getOwnerProfile();
 
   return {
     ownerId: profile.ownerId,

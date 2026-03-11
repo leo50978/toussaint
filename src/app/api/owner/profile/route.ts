@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getOwnerProfile, updateOwnerProfile } from "@/lib/owner-profile";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type OwnerProfilePayload = {
   displayName?: string;
@@ -19,7 +21,11 @@ function isObject(value: unknown): value is Record<string, unknown> {
 export async function GET() {
   const profile = await getOwnerProfile();
 
-  return NextResponse.json(profile);
+  return NextResponse.json(profile, {
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+    },
+  });
 }
 
 export async function PUT(request: Request) {
@@ -51,5 +57,9 @@ export async function PUT(request: Request) {
       : undefined,
   });
 
-  return NextResponse.json(profile);
+  return NextResponse.json(profile, {
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+    },
+  });
 }

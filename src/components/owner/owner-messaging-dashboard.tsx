@@ -1984,19 +1984,19 @@ export default function OwnerMessagingDashboard() {
     isThreadSyncing;
 
   return (
-    <main className="page-shell relative min-h-dvh overflow-hidden text-white">
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-[1600px] flex-col px-2 py-2 md:px-3 md:py-3">
+    <main className="page-shell relative min-h-[100svh] overflow-hidden text-white md:min-h-dvh">
+      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-[1600px] flex-col px-0 py-0 md:min-h-dvh md:px-3 md:py-3">
         {activeFilter === "drafts" ? (
           <OwnerDraftsWorkspace
             onSelectFilter={setActiveFilter}
             onOpenStatuses={() => router.push("/dashboard/statuses")}
           />
         ) : (
-          <section className="flex h-[calc(100dvh-1rem)] overflow-hidden rounded-[1.4rem] border border-white/8 bg-black/10 shadow-[0_24px_70px_rgba(0,0,0,0.34)] md:rounded-[1.8rem]">
+          <section className="flex min-h-[100svh] overflow-hidden bg-transparent md:h-[calc(100dvh-1rem)] md:min-h-0 md:rounded-[1.8rem] md:border md:border-white/8 md:bg-black/10 md:shadow-[0_24px_70px_rgba(0,0,0,0.34)]">
           <aside
             className={`${
               mobilePanel === "thread" ? "hidden lg:flex" : "flex"
-            } w-full shrink-0 flex-col border-r border-white/8 bg-[#111b21]/94 backdrop-blur-sm lg:w-[390px]`}
+            } w-full shrink-0 flex-col bg-[#111b21]/94 backdrop-blur-sm lg:w-[390px] lg:border-r lg:border-white/8`}
           >
             <div className="flex items-center justify-between px-4 pb-3 pt-4 md:px-5">
               <div>
