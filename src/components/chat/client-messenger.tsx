@@ -1459,14 +1459,6 @@ export default function ClientMessenger() {
 
       <div className="relative mx-auto flex h-[100svh] w-full max-w-5xl flex-col px-0 pb-0 pt-[4.9rem] md:min-h-dvh md:h-auto md:px-4 md:pb-4 md:pt-28">
         <section className="relative flex flex-1 flex-col overflow-hidden bg-transparent md:rounded-[2rem] md:border md:border-white/8 md:bg-black/10 md:backdrop-blur-[1px]">
-          {isConversationSyncing && conversation ? (
-            <div className="border-b border-white/8 px-3 py-2 md:px-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-slate-300">
-                <LoaderCircle className="size-3.5 animate-spin" />
-                Synchronisation de la discussion...
-              </div>
-            </div>
-          ) : null}
           <div
             ref={messagesViewportRef}
             onScroll={(event) => updateMessagesViewportState(event.currentTarget)}

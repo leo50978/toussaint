@@ -2208,13 +2208,6 @@ export default function OwnerMessagingDashboard() {
                     </p>
                   </div>
 
-                  {isThreadSyncing ? (
-                    <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-slate-300 md:inline-flex">
-                      <LoaderCircle className="size-3.5 animate-spin" />
-                      Chargement...
-                    </div>
-                  ) : null}
-
                   <button
                     type="button"
                     onClick={() => void handleCopyRecoveryId()}
