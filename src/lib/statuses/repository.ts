@@ -24,6 +24,8 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 32 * 1024 * 1024;
 const STATUS_MEDIA_PREFIX = "statuses";
 const STATUS_COLLECTION = "statuses";
+const LOCAL_STATUS_FALLBACK_ENABLED =
+  process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1";
 const STATUS_IMAGE_MIME_BY_EXTENSION = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -237,6 +239,10 @@ function getFirestoreDb(): FirestoreLikeDb | null {
 }
 
 async function ensureStatusStoreFile() {
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    throw new Error("LOCAL_STATUS_FALLBACK_DISABLED");
+  }
+
   await fs.mkdir(STATUSES_DATA_DIR, {
     recursive: true,
   });
@@ -259,6 +265,10 @@ async function ensureStatusStoreFile() {
 }
 
 async function writeStoreFile(store: StatusStoreFile) {
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return normalizeStoreFile(store);
+  }
+
   const normalizedStore = normalizeStoreFile(store);
 
   await ensureStatusStoreFile();
@@ -272,6 +282,10 @@ async function writeStoreFile(store: StatusStoreFile) {
 }
 
 async function readStoreFile() {
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return normalizeStoreFile(null);
+  }
+
   await ensureStatusStoreFile();
 
   try {
@@ -477,6 +491,10 @@ async function deleteStatusMediaFile(status: PrivateStatusRecord) {
     }
   }
 
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return;
+  }
+
   const filePath = join(STATUSES_MEDIA_DIR, status.fileName);
 
   try {
@@ -499,6 +517,14 @@ function mergeStatuses(primary: PrivateStatusRecord[], secondary: PrivateStatusR
 }
 
 async function cleanupExpiredLocalStatuses() {
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return {
+      removedCount: 0,
+      statuses: [] as PrivateStatusRecord[],
+      updatedAt: getNowIso(),
+    };
+  }
+
   const store = await readStoreFile();
   const nowMs = Date.now();
   const activeStatuses: PrivateStatusRecord[] = [];
@@ -709,6 +735,12 @@ export async function createOwnerStatus(input: CreateStatusInput) {
     if (uploadedToFirebase) {
       storageBackend = "firebase";
     } else {
+      if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+        throw new Error(
+          "Upload media indisponible en production. Verifie FIREBASE_STORAGE_BUCKET et Firebase Storage.",
+        );
+      }
+
       const filePath = join(STATUSES_MEDIA_DIR, fileName);
 
       await ensureStatusStoreFile();
@@ -737,6 +769,12 @@ export async function createOwnerStatus(input: CreateStatusInput) {
   const firestoreWritten = await writeStatusToFirestore(status);
 
   if (!firestoreWritten) {
+    if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+      throw new Error(
+        "Statuts indisponibles: Firebase Admin/Firestore n est pas configure correctement.",
+      );
+    }
+
     const store = await cleanupExpiredLocalStatuses();
     const nextStore = await writeStoreFile({
       version: 1,
@@ -763,6 +801,10 @@ export async function deleteOwnerStatus(statusId: string) {
     await deleteStatusMediaFile(firestoreStatus);
     await deleteStatusFromFirestore(statusId);
     return true;
+  }
+
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return false;
   }
 
   const store = await readStoreFile();
@@ -822,6 +864,10 @@ export async function incrementStatusView(statusId: string) {
     };
   }
 
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return null;
+  }
+
   const store = await readStoreFile();
   const currentStatus = store.statuses.find(
     (status) => status.id === statusId && status.ownerId === DEFAULT_OWNER_ID,
@@ -868,6 +914,10 @@ export async function readStatusMedia(statusId: string) {
         fileBuffer,
       };
     }
+  }
+
+  if (!LOCAL_STATUS_FALLBACK_ENABLED) {
+    return null;
   }
 
   const filePath = join(STATUSES_MEDIA_DIR, status.fileName);

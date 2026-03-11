@@ -385,6 +385,7 @@ export default function ClientMessenger() {
   const [pendingDiscussionId, setPendingDiscussionId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
   const [pendingTextSendCount, setPendingTextSendCount] = useState(0);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
@@ -580,6 +581,20 @@ export default function ClientMessenger() {
       document.removeEventListener("touchstart", handlePointerDown);
     };
   }, [showHeaderMenu]);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToastMessage("");
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toastMessage]);
 
   useEffect(() => {
     removeOutdatedBrowserCacheVersions(PUBLIC_OWNER_PROFILE_CACHE_NAMESPACE);
@@ -824,6 +839,19 @@ export default function ClientMessenger() {
     (!hasCompletedInitialConversationSync || isConversationSyncing);
   const latestRenderedMessageId = renderedMessages.at(-1)?.id || "";
 
+  function updateMessagesViewportState(viewport: HTMLDivElement) {
+    const nextShowScrollButton =
+      !isViewportNearBottom(viewport) &&
+      viewport.scrollHeight > viewport.clientHeight + SCROLL_TO_LATEST_THRESHOLD_PX;
+
+    shouldStickThreadToBottomRef.current = !nextShowScrollButton;
+    setShowScrollToLatestButton(nextShowScrollButton);
+  }
+
+  function showToast(message: string) {
+    setToastMessage(message);
+  }
+
   useEffect(() => {
     const viewport = messagesViewportRef.current;
 
@@ -839,24 +867,29 @@ export default function ClientMessenger() {
     lastScrolledConversationIdRef.current = currentConversationId;
 
     if (!shouldAutoScroll) {
-      setShowScrollToLatestButton(
-        !isViewportNearBottom(viewport) &&
-          viewport.scrollHeight > viewport.clientHeight + SCROLL_TO_LATEST_THRESHOLD_PX,
-      );
+      updateMessagesViewportState(viewport);
       return;
     }
 
-    const animationFrameId = window.requestAnimationFrame(() => {
+    const scrollToBottom = () => {
       viewport.scrollTo({
         top: viewport.scrollHeight,
         behavior: "auto",
       });
       shouldStickThreadToBottomRef.current = true;
       setShowScrollToLatestButton(false);
+    };
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      scrollToBottom();
     });
+    const timeoutId = window.setTimeout(() => {
+      scrollToBottom();
+    }, 90);
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(timeoutId);
     };
   }, [conversation?.id, renderedMessages.length, latestRenderedMessageId]);
 
@@ -867,20 +900,15 @@ export default function ClientMessenger() {
       return;
     }
 
-    const updateViewportState = () => {
-      const nextShowScrollButton =
-        !isViewportNearBottom(viewport) &&
-        viewport.scrollHeight > viewport.clientHeight + SCROLL_TO_LATEST_THRESHOLD_PX;
-
-      shouldStickThreadToBottomRef.current = !nextShowScrollButton;
-      setShowScrollToLatestButton(nextShowScrollButton);
+    const handleViewportScroll = () => {
+      updateMessagesViewportState(viewport);
     };
 
-    updateViewportState();
-    viewport.addEventListener("scroll", updateViewportState, { passive: true });
+    handleViewportScroll();
+    viewport.addEventListener("scroll", handleViewportScroll, { passive: true });
 
     return () => {
-      viewport.removeEventListener("scroll", updateViewportState);
+      viewport.removeEventListener("scroll", handleViewportScroll);
     };
   }, [conversation?.id, renderedMessages.length]);
 
@@ -903,6 +931,7 @@ export default function ClientMessenger() {
     event.preventDefault();
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
 
     const nextDraft = draft.trim();
 
@@ -939,7 +968,7 @@ export default function ClientMessenger() {
       setPendingOutgoingMessages((current) =>
         current.filter((message) => message.id !== pendingMessage.id),
       );
-      setStatusMessage("Message envoye.");
+      showToast("Message envoye.");
     } catch (error) {
       setPendingOutgoingMessages((current) =>
         current.filter((message) => message.id !== pendingMessage.id),
@@ -967,6 +996,7 @@ export default function ClientMessenger() {
   async function handleSendAttachment(file: File, forcedKind?: "voice") {
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
 
     if (!clientName.trim()) {
       setOnboardingStep("name");
@@ -997,7 +1027,7 @@ export default function ClientMessenger() {
         clientName,
         toChatMessageDraftFromUpload(uploaded),
       );
-      setStatusMessage("Media envoye.");
+      showToast("Media envoye.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Envoi impossible.");
     } finally {
@@ -1039,6 +1069,7 @@ export default function ClientMessenger() {
 
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
 
     try {
       const stream = await requestMicrophoneStream();
@@ -1122,6 +1153,7 @@ export default function ClientMessenger() {
     event.preventDefault();
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
 
     const trimmedName = nameDraft.trim();
 
@@ -1175,7 +1207,7 @@ export default function ClientMessenger() {
       setPendingDiscussionId(restoredSession.clientKey);
       setRecoverSecurityCode("");
       setOnboardingStep("none");
-      setStatusMessage("Discussion recuperee avec succes.");
+      showToast("Discussion recuperee avec succes.");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Recuperation impossible.",
@@ -1188,12 +1220,13 @@ export default function ClientMessenger() {
   async function handleSaveSecurityCode(skip: boolean) {
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
 
     if (skip) {
       setOnboardingStep("none");
       setSecurityCodeDraft("");
       setPendingDiscussionId("");
-      setStatusMessage("Discussion ouverte sans code de securite.");
+      showToast("Discussion ouverte sans code de securite.");
       return;
     }
 
@@ -1214,7 +1247,7 @@ export default function ClientMessenger() {
       setOnboardingStep("none");
       setSecurityCodeDraft("");
       setPendingDiscussionId("");
-      setStatusMessage("Code de securite enregistre.");
+      showToast("Code de securite enregistre.");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Configuration impossible.",
@@ -1226,14 +1259,14 @@ export default function ClientMessenger() {
 
   async function handleCopyDiscussionId() {
     if (!session?.clientKey) {
-      setStatusMessage("Ton ID sera disponible des que la discussion sera creee.");
+      showToast("Ton ID sera disponible des que la discussion sera creee.");
       return;
     }
 
     try {
       await copyText(session.clientKey);
       setShowHeaderMenu(false);
-      setStatusMessage("ID de discussion copie.");
+      showToast("ID de discussion copie.");
       setErrorMessage("");
     } catch {
       setErrorMessage("Copie impossible sur cet appareil.");
@@ -1244,6 +1277,7 @@ export default function ClientMessenger() {
     setShowHeaderMenu(false);
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
     setRecoverSecurityCode("");
     setSecurityCodeDraft("");
 
@@ -1271,6 +1305,7 @@ export default function ClientMessenger() {
     setPendingDiscussionId("");
     setErrorMessage("");
     setStatusMessage("");
+    setToastMessage("");
     setOnboardingStep("name");
   }
 
@@ -1395,6 +1430,7 @@ export default function ClientMessenger() {
           ) : null}
           <div
             ref={messagesViewportRef}
+            onScroll={(event) => updateMessagesViewportState(event.currentTarget)}
             className="hide-scrollbar flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 md:px-6 md:py-6"
           >
             {showConversationLoader ? (
@@ -1585,6 +1621,14 @@ export default function ClientMessenger() {
           </div>
         </section>
       </div>
+
+      {toastMessage ? (
+        <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-6">
+          <div className="rounded-full border border-white/10 bg-[#111b21]/94 px-4 py-2.5 text-sm font-semibold text-emerald-100 shadow-[0_20px_50px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+            {toastMessage}
+          </div>
+        </div>
+      ) : null}
 
       {!hasResolvedInitialState && isRestoringSavedSession ? (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/56 px-4 backdrop-blur-sm">
