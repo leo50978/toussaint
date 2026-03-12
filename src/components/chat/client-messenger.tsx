@@ -2218,9 +2218,7 @@ export default function ClientMessenger() {
                 </form>
 
                 <Link
-                  href="https://toussaintleovitch.dev/portfolio"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="/portfolio/"
                   className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/16 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-400/14"
                 >
                   Visiter le portfolio
@@ -2311,9 +2309,7 @@ export default function ClientMessenger() {
                 </form>
 
                 <Link
-                  href="https://toussaintleovitch.dev/portfolio"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="/portfolio/"
                   className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/16 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-400/14"
                 >
                   Visiter le portfolio
@@ -2460,9 +2456,7 @@ export default function ClientMessenger() {
             </div>
 
             <Link
-              href="https://toussaintleovitch.dev/portfolio"
-              target="_blank"
-              rel="noreferrer"
+              href="/portfolio/"
               className="mt-4 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1]"
             >
               Visiter le portfolio
