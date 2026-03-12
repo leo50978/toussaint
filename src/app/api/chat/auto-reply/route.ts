@@ -144,6 +144,7 @@ function buildPersistedAutoReplyMessage(content: string) {
     transcript: "",
     timestamp: getNowIso(),
     deliveryStatus: "delivered" as const,
+    replyTo: null,
   };
 }
 
@@ -153,6 +154,7 @@ async function finalizeAutoReplyConversation(
   clientName: string,
   triggeringMessageId: string,
   content: string,
+  replyTo?: NonNullable<ReturnType<typeof buildPersistedAutoReplyMessage>["replyTo"]>,
 ) {
   const appendedConversation = content
     ? await appendConversationMessage({
@@ -160,7 +162,10 @@ async function finalizeAutoReplyConversation(
         conversationId,
         clientName,
         sender: "ai",
-        message: buildPersistedAutoReplyMessage(content),
+        message: {
+          ...buildPersistedAutoReplyMessage(content),
+          replyTo: replyTo || null,
+        },
       })
     : null;
 
@@ -516,6 +521,16 @@ export async function POST(request: Request) {
       payload.clientName,
       triggeringMessageId,
       filtered.content,
+      lastMessage
+        ? {
+            messageId: lastMessage.id || "",
+            sender: lastMessage.sender,
+            kind: "text",
+            content: lastMessage.content.slice(0, 240),
+            fileName: "",
+            timestamp: lastMessage.timestamp || getNowIso(),
+          }
+        : undefined,
     );
 
     return NextResponse.json({

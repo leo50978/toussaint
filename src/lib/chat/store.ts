@@ -3,6 +3,7 @@ import type {
   ChatConversationSummary,
   ChatMessageDraft,
   ChatMessageRecord,
+  ChatMessageReplyReference,
   ChatStore,
   ClientChatSession,
   ConversationAiSettings,
@@ -260,6 +261,49 @@ function normalizeOptionalMessageContent(value: string | undefined) {
   return value.replace(/\r\n/g, "\n").trim().slice(0, MAX_OPTIONAL_MESSAGE_LENGTH);
 }
 
+function normalizeReplyReference(
+  input: unknown,
+): ChatMessageReplyReference | null {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const candidate = input as Partial<ChatMessageReplyReference>;
+
+  if (
+    typeof candidate.messageId !== "string" ||
+    typeof candidate.sender !== "string" ||
+    typeof candidate.kind !== "string" ||
+    typeof candidate.timestamp !== "string"
+  ) {
+    return null;
+  }
+
+  if (
+    candidate.sender !== "client" &&
+    candidate.sender !== "owner" &&
+    candidate.sender !== "ai"
+  ) {
+    return null;
+  }
+
+  if (!isChatMessageKind(candidate.kind)) {
+    return null;
+  }
+
+  return {
+    messageId: candidate.messageId.trim().slice(0, 120),
+    sender: candidate.sender,
+    kind: candidate.kind,
+    content: normalizeOptionalMessageContent(candidate.content),
+    fileName:
+      typeof candidate.fileName === "string"
+        ? candidate.fileName.trim().slice(0, 160)
+        : "",
+    timestamp: candidate.timestamp,
+  };
+}
+
 function getDefaultMessageLabel(message: Pick<ChatMessageRecord, "kind" | "fileName">) {
   if (message.kind === "voice") {
     return "Message vocal";
@@ -278,6 +322,27 @@ function getDefaultMessageLabel(message: Pick<ChatMessageRecord, "kind" | "fileN
   }
 
   return "Message";
+}
+
+export function createReplyReference(
+  message: Pick<
+    ChatMessageRecord,
+    "id" | "sender" | "kind" | "content" | "fileName" | "timestamp" | "transcript"
+  >,
+): ChatMessageReplyReference {
+  const fallbackContent =
+    message.kind === "voice"
+      ? message.transcript.trim() || "Message vocal"
+      : normalizeOptionalMessageContent(message.content) || getDefaultMessageLabel(message);
+
+  return {
+    messageId: message.id,
+    sender: message.sender,
+    kind: message.kind,
+    content: fallbackContent.slice(0, 240),
+    fileName: (message.fileName || "").trim().slice(0, 160),
+    timestamp: message.timestamp,
+  };
 }
 
 function normalizeMessageDraft(
@@ -386,6 +451,7 @@ function normalizeStoredMessage(
     deliveryStatus: isDeliveryStatus(candidate.deliveryStatus)
       ? candidate.deliveryStatus
       : "delivered",
+    replyTo: normalizeReplyReference(candidate.replyTo),
   };
 
   if (CHAT_MEDIA_KINDS.has(kind) && !normalized.storageUrl) {
@@ -970,11 +1036,17 @@ export function buildAiMessagePayload(
       return [];
     }
 
+    const replyPrefix = message.replyTo
+      ? `En reponse a (${message.replyTo.sender}) : ${
+          message.replyTo.content || getDefaultMessageLabel(message.replyTo)
+        }\n`
+      : "";
+
     return [
       {
         id: message.id,
         sender: message.sender,
-        content,
+        content: `${replyPrefix}${content}`.trim(),
         timestamp: message.timestamp,
       },
     ];
@@ -1079,6 +1151,7 @@ function createConversationRecordFromSession(session: ClientChatSession) {
 function createMessage(
   sender: ChatMessageRecord["sender"],
   content: string | ChatMessageDraft,
+  replyTo?: ChatMessageReplyReference | null,
 ): ChatMessageRecord {
   const normalized = normalizeMessageDraft(content);
 
@@ -1095,6 +1168,7 @@ function createMessage(
     transcript: normalized.transcript,
     timestamp: getNowIso(),
     deliveryStatus: normalized.deliveryStatus,
+    replyTo: normalizeReplyReference(replyTo),
   };
 }
 
@@ -2449,7 +2523,11 @@ function finalizeAutoReply(
       };
     }
 
-    const nextMessage = createMessage("ai", trimmedReply);
+    const nextMessage = createMessage(
+      "ai",
+      trimmedReply,
+      createReplyReference(lastMessage),
+    );
 
     return {
       ...store,
@@ -2608,11 +2686,12 @@ export async function sendClientMessage(
   ownerId: string,
   clientName: string,
   content: string | ChatMessageDraft,
+  replyTo?: ChatMessageReplyReference | null,
 ) {
   const session = await ensureClientConversationAccess(ownerId, clientName);
   const normalizedInput = normalizeMessageDraft(content);
   let nextSession = session;
-  const nextMessage = createMessage("client", normalizedInput);
+  const nextMessage = createMessage("client", normalizedInput, replyTo);
   const persistedConversation = await requestPersistClientMessageToServer(
     session,
     nextMessage,
@@ -2641,6 +2720,7 @@ export async function sendClientMessage(
 export async function sendOwnerMessage(
   conversationId: string,
   content: string | ChatMessageDraft,
+  replyTo?: ChatMessageReplyReference | null,
 ) {
   const snapshot = getConversationSnapshot(conversationId);
 
@@ -2659,7 +2739,7 @@ export async function sendOwnerMessage(
 
   ownerIdToPersist = conversation.ownerId;
 
-  const nextMessage = createMessage("owner", normalizedInput);
+  const nextMessage = createMessage("owner", normalizedInput, replyTo);
   const persistedConversation = await requestPersistOwnerMessageToServer(
     ownerIdToPersist,
     conversationId,

@@ -1,6 +1,7 @@
 export { getChatRuntimeConfig, getChatRuntimeStatus } from "./runtime";
 export {
   clearClientChatSession,
+  createReplyReference,
   ensureClientConversation,
   initializeClientConversationAccess,
   getClientChatSession,
@@ -32,6 +33,7 @@ export type {
   ChatMessageDraft,
   ChatMessageKind,
   ChatMessageRecord,
+  ChatMessageReplyReference,
   ConversationAiSettings,
   ConversationManualAiTask,
   ClientChatSession,

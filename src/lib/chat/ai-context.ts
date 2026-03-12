@@ -31,11 +31,26 @@ function getTextMessages(messages: ChatMessageRecord[]) {
       return [];
     }
 
+    const replyPrefix = message.replyTo
+      ? `En reponse a (${message.replyTo.sender}) : ${
+          normalizeMessageContent(message.replyTo.content) ||
+          (message.replyTo.kind === "voice"
+            ? "Message vocal"
+            : message.replyTo.kind === "image"
+              ? "Image"
+              : message.replyTo.kind === "video"
+                ? "Video"
+                : message.replyTo.kind === "file"
+                  ? message.replyTo.fileName || "Fichier"
+                  : "message precedent")
+        }\n`
+      : "";
+
     return [
       {
         id: message.id,
         sender: message.sender,
-        content,
+        content: `${replyPrefix}${content}`.trim(),
         timestamp: message.timestamp,
       } satisfies AiConversationMessage,
     ];

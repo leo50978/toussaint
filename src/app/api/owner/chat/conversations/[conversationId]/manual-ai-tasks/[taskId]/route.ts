@@ -183,6 +183,8 @@ export async function POST(
       messages: aiContext.messages,
     });
     const aiMessageTimestamp = getNowIso();
+    const repliedMessage =
+      conversation.messages.find((message) => message.id === targetTask.messageId) || null;
     const appendedConversation = await appendConversationMessage({
       ownerId: DEFAULT_OWNER_ID,
       conversationId: conversation.id,
@@ -201,6 +203,19 @@ export async function POST(
         transcript: "",
         timestamp: aiMessageTimestamp,
         deliveryStatus: "delivered",
+        replyTo: repliedMessage
+          ? {
+              messageId: repliedMessage.id,
+              sender: repliedMessage.sender,
+              kind: repliedMessage.kind,
+              content:
+                repliedMessage.kind === "voice"
+                  ? repliedMessage.transcript.trim() || "Message vocal"
+                  : repliedMessage.content.trim().slice(0, 240),
+              fileName: repliedMessage.fileName || "",
+              timestamp: repliedMessage.timestamp,
+            }
+          : null,
       },
     });
     const finalizedConversation = await patchConversation({

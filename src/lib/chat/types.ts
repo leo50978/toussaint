@@ -7,6 +7,8 @@ import type {
   MessageSender,
 } from "@/lib/firestore/schema";
 
+export type ChatMessageReplyReference = NonNullable<MessageDocument["replyTo"]>;
+
 export type ChatMessageRecord = MessageDocument & {
   id: string;
 };
@@ -112,6 +114,7 @@ export type SendChatMessageInput = {
   fileSize?: number;
   durationMs?: number | null;
   transcript?: string;
+  replyTo?: ChatMessageReplyReference | null;
 };
 
 export type CreateClientConversationInput = {

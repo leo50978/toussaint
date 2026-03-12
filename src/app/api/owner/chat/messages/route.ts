@@ -12,6 +12,45 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function normalizeReplyReference(input: unknown): ChatMessageRecord["replyTo"] {
+  if (!isObject(input)) {
+    return null;
+  }
+
+  const sender =
+    input.sender === "client" || input.sender === "owner" || input.sender === "ai"
+      ? input.sender
+      : null;
+  const kind =
+    input.kind === "text" ||
+    input.kind === "voice" ||
+    input.kind === "image" ||
+    input.kind === "video" ||
+    input.kind === "file"
+      ? input.kind
+      : null;
+
+  if (
+    !sender ||
+    !kind ||
+    typeof input.messageId !== "string" ||
+    typeof input.timestamp !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    messageId: input.messageId.trim().slice(0, 120),
+    sender,
+    kind,
+    content:
+      typeof input.content === "string" ? input.content.trim().slice(0, 240) : "",
+    fileName:
+      typeof input.fileName === "string" ? input.fileName.trim().slice(0, 160) : "",
+    timestamp: input.timestamp,
+  };
+}
+
 function normalizeMessage(input: unknown): ChatMessageRecord | null {
   if (!isObject(input)) {
     return null;
@@ -67,6 +106,7 @@ function normalizeMessage(input: unknown): ChatMessageRecord | null {
       input.deliveryStatus === "failed"
         ? input.deliveryStatus
         : "delivered",
+    replyTo: normalizeReplyReference(input.replyTo),
   };
 
   if (!normalized.id) {

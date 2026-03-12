@@ -20,6 +20,7 @@ import {
   MessageSquareMore,
   MoreVertical,
   Paperclip,
+  Reply,
   Search,
   SendHorizontal,
   Settings2,
@@ -27,11 +28,13 @@ import {
   Square,
   Trash2,
   UserRound,
+  X,
 } from "lucide-react";
 
 import {
   buildAiConversationRequestPayload,
   buildAiMessagePayload,
+  createReplyReference,
   deleteOwnerConversation,
   deleteOwnerMessage,
   getChatRuntimeConfig,
@@ -50,6 +53,7 @@ import {
   type ChatConversationSummary,
   type ConversationManualAiTask,
   type ChatMessageRecord,
+  type ChatMessageReplyReference,
 } from "@/lib/chat";
 import { getManualAiMessageKindLabel } from "@/lib/chat/manual-ai";
 import {
@@ -436,6 +440,15 @@ function getReadableMessageContent(message: ChatMessageRecord) {
   return message.content.trim();
 }
 
+function getReplyPreviewText(replyTo: ChatMessageReplyReference) {
+  return (
+    replyTo.content.trim() ||
+    (replyTo.kind === "voice"
+      ? "Message vocal"
+      : replyTo.fileName.trim() || "Message")
+  );
+}
+
 function renderMessageBody(message: ChatMessageRecord) {
   if (message.kind === "image") {
     return (
@@ -637,6 +650,17 @@ export default function OwnerMessagingDashboard() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [showGeneralSettings, setShowGeneralSettings] = useState(false);
   const [showConversationMenu, setShowConversationMenu] = useState(false);
+  const [replyTarget, setReplyTarget] = useState<ChatMessageReplyReference | null>(
+    null,
+  );
+  const [highlightedMessageId, setHighlightedMessageId] = useState("");
+  const [messageContextMenu, setMessageContextMenu] = useState<{
+    messageId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [activeSwipeMessageId, setActiveSwipeMessageId] = useState("");
+  const [activeSwipeOffset, setActiveSwipeOffset] = useState(0);
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfile>(DEFAULT_OWNER_PROFILE);
   const [profileDraft, setProfileDraft] = useState({
     displayName: DEFAULT_OWNER_PROFILE.displayName,
@@ -670,6 +694,12 @@ export default function OwnerMessagingDashboard() {
   const [submittingManualTaskId, setSubmittingManualTaskId] = useState("");
   const notifiedManualTaskIdsRef = useRef<Record<string, boolean>>({});
   const conversationMenuRef = useRef<HTMLDivElement | null>(null);
+  const swipeStateRef = useRef<{
+    messageId: string;
+    startX: number;
+    startY: number;
+    offsetX: number;
+  } | null>(null);
 
   function runThreadSync(conversationId: string) {
     const requestId = threadSyncRequestRef.current + 1;
@@ -904,6 +934,26 @@ export default function OwnerMessagingDashboard() {
   }, [showConversationMenu]);
 
   useEffect(() => {
+    if (!messageContextMenu) {
+      return;
+    }
+
+    const handlePointerDown = () => {
+      setMessageContextMenu(null);
+    };
+
+    window.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("touchstart", handlePointerDown);
+    window.addEventListener("scroll", handlePointerDown, true);
+
+    return () => {
+      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("touchstart", handlePointerDown);
+      window.removeEventListener("scroll", handlePointerDown, true);
+    };
+  }, [messageContextMenu]);
+
+  useEffect(() => {
     if (!selectedConversationId) {
       setSelectedConversation(null);
       setMobilePanel("list");
@@ -980,7 +1030,25 @@ export default function OwnerMessagingDashboard() {
 
   useEffect(() => {
     setVisibleThreadMessageCount(THREAD_MESSAGE_RENDER_LIMIT);
+    setReplyTarget(null);
+    setMessageContextMenu(null);
+    setActiveSwipeMessageId("");
+    setActiveSwipeOffset(0);
   }, [selectedConversation?.id]);
+
+  useEffect(() => {
+    if (!highlightedMessageId) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedMessageId("");
+    }, 1800);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [highlightedMessageId]);
 
   useEffect(() => {
     conversations.forEach((conversation) => {
@@ -1149,6 +1217,11 @@ export default function OwnerMessagingDashboard() {
     [pendingManualTasks],
   );
   const latestRenderedMessageId = renderedMessages.at(-1)?.id || "";
+  const contextMenuMessage =
+    messageContextMenu &&
+    [...(selectedConversation?.messages || []), ...pendingSelectedMessages].find(
+      (message) => message.id === messageContextMenu.messageId,
+    );
   const reportMessageGroups = useMemo(
     () => (reportData ? buildMessageGroups(reportData.messages) : []),
     [reportData],
@@ -1249,6 +1322,118 @@ export default function OwnerMessagingDashboard() {
       top: viewport.scrollHeight,
       behavior: "smooth",
     });
+  }
+
+  function beginReplyToMessage(message: ChatMessageRecord) {
+    setReplyTarget(createReplyReference(message));
+    setMessageContextMenu(null);
+    setActiveSwipeMessageId("");
+    setActiveSwipeOffset(0);
+  }
+
+  function jumpToThreadMessage(messageId: string) {
+    const allMessages = [
+      ...(selectedConversation?.messages || []),
+      ...pendingSelectedMessages,
+    ].sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+    const targetIndex = allMessages.findIndex((message) => message.id === messageId);
+
+    if (targetIndex < 0) {
+      return;
+    }
+
+    setVisibleThreadMessageCount((currentValue) =>
+      Math.max(currentValue, allMessages.length - targetIndex),
+    );
+    setHighlightedMessageId(messageId);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const targetElement = document.querySelector<HTMLElement>(
+          `[data-owner-message-id="${messageId}"]`,
+        );
+
+        targetElement?.scrollIntoView({
+          block: "center",
+          behavior: "smooth",
+        });
+      });
+    });
+  }
+
+  function handleMessageContextMenu(
+    event: React.MouseEvent<HTMLElement>,
+    message: ChatMessageRecord,
+  ) {
+    if (window.innerWidth < 1024) {
+      return;
+    }
+
+    event.preventDefault();
+    setMessageContextMenu({
+      messageId: message.id,
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function handleMessageTouchStart(
+    event: React.TouchEvent<HTMLElement>,
+    message: ChatMessageRecord,
+  ) {
+    if (window.innerWidth >= 1024) {
+      return;
+    }
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    swipeStateRef.current = {
+      messageId: message.id,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      offsetX: 0,
+    };
+    setActiveSwipeMessageId(message.id);
+    setActiveSwipeOffset(0);
+  }
+
+  function handleMessageTouchMove(event: React.TouchEvent<HTMLElement>) {
+    const state = swipeStateRef.current;
+    const touch = event.touches[0];
+
+    if (!state || !touch) {
+      return;
+    }
+
+    const diffX = touch.clientX - state.startX;
+    const diffY = touch.clientY - state.startY;
+
+    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
+      swipeStateRef.current = null;
+      setActiveSwipeMessageId("");
+      setActiveSwipeOffset(0);
+      return;
+    }
+
+    const nextOffset = Math.min(0, Math.max(diffX, -84));
+    state.offsetX = nextOffset;
+    setActiveSwipeOffset(nextOffset);
+  }
+
+  function handleMessageTouchEnd(message: ChatMessageRecord) {
+    const state = swipeStateRef.current;
+
+    if (state && state.messageId === message.id && state.offsetX <= -56) {
+      beginReplyToMessage(message);
+    }
+
+    swipeStateRef.current = null;
+    setActiveSwipeMessageId("");
+    setActiveSwipeOffset(0);
   }
 
   function handleConversationListScroll() {
@@ -1498,7 +1683,9 @@ export default function OwnerMessagingDashboard() {
       transcript: "",
       timestamp: new Date().toISOString(),
       deliveryStatus: "queued",
+      replyTo: replyTarget,
     };
+    setReplyTarget(null);
     setPendingOutgoingMessages((current) => [
       ...current,
       {
@@ -1508,7 +1695,11 @@ export default function OwnerMessagingDashboard() {
     ]);
 
     try {
-      await sendOwnerMessage(selectedConversation.id, nextDraft);
+      await sendOwnerMessage(
+        selectedConversation.id,
+        nextDraft,
+        pendingMessage.replyTo,
+      );
       setPendingOutgoingMessages((current) =>
         current.filter((entry) => entry.message.id !== pendingMessage.id),
       );
@@ -1517,6 +1708,7 @@ export default function OwnerMessagingDashboard() {
         current.filter((entry) => entry.message.id !== pendingMessage.id),
       );
       setDraft(nextDraft);
+      setReplyTarget((current) => current || pendingMessage.replyTo || null);
       setErrorMessage(error instanceof Error ? error.message : "Envoi impossible.");
     } finally {
       setIsSendingReply(false);
@@ -1618,6 +1810,7 @@ export default function OwnerMessagingDashboard() {
 
     setErrorMessage("");
     setIsUploadingAttachment(true);
+    const activeReplyTarget = replyTarget;
 
     try {
       const uploaded = await uploadChatAttachment(file, {
@@ -1634,9 +1827,12 @@ export default function OwnerMessagingDashboard() {
       await sendOwnerMessage(
         selectedConversation.id,
         toChatMessageDraftFromUpload(uploaded),
+        activeReplyTarget,
       );
+      setReplyTarget(null);
       setStatusMessage("Media envoye.");
     } catch (error) {
+      setReplyTarget((current) => current || activeReplyTarget || null);
       setErrorMessage(error instanceof Error ? error.message : "Upload impossible.");
     } finally {
       setIsUploadingAttachment(false);
@@ -2384,22 +2580,48 @@ export default function OwnerMessagingDashboard() {
 
                           {group.items.map((message) => {
                             const manualTask = pendingManualTaskByMessageId.get(message.id);
+                            const isSwiping = activeSwipeMessageId === message.id;
+                            const replySenderLabel =
+                              message.replyTo?.sender === "client"
+                                ? selectedConversation.clientName
+                                : ownerDisplayName;
 
                             return (
                               <div
                                 key={message.id}
-                                className={`space-y-2 ${
+                                className={`relative space-y-2 ${
                                   message.sender === "owner" || message.sender === "ai"
                                     ? "ml-auto max-w-[86%]"
                                     : "mr-auto max-w-[86%]"
                                 }`}
                               >
+                                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                                  <span className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-slate-200 shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+                                    <Reply className="size-4" />
+                                  </span>
+                                </div>
                                 <article
-                                  className={`rounded-[0.9rem] px-3 py-2.5 shadow-[0_8px_20px_rgba(0,0,0,0.18)] md:px-4 md:py-3 ${
+                                  data-owner-message-id={message.id}
+                                  onContextMenu={(event) => handleMessageContextMenu(event, message)}
+                                  onTouchStart={(event) => handleMessageTouchStart(event, message)}
+                                  onTouchMove={handleMessageTouchMove}
+                                  onTouchEnd={() => handleMessageTouchEnd(message)}
+                                  onTouchCancel={() => handleMessageTouchEnd(message)}
+                                  className={`relative rounded-[0.9rem] px-3 py-2.5 shadow-[0_8px_20px_rgba(0,0,0,0.18)] transition-[transform,box-shadow,border-color] duration-150 md:px-4 md:py-3 ${
                                     message.sender === "owner" || message.sender === "ai"
                                       ? "rounded-br-sm bg-[#005c4b] text-white"
                                       : "rounded-bl-sm bg-[#202c33]/95 text-slate-100"
+                                  } ${
+                                    highlightedMessageId === message.id
+                                      ? "ring-2 ring-emerald-300/55"
+                                      : ""
                                   }`}
+                                  style={{
+                                    transform:
+                                      isSwiping && activeSwipeOffset
+                                        ? `translateX(${activeSwipeOffset}px)`
+                                        : "translateX(0px)",
+                                  }}
                                 >
                                   <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300/80">
                                     <div className="flex items-center gap-2">
@@ -2424,6 +2646,20 @@ export default function OwnerMessagingDashboard() {
                                       )}
                                     </button>
                                   </div>
+                                  {message.replyTo ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => jumpToThreadMessage(message.replyTo!.messageId)}
+                                      className="mt-2 block w-full rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-left transition-colors hover:bg-black/25"
+                                    >
+                                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-100/85">
+                                        Reponse a {replySenderLabel}
+                                      </p>
+                                      <p className="mt-1 truncate text-xs text-slate-200/90">
+                                        {getReplyPreviewText(message.replyTo)}
+                                      </p>
+                                    </button>
+                                  ) : null}
                                   {renderMessageBody(message)}
                                   <div className="mt-1.5 flex items-center justify-end gap-2">
                                     {message.deliveryStatus === "queued" ? (
@@ -2564,6 +2800,31 @@ export default function OwnerMessagingDashboard() {
                       accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.rar,.xls,.xlsx,.ppt,.pptx"
                     />
 
+                    {replyTarget ? (
+                      <div className="mb-2 flex items-start justify-between gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-left">
+                        <button
+                          type="button"
+                          onClick={() => jumpToThreadMessage(replyTarget.messageId)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-100/85">
+                            Reponse a {replyTarget.sender === "client" ? selectedConversation.clientName : ownerDisplayName}
+                          </p>
+                          <p className="mt-1 truncate text-sm text-slate-200">
+                            {getReplyPreviewText(replyTarget)}
+                          </p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setReplyTarget(null)}
+                          className="inline-flex size-8 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                          aria-label="Annuler la reponse"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </div>
+                    ) : null}
+
                     <div className="flex items-end gap-2 rounded-[1.8rem] border border-white/10 bg-[#202c33]/94 px-2 py-2 shadow-[0_16px_36px_rgba(0,0,0,0.28)]">
                       <button
                         type="button"
@@ -2654,6 +2915,31 @@ export default function OwnerMessagingDashboard() {
           </section>
         )}
       </div>
+
+      {messageContextMenu && contextMenuMessage ? (
+        <div
+          className="fixed z-40 min-w-48 rounded-[1.1rem] border border-white/10 bg-[#111b21]/96 p-2 shadow-[0_24px_50px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+          style={{
+            left:
+              typeof window === "undefined"
+                ? messageContextMenu.x
+                : Math.min(messageContextMenu.x, window.innerWidth - 220),
+            top:
+              typeof window === "undefined"
+                ? messageContextMenu.y
+                : Math.min(messageContextMenu.y, window.innerHeight - 90),
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => beginReplyToMessage(contextMenuMessage)}
+            className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+          >
+            <Reply className="size-4 shrink-0 text-slate-300" />
+            Repondre
+          </button>
+        </div>
+      ) : null}
 
       {shouldLoadOwnerModals ? (
         <OwnerDashboardModals

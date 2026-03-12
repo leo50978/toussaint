@@ -7,6 +7,7 @@ import type {
   ChatConversationRecord,
   ChatConversationSummary,
   ChatMessageRecord,
+  ChatMessageReplyReference,
   ConversationAiSettings,
   ConversationManualAiTask,
 } from "@/lib/chat/types";
@@ -71,6 +72,58 @@ type AppendMessageInput = {
 
 function getNowIso() {
   return new Date().toISOString();
+}
+
+function normalizeReplyReference(
+  input: unknown,
+): ChatMessageReplyReference | null {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const candidate = input as Partial<ChatMessageReplyReference>;
+
+  if (
+    typeof candidate.messageId !== "string" ||
+    typeof candidate.sender !== "string" ||
+    typeof candidate.kind !== "string" ||
+    typeof candidate.timestamp !== "string"
+  ) {
+    return null;
+  }
+
+  if (
+    candidate.sender !== "client" &&
+    candidate.sender !== "owner" &&
+    candidate.sender !== "ai"
+  ) {
+    return null;
+  }
+
+  if (
+    candidate.kind !== "text" &&
+    candidate.kind !== "voice" &&
+    candidate.kind !== "image" &&
+    candidate.kind !== "video" &&
+    candidate.kind !== "file"
+  ) {
+    return null;
+  }
+
+  return {
+    messageId: candidate.messageId.trim().slice(0, 120),
+    sender: candidate.sender,
+    kind: candidate.kind,
+    content:
+      typeof candidate.content === "string"
+        ? candidate.content.trim().slice(0, 240)
+        : "",
+    fileName:
+      typeof candidate.fileName === "string"
+        ? candidate.fileName.trim().slice(0, 160)
+        : "",
+    timestamp: candidate.timestamp,
+  };
 }
 
 function getDefaultScheduleTimezone() {
@@ -249,6 +302,7 @@ function normalizeMessage(input: unknown): ChatMessageRecord | null {
       typeof candidate.transcript === "string" ? candidate.transcript.trim().slice(0, 3_000) : "",
     timestamp: candidate.timestamp,
     deliveryStatus,
+    replyTo: normalizeReplyReference(candidate.replyTo),
   };
 }
 
@@ -559,6 +613,7 @@ function buildMessagePayload(message: ChatMessageRecord) {
     transcript: message.transcript,
     timestamp: message.timestamp,
     deliveryStatus: message.deliveryStatus,
+    replyTo: message.replyTo || null,
   };
 }
 

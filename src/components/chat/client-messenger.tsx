@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type MouseEvent as ReactMouseEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ArrowDown,
   ArrowLeft,
@@ -11,6 +19,7 @@ import {
   MessageSquareMore,
   MoreVertical,
   Paperclip,
+  Reply,
   SendHorizontal,
   Shield,
   Square,
@@ -20,6 +29,7 @@ import {
 
 import {
   clearClientChatSession,
+  createReplyReference,
   getChatRuntimeConfig,
   getClientConversationSnapshot,
   initializeClientConversationAccess,
@@ -32,6 +42,7 @@ import {
   subscribeToChatSnapshots,
   type ChatConversationRecord,
   type ChatMessageRecord,
+  type ChatMessageReplyReference,
   type ClientChatSession,
 } from "@/lib/chat";
 import {
@@ -254,6 +265,17 @@ function renderMessageBody(message: ChatConversationRecord["messages"][number]) 
   );
 }
 
+function getReplyPreviewText(
+  replyTo: ChatMessageReplyReference,
+) {
+  return (
+    replyTo.content.trim() ||
+    (replyTo.kind === "voice"
+      ? "Message vocal"
+      : replyTo.fileName.trim() || "Message")
+  );
+}
+
 function getMicrophoneErrorMessage(error: unknown) {
   const errorName =
     error && typeof error === "object" && "name" in error
@@ -405,6 +427,17 @@ export default function ClientMessenger() {
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [hasUnreadStatuses, setHasUnreadStatuses] = useState(false);
   const [showScrollToLatestButton, setShowScrollToLatestButton] = useState(false);
+  const [replyTarget, setReplyTarget] = useState<ChatMessageReplyReference | null>(
+    null,
+  );
+  const [highlightedMessageId, setHighlightedMessageId] = useState("");
+  const [messageContextMenu, setMessageContextMenu] = useState<{
+    messageId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [activeSwipeMessageId, setActiveSwipeMessageId] = useState("");
+  const [activeSwipeOffset, setActiveSwipeOffset] = useState(0);
   const [pendingOutgoingMessages, setPendingOutgoingMessages] = useState<
     ChatMessageRecord[]
   >([]);
@@ -421,6 +454,12 @@ export default function ClientMessenger() {
   const lastAutoReplyRequestRef = useRef("");
   const shouldStickThreadToBottomRef = useRef(true);
   const lastScrolledConversationIdRef = useRef("");
+  const swipeStateRef = useRef<{
+    messageId: string;
+    startX: number;
+    startY: number;
+    offsetX: number;
+  } | null>(null);
   const isTextSendPending = pendingTextSendCount > 0;
 
   useEffect(() => {
@@ -582,6 +621,26 @@ export default function ClientMessenger() {
       document.removeEventListener("touchstart", handlePointerDown);
     };
   }, [showHeaderMenu]);
+
+  useEffect(() => {
+    if (!messageContextMenu) {
+      return;
+    }
+
+    const handlePointerDown = () => {
+      setMessageContextMenu(null);
+    };
+
+    window.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("touchstart", handlePointerDown);
+    window.addEventListener("scroll", handlePointerDown, true);
+
+    return () => {
+      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("touchstart", handlePointerDown);
+      window.removeEventListener("scroll", handlePointerDown, true);
+    };
+  }, [messageContextMenu]);
 
   useEffect(() => {
     if (!showAvatarPreview) {
@@ -826,7 +885,25 @@ export default function ClientMessenger() {
     setVisibleMessageCount(THREAD_MESSAGE_RENDER_LIMIT);
     shouldStickThreadToBottomRef.current = true;
     setShowScrollToLatestButton(false);
+    setReplyTarget(null);
+    setMessageContextMenu(null);
+    setActiveSwipeMessageId("");
+    setActiveSwipeOffset(0);
   }, [conversation?.id]);
+
+  useEffect(() => {
+    if (!highlightedMessageId) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedMessageId("");
+    }, 1800);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [highlightedMessageId]);
 
   const renderedMessages = useMemo(() => {
     const allMessages = [
@@ -861,6 +938,11 @@ export default function ClientMessenger() {
     pendingOutgoingMessages.length === 0 &&
     (!hasCompletedInitialConversationSync || isConversationSyncing);
   const latestRenderedMessageId = renderedMessages.at(-1)?.id || "";
+  const contextMenuMessage =
+    messageContextMenu &&
+    [...(conversation?.messages || []), ...pendingOutgoingMessages].find(
+      (message) => message.id === messageContextMenu.messageId,
+    );
 
   function updateMessagesViewportState(viewport: HTMLDivElement) {
     const nextShowScrollButton =
@@ -873,6 +955,43 @@ export default function ClientMessenger() {
 
   function showToast(message: string) {
     setToastMessage(message);
+  }
+
+  function beginReplyToMessage(message: ChatMessageRecord) {
+    setReplyTarget(createReplyReference(message));
+    setMessageContextMenu(null);
+    setActiveSwipeMessageId("");
+    setActiveSwipeOffset(0);
+  }
+
+  function jumpToMessage(messageId: string) {
+    const allMessages = [
+      ...(conversation?.messages || []),
+      ...pendingOutgoingMessages,
+    ].sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+    const targetIndex = allMessages.findIndex((message) => message.id === messageId);
+
+    if (targetIndex < 0) {
+      return;
+    }
+
+    setVisibleMessageCount((currentValue) =>
+      Math.max(currentValue, allMessages.length - targetIndex),
+    );
+    setHighlightedMessageId(messageId);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const targetElement = document.querySelector<HTMLElement>(
+          `[data-chat-message-id="${messageId}"]`,
+        );
+
+        targetElement?.scrollIntoView({
+          block: "center",
+          behavior: "smooth",
+        });
+      });
+    });
   }
 
   function scrollViewportToBottom(behavior: ScrollBehavior) {
@@ -966,6 +1085,81 @@ export default function ClientMessenger() {
     scrollViewportToBottom("smooth");
   }
 
+  function handleMessageContextMenu(
+    event: ReactMouseEvent<HTMLElement>,
+    message: ChatMessageRecord,
+  ) {
+    if (window.innerWidth < 1024) {
+      return;
+    }
+
+    event.preventDefault();
+    setMessageContextMenu({
+      messageId: message.id,
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function handleMessageTouchStart(
+    event: React.TouchEvent<HTMLElement>,
+    message: ChatMessageRecord,
+  ) {
+    if (window.innerWidth >= 1024) {
+      return;
+    }
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    swipeStateRef.current = {
+      messageId: message.id,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      offsetX: 0,
+    };
+    setActiveSwipeMessageId(message.id);
+    setActiveSwipeOffset(0);
+  }
+
+  function handleMessageTouchMove(event: React.TouchEvent<HTMLElement>) {
+    const state = swipeStateRef.current;
+    const touch = event.touches[0];
+
+    if (!state || !touch) {
+      return;
+    }
+
+    const diffX = touch.clientX - state.startX;
+    const diffY = touch.clientY - state.startY;
+
+    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
+      swipeStateRef.current = null;
+      setActiveSwipeMessageId("");
+      setActiveSwipeOffset(0);
+      return;
+    }
+
+    const nextOffset = Math.min(0, Math.max(diffX, -84));
+    state.offsetX = nextOffset;
+    setActiveSwipeOffset(nextOffset);
+  }
+
+  function handleMessageTouchEnd(message: ChatMessageRecord) {
+    const state = swipeStateRef.current;
+
+    if (state && state.messageId === message.id && state.offsetX <= -56) {
+      beginReplyToMessage(message);
+    }
+
+    swipeStateRef.current = null;
+    setActiveSwipeMessageId("");
+    setActiveSwipeOffset(0);
+  }
+
   async function handleSendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
@@ -999,11 +1193,13 @@ export default function ClientMessenger() {
       transcript: "",
       timestamp: new Date().toISOString(),
       deliveryStatus: "queued",
+      replyTo: replyTarget,
     };
     setPendingOutgoingMessages((current) => [...current, pendingMessage]);
+    setReplyTarget(null);
 
     try {
-      await sendClientMessage(runtime.ownerId, clientName, nextDraft);
+      await sendClientMessage(runtime.ownerId, clientName, nextDraft, pendingMessage.replyTo);
       setPendingOutgoingMessages((current) =>
         current.filter((message) => message.id !== pendingMessage.id),
       );
@@ -1013,6 +1209,7 @@ export default function ClientMessenger() {
         current.filter((message) => message.id !== pendingMessage.id),
       );
       setDraft((current) => (current.trim() ? current : nextDraft));
+      setReplyTarget((current) => current || pendingMessage.replyTo || null);
       setErrorMessage(error instanceof Error ? error.message : "Envoi impossible.");
     } finally {
       setPendingTextSendCount((current) => Math.max(0, current - 1));
@@ -1045,6 +1242,8 @@ export default function ClientMessenger() {
 
     setIsUploadingAttachment(true);
 
+    const activeReplyTarget = replyTarget;
+
     try {
       const activeSession =
         session ||
@@ -1065,9 +1264,12 @@ export default function ClientMessenger() {
         runtime.ownerId,
         clientName,
         toChatMessageDraftFromUpload(uploaded),
+        activeReplyTarget,
       );
+      setReplyTarget(null);
       showToast("Media envoye.");
     } catch (error) {
+      setReplyTarget((current) => current || activeReplyTarget || null);
       setErrorMessage(error instanceof Error ? error.message : "Envoi impossible.");
     } finally {
       setIsUploadingAttachment(false);
@@ -1500,35 +1702,84 @@ export default function ClientMessenger() {
                       </span>
                     </div>
 
-                    {group.messages.map((message) => (
-                      <article
-                        key={message.id}
-                        className={`max-w-[86%] rounded-[0.9rem] px-3 py-2.5 shadow-[0_8px_20px_rgba(0,0,0,0.18)] md:px-4 md:py-3 ${
-                          message.sender === "client"
-                            ? "ml-auto rounded-br-sm bg-[#005c4b] text-white"
-                            : "mr-auto rounded-bl-sm bg-[#202c33]/95 text-slate-100"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300/80">
-                          <UserRound className="size-3" />
-                          {message.sender === "client"
-                            ? "toi"
-                            : ownerProfile.displayName}
-                        </div>
-                        {renderMessageBody(message)}
-                        <div className="mt-1.5 flex items-center justify-end gap-2">
-                          {message.deliveryStatus === "queued" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-100/85">
-                              <LoaderCircle className="size-3 animate-spin" />
-                              Envoi...
+                    {group.messages.map((message) => {
+                      const isSwiping = activeSwipeMessageId === message.id;
+                      const replySenderLabel =
+                        message.replyTo?.sender === "client"
+                          ? "Toi"
+                          : ownerProfile.displayName;
+
+                      return (
+                        <div
+                          key={message.id}
+                          className={`relative max-w-[86%] ${
+                            message.sender === "client" ? "ml-auto" : "mr-auto"
+                          }`}
+                        >
+                          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                            <span className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-slate-200 shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+                              <Reply className="size-4" />
                             </span>
-                          ) : null}
-                          <span className="text-[10px] text-slate-300/75">
-                            {formatMessageTime(message.timestamp)}
-                          </span>
+                          </div>
+                          <article
+                            data-chat-message-id={message.id}
+                            onContextMenu={(event) => handleMessageContextMenu(event, message)}
+                            onTouchStart={(event) => handleMessageTouchStart(event, message)}
+                            onTouchMove={handleMessageTouchMove}
+                            onTouchEnd={() => handleMessageTouchEnd(message)}
+                            onTouchCancel={() => handleMessageTouchEnd(message)}
+                            className={`relative rounded-[0.9rem] px-3 py-2.5 shadow-[0_8px_20px_rgba(0,0,0,0.18)] transition-[transform,box-shadow,border-color] duration-150 md:px-4 md:py-3 ${
+                              message.sender === "client"
+                                ? "rounded-br-sm bg-[#005c4b] text-white"
+                                : "rounded-bl-sm bg-[#202c33]/95 text-slate-100"
+                            } ${
+                              highlightedMessageId === message.id
+                                ? "ring-2 ring-emerald-300/55"
+                                : ""
+                            }`}
+                            style={{
+                              transform:
+                                isSwiping && activeSwipeOffset
+                                  ? `translateX(${activeSwipeOffset}px)`
+                                  : "translateX(0px)",
+                            }}
+                          >
+                            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300/80">
+                              <UserRound className="size-3" />
+                              {message.sender === "client"
+                                ? "toi"
+                                : ownerProfile.displayName}
+                            </div>
+                            {message.replyTo ? (
+                              <button
+                                type="button"
+                                onClick={() => jumpToMessage(message.replyTo!.messageId)}
+                                className="mt-2 block w-full rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-left transition-colors hover:bg-black/25"
+                              >
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-100/85">
+                                  Reponse a {replySenderLabel}
+                                </p>
+                                <p className="mt-1 truncate text-xs text-slate-200/90">
+                                  {getReplyPreviewText(message.replyTo)}
+                                </p>
+                              </button>
+                            ) : null}
+                            {renderMessageBody(message)}
+                            <div className="mt-1.5 flex items-center justify-end gap-2">
+                              {message.deliveryStatus === "queued" ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-100/85">
+                                  <LoaderCircle className="size-3 animate-spin" />
+                                  Envoi...
+                                </span>
+                              ) : null}
+                              <span className="text-[10px] text-slate-300/75">
+                                {formatMessageTime(message.timestamp)}
+                              </span>
+                            </div>
+                          </article>
                         </div>
-                      </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 ))}
                 <div ref={messagesEndRef} aria-hidden="true" className="h-px w-full" />
@@ -1586,6 +1837,31 @@ export default function ClientMessenger() {
                 className="hidden"
                 accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.rar,.xls,.xlsx,.ppt,.pptx"
               />
+
+              {replyTarget ? (
+                <div className="mb-2 flex items-start justify-between gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-left">
+                  <button
+                    type="button"
+                    onClick={() => jumpToMessage(replyTarget.messageId)}
+                    className="min-w-0 flex-1 text-left"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-100/85">
+                      Reponse a {replyTarget.sender === "client" ? "toi" : ownerProfile.displayName}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-slate-200">
+                      {getReplyPreviewText(replyTarget)}
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReplyTarget(null)}
+                    className="inline-flex size-8 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                    aria-label="Annuler la reponse"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ) : null}
 
               <div className="flex items-end gap-2 rounded-[1.8rem] border border-white/10 bg-[#202c33]/94 px-2 py-2 shadow-[0_16px_36px_rgba(0,0,0,0.28)]">
                 <button
@@ -1653,6 +1929,31 @@ export default function ClientMessenger() {
           </div>
         </section>
       </div>
+
+      {messageContextMenu && contextMenuMessage ? (
+        <div
+          className="fixed z-40 min-w-48 rounded-[1.1rem] border border-white/10 bg-[#111b21]/96 p-2 shadow-[0_24px_50px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+          style={{
+            left:
+              typeof window === "undefined"
+                ? messageContextMenu.x
+                : Math.min(messageContextMenu.x, window.innerWidth - 220),
+            top:
+              typeof window === "undefined"
+                ? messageContextMenu.y
+                : Math.min(messageContextMenu.y, window.innerHeight - 90),
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => beginReplyToMessage(contextMenuMessage)}
+            className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+          >
+            <Reply className="size-4 shrink-0 text-slate-300" />
+            Repondre
+          </button>
+        </div>
+      ) : null}
 
       {toastMessage ? (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-6">

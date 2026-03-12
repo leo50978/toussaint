@@ -38,6 +38,14 @@ export type MessageDocument = {
   transcript: string;
   timestamp: FirestoreTimestampField;
   deliveryStatus: DeliveryStatus;
+  replyTo: {
+    messageId: string;
+    sender: MessageSender;
+    kind: MessageKind;
+    content: string;
+    fileName: string;
+    timestamp: FirestoreTimestampField;
+  } | null;
 };
 
 export type StatusDocument = {
@@ -176,6 +184,7 @@ export const FIRESTORE_SCHEMA: CollectionSchema[] = [
       "transcript:string",
       "timestamp:timestamp",
       "deliveryStatus:queued|sent|delivered|read|failed",
+      "replyTo?:{messageId:string,sender:client|owner|ai,kind:text|voice|image|video|file,content:string,fileName:string,timestamp:timestamp}|null",
     ],
   },
   {
