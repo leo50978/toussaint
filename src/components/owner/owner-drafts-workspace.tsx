@@ -769,7 +769,7 @@ export default function OwnerDraftsWorkspace({
               onClick={onOpenStatuses}
               className="shrink-0 rounded-full bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:bg-white/[0.08] hover:text-slate-200"
             >
-              Statuts
+              Status
             </button>
             <button
               type="button"

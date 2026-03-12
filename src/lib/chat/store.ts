@@ -502,6 +502,7 @@ function normalizeStore(input: unknown): ChatStore {
               conversation.aiMode === "off"
                 ? conversation.aiMode
                 : "off",
+            adminAccessEnabled: Boolean(conversation.adminAccessEnabled),
             createdAt:
               typeof conversation.createdAt === "string" ? conversation.createdAt : now,
             updatedAt:
@@ -634,6 +635,7 @@ function normalizeConversationSummaryRecord(
     ownerId: candidate.ownerId.trim(),
     clientName: candidate.clientName.trim().slice(0, 80) || "Client",
     aiMode,
+    adminAccessEnabled: Boolean(candidate.adminAccessEnabled),
     status,
     updatedAt: candidate.updatedAt,
     createdAt: candidate.createdAt,
@@ -1084,6 +1086,7 @@ function createConversationRecord(
     clientName: clientName.trim(),
     clientKeyHash,
     aiMode: "off",
+    adminAccessEnabled: false,
     createdAt: now,
     updatedAt: now,
     status: "active",
@@ -1114,6 +1117,7 @@ function createConversationRecordFromSummary(
     clientName: summary.clientName,
     clientKeyHash: "",
     aiMode: summary.aiMode,
+    adminAccessEnabled: Boolean(summary.adminAccessEnabled),
     createdAt: summary.createdAt,
     updatedAt: summary.updatedAt,
     status: summary.status,
@@ -1491,6 +1495,7 @@ function mergeOwnerConversationSummariesFromServer(
             ownerId: summary.ownerId,
             clientName: summary.clientName,
             aiMode: summary.aiMode,
+            adminAccessEnabled: Boolean(summary.adminAccessEnabled),
             createdAt: summary.createdAt,
             updatedAt: summary.updatedAt,
             status: summary.status,
@@ -1938,6 +1943,7 @@ async function requestPersistConversationConfigToServer(
   payload: {
     aiMode?: ChatConversationRecord["aiMode"];
     aiSettings?: Partial<ConversationAiSettings>;
+    adminAccessEnabled?: boolean;
   },
 ) {
   const browserWindow = safeWindow();
@@ -2482,6 +2488,39 @@ export function updateConversationAiSettings(
 
   void requestPersistConversationConfigToServer(ownerId, conversationId, {
     aiSettings: nextAiSettings,
+  });
+}
+
+export function setConversationAdminAccessEnabled(
+  conversationId: string,
+  adminAccessEnabled: boolean,
+) {
+  let ownerId = "";
+
+  mutateStore((store) => ({
+    ...store,
+    conversations: store.conversations.map((conversation) =>
+      conversation.id === conversationId
+        ? (() => {
+            if (!ownerId) {
+              ownerId = conversation.ownerId;
+            }
+
+            return {
+              ...conversation,
+              adminAccessEnabled,
+            };
+          })()
+        : conversation,
+    ),
+  }));
+
+  if (!ownerId) {
+    return;
+  }
+
+  void requestPersistConversationConfigToServer(ownerId, conversationId, {
+    adminAccessEnabled,
   });
 }
 

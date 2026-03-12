@@ -31,6 +31,7 @@ type ConversationSettingsEditor = {
   personalContext: string;
   maxLength: string;
   blacklistWords: string;
+  adminAccessEnabled: boolean;
   scheduleEnabled: boolean;
   scheduleStart: string;
   scheduleEnd: string;
@@ -226,7 +227,7 @@ export default function OwnerDashboardModals({
                 onClick={onOpenStatuses}
                 className="rounded-xl border border-white/8 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.07]"
               >
-                Statuts
+                Status
               </button>
               <a
                 href="/api/owner/system/hardening-report"
@@ -508,6 +509,20 @@ export default function OwnerDashboardModals({
                   className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-400/35"
                 />
               </label>
+
+              <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+                <label className="flex items-center gap-3 text-sm font-medium text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={settingsEditor.adminAccessEnabled}
+                    onChange={(event) =>
+                      onSettingsFieldChange("adminAccessEnabled", event.target.checked)
+                    }
+                    className="size-4 rounded border-white/10 bg-transparent"
+                  />
+                  Autoriser cet utilisateur a acceder a la page owner
+                </label>
+              </div>
 
               <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
                 <label className="flex items-center gap-3 text-sm font-medium text-slate-200">

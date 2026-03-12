@@ -47,6 +47,10 @@ function normalizeAiSettings(value: unknown): Partial<ConversationAiSettings> | 
   };
 }
 
+function normalizeAdminAccessEnabled(value: unknown) {
+  return typeof value === "boolean" ? value : undefined;
+}
+
 export async function POST(request: Request) {
   const ownerIdentity = await getAuthorizedOwnerIdentityFromRequest();
 
@@ -88,6 +92,7 @@ export async function POST(request: Request) {
     typeof rawPayload.conversationId === "string" ? rawPayload.conversationId : "";
   const aiMode = normalizeAiMode(rawPayload.aiMode);
   const aiSettings = normalizeAiSettings(rawPayload.aiSettings);
+  const adminAccessEnabled = normalizeAdminAccessEnabled(rawPayload.adminAccessEnabled);
 
   if (!conversationId) {
     return NextResponse.json(
@@ -100,7 +105,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!aiMode && !aiSettings) {
+  if (!aiMode && !aiSettings && typeof adminAccessEnabled !== "boolean") {
     return NextResponse.json(
       {
         error: "Aucune configuration a enregistrer.",
@@ -116,6 +121,7 @@ export async function POST(request: Request) {
       ownerId,
       conversationId,
       aiMode: aiMode || undefined,
+      adminAccessEnabled,
       aiSettings: aiSettings as ConversationAiSettings | undefined,
     });
 

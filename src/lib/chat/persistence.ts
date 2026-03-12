@@ -51,6 +51,7 @@ type ConversationPatchInput = {
   ownerId: string;
   conversationId: string;
   aiMode?: ChatConversationRecord["aiMode"];
+  adminAccessEnabled?: boolean;
   aiSettings?: ConversationAiSettings;
   status?: ChatConversationRecord["status"];
   unreadOwnerCount?: number;
@@ -330,6 +331,7 @@ function createConversationFromSeed(seed: ConversationAccessSeed): PersistedConv
     clientName: seed.clientName.trim().slice(0, 80) || "Client",
     clientKeyHash: seed.clientKeyHash.trim(),
     aiMode: "off",
+    adminAccessEnabled: false,
     createdAt: now,
     updatedAt: now,
     status: "active",
@@ -379,6 +381,7 @@ function normalizeConversation(input: unknown): PersistedConversationRecord | nu
     clientName: candidate.clientName.trim().slice(0, 80),
     clientKeyHash: candidate.clientKeyHash.trim(),
     aiMode,
+    adminAccessEnabled: Boolean(candidate.adminAccessEnabled),
     createdAt: candidate.createdAt,
     updatedAt: candidate.updatedAt,
     status,
@@ -566,6 +569,7 @@ function buildConversationMetadata(conversation: PersistedConversationRecord) {
     clientName: conversation.clientName,
     clientKeyHash: conversation.clientKeyHash,
     aiMode: conversation.aiMode,
+    adminAccessEnabled: Boolean(conversation.adminAccessEnabled),
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
     status: conversation.status,
@@ -756,6 +760,7 @@ function normalizeConversationSummary(
     ownerId: candidate.ownerId.trim(),
     clientName: candidate.clientName.trim().slice(0, 80) || "Client",
     aiMode,
+    adminAccessEnabled: Boolean(candidate.adminAccessEnabled),
     status,
     updatedAt: candidate.updatedAt,
     createdAt: candidate.createdAt,
@@ -900,6 +905,10 @@ export async function patchConversation(input: ConversationPatchInput) {
     ...existingConversation,
     ownerId,
     aiMode: input.aiMode || existingConversation.aiMode,
+    adminAccessEnabled:
+      typeof input.adminAccessEnabled === "boolean"
+        ? input.adminAccessEnabled
+        : Boolean(existingConversation.adminAccessEnabled),
     status: input.status || existingConversation.status,
     aiSettings: input.aiSettings
       ? normalizeAiSettings(input.aiSettings)

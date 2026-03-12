@@ -117,7 +117,7 @@ export default function StatusesManager() {
       });
 
       if (!response.ok) {
-        throw new Error("Chargement des statuts impossible.");
+        throw new Error("Chargement des status impossible.");
       }
 
       const payload = (await response.json()) as StatusListResponse;
@@ -280,11 +280,11 @@ export default function StatusesManager() {
                 Espace prive owner
               </p>
               <h1 className="mt-3 text-3xl font-semibold leading-tight text-white md:text-5xl">
-                Pilote tes statuts avec une interface claire.
+                Pilote tes status avec une interface claire.
               </h1>
               <p className="mt-4 text-sm leading-relaxed text-slate-300 md:text-base">
-                Publie un statut texte, image ou video en quelques secondes.
-                Tout ce que tu mets ici devient visible sur la page statuts
+                Publie un status texte, image ou video en quelques secondes.
+                Tout ce que tu mets ici devient visible sur la page status
                 client, puis expire automatiquement apres 24h.
               </p>
             </div>
@@ -320,7 +320,7 @@ export default function StatusesManager() {
                 Actifs
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-100">
-                {statuses.length} statuts en ligne
+                {statuses.length} status en ligne
               </p>
             </div>
             <div className="rounded-2xl border border-white/8 bg-black/18 px-4 py-3 shadow-[inset_6px_6px_14px_rgba(0,0,0,0.22),inset_-4px_-4px_10px_rgba(255,255,255,0.02)]">
@@ -342,7 +342,7 @@ export default function StatusesManager() {
                   Creation
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-white">
-                  Nouveau statut
+                  Nouveau status
                 </p>
               </div>
               <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -353,7 +353,7 @@ export default function StatusesManager() {
             <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
               <div>
                 <span className="mb-3 block text-sm font-semibold text-slate-200">
-                  Type de statut
+                  Type de status
                 </span>
                 <div className="grid grid-cols-3 gap-2 rounded-3xl border border-white/8 bg-black/18 p-2 shadow-[inset_6px_6px_14px_rgba(0,0,0,0.22),inset_-4px_-4px_10px_rgba(255,255,255,0.02)]">
                   {(["text", "image", "video"] as const).map((type) => (
@@ -442,7 +442,7 @@ export default function StatusesManager() {
                 ) : (
                   <Plus className="size-4" />
                 )}
-                {isSubmitting ? "Publication..." : "Publier le statut"}
+                {isSubmitting ? "Publication..." : "Publier le status"}
               </button>
             </form>
           </section>
@@ -451,7 +451,7 @@ export default function StatusesManager() {
             <div className="flex items-center justify-between gap-4 border-b border-white/8 pb-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  Statuts actifs
+                  Status actifs
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-white">
                   {statuses.length} en cours
@@ -466,7 +466,7 @@ export default function StatusesManager() {
               {isLoading ? (
                 <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/18 px-4 py-4 text-sm text-slate-300 shadow-[inset_6px_6px_14px_rgba(0,0,0,0.22),inset_-4px_-4px_10px_rgba(255,255,255,0.02)]">
                   <LoaderCircle className="size-4 animate-spin text-emerald-200" />
-                  Chargement des statuts...
+                  Chargement des status...
                 </div>
               ) : statuses.length ? (
                 statuses.map((status) => (
@@ -542,10 +542,10 @@ export default function StatusesManager() {
               ) : (
                 <div className="rounded-[1.7rem] border border-dashed border-white/12 bg-black/18 px-6 py-12 text-center shadow-[inset_6px_6px_14px_rgba(0,0,0,0.22),inset_-4px_-4px_10px_rgba(255,255,255,0.02)]">
                   <p className="text-base font-semibold text-white">
-                    Aucun statut actif
+                    Aucun status actif
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                    Publie un statut texte, image ou video pour alimenter la
+                    Publie un status texte, image ou video pour alimenter la
                     page client.
                   </p>
                 </div>

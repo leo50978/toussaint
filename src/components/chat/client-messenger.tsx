@@ -98,6 +98,8 @@ const STATUS_REFRESH_INTERVAL_MS = 60_000;
 const THREAD_MESSAGE_RENDER_LIMIT = 120;
 const THREAD_MESSAGE_RENDER_STEP = 120;
 const SCROLL_TO_LATEST_THRESHOLD_PX = 96;
+const HIDDEN_CLIENT_SYNC_INTERVAL_MS = 20_000;
+const HIDDEN_STATUS_REFRESH_INTERVAL_MS = 30_000;
 
 function formatMessageTime(timestamp: string) {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -265,6 +267,20 @@ function renderMessageBody(message: ChatConversationRecord["messages"][number]) 
   );
 }
 
+function getLatestIncomingMessage(
+  messages: ChatConversationRecord["messages"],
+) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+
+    if (message && message.sender !== "client") {
+      return message;
+    }
+  }
+
+  return null;
+}
+
 function getReplyPreviewText(
   replyTo: ChatMessageReplyReference,
 ) {
@@ -426,6 +442,10 @@ export default function ClientMessenger() {
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [hasUnreadStatuses, setHasUnreadStatuses] = useState(false);
+  const [publicStatusIds, setPublicStatusIds] = useState<string[]>([]);
+  const [notificationPermission, setNotificationPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
   const [showScrollToLatestButton, setShowScrollToLatestButton] = useState(false);
   const [replyTarget, setReplyTarget] = useState<ChatMessageReplyReference | null>(
     null,
@@ -460,7 +480,80 @@ export default function ClientMessenger() {
     startY: number;
     offsetX: number;
   } | null>(null);
+  const latestIncomingMessageIdRef = useRef("");
+  const knownStatusIdsRef = useRef<Set<string>>(new Set());
   const isTextSendPending = pendingTextSendCount > 0;
+
+  async function showBrowserNotification(
+    title: string,
+    body: string,
+    url: string,
+    tag: string,
+  ) {
+    if (typeof window === "undefined" || document.visibilityState === "visible") {
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      return;
+    }
+
+    if (window.Notification.permission !== "granted") {
+      return;
+    }
+
+    try {
+      if ("serviceWorker" in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon: "/pwa/icon.svg",
+          badge: "/pwa/icon.svg",
+          tag,
+          data: {
+            url,
+          },
+        });
+        return;
+      }
+    } catch {
+      // Fallback to page-level notification below.
+    }
+
+    new window.Notification(title, {
+      body,
+      tag,
+    });
+  }
+
+  async function handleEnableNotifications() {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setToastMessage("Notifications indisponibles sur cet appareil.");
+      return;
+    }
+
+    try {
+      const permission = await window.Notification.requestPermission();
+      setNotificationPermission(permission);
+
+      if (permission === "granted") {
+        setToastMessage("Notifications activees.");
+      } else {
+        setToastMessage("Notifications non autorisees.");
+      }
+    } catch {
+      setToastMessage("Activation des notifications impossible.");
+    }
+  }
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotificationPermission("unsupported");
+      return;
+    }
+
+    setNotificationPermission(window.Notification.permission);
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -532,15 +625,16 @@ export default function ClientMessenger() {
     let syncIntervalId = 0;
 
     const runSync = () => {
-      if (document.visibilityState !== "visible") {
-        return;
-      }
-
       if (conversationSyncAbortRef.current) {
         return;
       }
 
-      setIsConversationSyncing(true);
+      const isVisible = document.visibilityState === "visible";
+
+      if (isVisible) {
+        setIsConversationSyncing(true);
+      }
+
       const controller = new AbortController();
       conversationSyncAbortRef.current = controller;
       void syncClientConversationState(runtime.ownerId, {
@@ -549,7 +643,9 @@ export default function ClientMessenger() {
         if (conversationSyncAbortRef.current === controller) {
           conversationSyncAbortRef.current = null;
         }
-        setIsConversationSyncing(false);
+        if (isVisible) {
+          setIsConversationSyncing(false);
+        }
         setHasCompletedInitialConversationSync(true);
       });
     };
@@ -560,13 +656,12 @@ export default function ClientMessenger() {
         syncIntervalId = 0;
       }
 
-      if (document.visibilityState !== "visible") {
-        return;
-      }
-
       syncIntervalId = window.setInterval(() => {
         runSync();
-      }, CLIENT_SYNC_INTERVAL_MS);
+      },
+      document.visibilityState === "visible"
+        ? CLIENT_SYNC_INTERVAL_MS
+        : HIDDEN_CLIENT_SYNC_INTERVAL_MS);
     };
 
     const onWindowFocus = () => {
@@ -750,6 +845,9 @@ export default function ClientMessenger() {
     const cachedStatuses = readBrowserCache<PublicStatusesPayload>(PUBLIC_STATUSES_CACHE_KEY);
 
     if (cachedStatuses) {
+      const nextStatusIds = cachedStatuses.statuses.map((status) => status.id);
+      setPublicStatusIds(nextStatusIds);
+      knownStatusIdsRef.current = new Set(nextStatusIds);
       const seenIds = readSeenStatusIds();
       setHasUnreadStatuses(
         cachedStatuses.statuses.some((status) => !seenIds.has(status.id)),
@@ -779,6 +877,7 @@ export default function ClientMessenger() {
         }
 
         const payload = (await response.json()) as PublicStatusesPayload;
+        const nextStatusIds = payload.statuses.map((status) => status.id);
         writeBrowserCache(
           PUBLIC_STATUSES_CACHE_KEY,
           payload,
@@ -787,6 +886,7 @@ export default function ClientMessenger() {
             maxBytes: PUBLIC_STATUSES_CACHE_MAX_BYTES,
           },
         );
+        setPublicStatusIds(nextStatusIds);
         const seenIds = readSeenStatusIds();
         const hasPendingStatus = payload.statuses.some(
           (status) => !seenIds.has(status.id),
@@ -816,13 +916,12 @@ export default function ClientMessenger() {
         intervalId = 0;
       }
 
-      if (document.visibilityState !== "visible") {
-        return;
-      }
-
       intervalId = window.setInterval(() => {
         void refreshStatusAwareness();
-      }, STATUS_REFRESH_INTERVAL_MS);
+      },
+      document.visibilityState === "visible"
+        ? STATUS_REFRESH_INTERVAL_MS
+        : HIDDEN_STATUS_REFRESH_INTERVAL_MS);
     };
 
     const handleFocus = () => {
@@ -853,6 +952,78 @@ export default function ClientMessenger() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
+
+  useEffect(() => {
+    const latestIncomingMessage = getLatestIncomingMessage(conversation?.messages || []);
+
+    if (!latestIncomingMessage) {
+      latestIncomingMessageIdRef.current = "";
+      return;
+    }
+
+    const previousMessageId = latestIncomingMessageIdRef.current;
+    latestIncomingMessageIdRef.current = latestIncomingMessage.id;
+
+    if (
+      !previousMessageId ||
+      previousMessageId === latestIncomingMessage.id ||
+      document.visibilityState === "visible"
+    ) {
+      return;
+    }
+
+    const senderLabel =
+      latestIncomingMessage.sender === "ai"
+        ? ownerProfile.displayName
+        : ownerProfile.displayName;
+    const preview =
+      latestIncomingMessage.kind === "text"
+        ? latestIncomingMessage.content.trim().slice(0, 120) || "Nouveau message"
+        : latestIncomingMessage.kind === "voice"
+          ? "Message vocal recu"
+          : latestIncomingMessage.kind === "image"
+            ? "Photo recue"
+            : latestIncomingMessage.kind === "video"
+              ? "Video recue"
+              : "Fichier recu";
+
+    void showBrowserNotification(
+      senderLabel,
+      preview,
+      "/chat",
+      `chat-message:${conversation?.id || "default"}`,
+    );
+  }, [conversation?.id, conversation?.messages, ownerProfile.displayName]);
+
+  useEffect(() => {
+    const currentStatusIds = new Set(publicStatusIds);
+    const previousStatusIds = knownStatusIdsRef.current;
+
+    if (!previousStatusIds.size) {
+      knownStatusIdsRef.current = currentStatusIds;
+      return;
+    }
+
+    const seenIds = readSeenStatusIds();
+    const newUnseenStatusIds = publicStatusIds.filter(
+      (statusId) => !previousStatusIds.has(statusId) && !seenIds.has(statusId),
+    );
+
+    knownStatusIdsRef.current = currentStatusIds;
+
+    if (!newUnseenStatusIds.length || document.visibilityState === "visible") {
+      return;
+    }
+
+    const suffix = newUnseenStatusIds.length > 1 ? "s" : "";
+
+    void showBrowserNotification(
+      `${ownerProfile.displayName} a publie un status`,
+      `${newUnseenStatusIds.length} nouveau${suffix} status disponible${suffix}.`,
+      "/status",
+      "status-update",
+    );
+  }, [ownerProfile.displayName, publicStatusIds]);
 
   useEffect(() => {
     if (conversation?.unreadClientCount) {
@@ -1601,7 +1772,7 @@ export default function ClientMessenger() {
                   : "bg-white/[0.04]"
               }`}
             >
-              Statuts
+              Status
             </Link>
             <div ref={headerMenuRef} className="relative">
               <button
@@ -1635,6 +1806,26 @@ export default function ClientMessenger() {
                   </div>
 
                   <div className="mt-2 space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => void handleEnableNotifications()}
+                      className="flex w-full items-center gap-3 rounded-[0.95rem] border border-transparent bg-white/[0.03] px-3 py-2.5 text-left text-sm font-medium text-slate-100 transition-colors hover:border-white/8 hover:bg-white/[0.08]"
+                    >
+                      <Shield className="size-4 shrink-0 text-slate-400" />
+                      {notificationPermission === "granted"
+                        ? "Notifications actives"
+                        : "Activer les notifications"}
+                    </button>
+                    {conversation?.adminAccessEnabled ? (
+                      <Link
+                        href="/owner"
+                        onClick={() => setShowHeaderMenu(false)}
+                        className="flex w-full items-center gap-3 rounded-[0.95rem] border border-transparent bg-white/[0.03] px-3 py-2.5 text-left text-sm font-medium text-slate-100 transition-colors hover:border-white/8 hover:bg-white/[0.08]"
+                      >
+                        <UserRound className="size-4 shrink-0 text-slate-400" />
+                        Acceder a la page owner
+                      </Link>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleOpenAccessModal}

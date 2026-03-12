@@ -19,6 +19,7 @@ export {
   sendOwnerMessage,
   submitOwnerManualAiGuidance,
   setClientConversationSecurityCode,
+  setConversationAdminAccessEnabled,
   setConversationAiMode,
   syncClientConversationState,
   syncOwnerConversationState,

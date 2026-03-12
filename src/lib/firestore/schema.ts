@@ -19,6 +19,7 @@ export type ConversationDocument = {
   clientName: string;
   clientKeyHash: string;
   aiMode: AiMode;
+  adminAccessEnabled?: boolean;
   createdAt: FirestoreTimestampField;
   updatedAt: FirestoreTimestampField;
   status: ConversationStatus;
@@ -158,6 +159,7 @@ export const FIRESTORE_SCHEMA: CollectionSchema[] = [
       "clientName:string",
       "clientKeyHash:string",
       "aiMode:auto|suggestion|off",
+      "adminAccessEnabled?:boolean",
       "createdAt:timestamp",
       "updatedAt:timestamp",
       "status:active|archived|blocked",

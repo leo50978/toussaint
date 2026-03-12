@@ -91,6 +91,7 @@ export type ChatConversationSummary = {
   ownerId: string;
   clientName: string;
   aiMode: ConversationDocument["aiMode"];
+  adminAccessEnabled?: boolean;
   status: ConversationStatus;
   updatedAt: string;
   createdAt: string;

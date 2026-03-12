@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/owner",
     name: "Vichly Owner",
     short_name: "Vichly Owner",
-    description: "Dashboard owner installable pour piloter conversations, IA, statuts et brouillons.",
+    description: "Dashboard owner installable pour piloter conversations, IA, status et brouillons.",
     start_url: "/owner",
     scope: "/owner",
     display: "standalone",

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vichly-pwa-v2";
+const CACHE_VERSION = "vichly-pwa-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const STATIC_ASSETS = [
@@ -121,5 +121,32 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => caches.match(request)),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  const notification = event.notification;
+  const targetUrl =
+    notification && notification.data && typeof notification.data.url === "string"
+      ? notification.data.url
+      : "/";
+
+  notification.close();
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ("focus" in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+
+      return undefined;
+    }),
   );
 });

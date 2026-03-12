@@ -15,11 +15,11 @@ export default function LandingShell() {
             Plateforme business intelligente
           </p>
           <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-tight text-slate-950 md:text-6xl">
-            Vichly Messenger centralise messages, IA, statuts et brouillons.
+            Vichly Messenger centralise messages, IA, status et brouillons.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700 md:text-lg">
             Une interface PWA orientee business, avec messagerie instantanee,
-            reponses assistees, statuts temporaires et espace prive pour tes
+            reponses assistees, status temporaires et espace prive pour tes
             contenus internes.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -27,7 +27,7 @@ export default function LandingShell() {
               href="/status"
               className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white/70 px-5 py-3 text-sm font-semibold text-slate-800"
             >
-              Voir les statuts
+              Voir les status
               <ArrowRight className="size-4" />
             </Link>
             <Link

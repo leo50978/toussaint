@@ -43,6 +43,7 @@ import {
   markConversationSeen,
   requestAutoReplyIfNeeded,
   sendOwnerMessage,
+  setConversationAdminAccessEnabled,
   setConversationAiMode,
   submitOwnerManualAiGuidance,
   syncOwnerConversationState,
@@ -118,6 +119,7 @@ type ConversationSettingsEditor = {
   personalContext: string;
   maxLength: string;
   blacklistWords: string;
+  adminAccessEnabled: boolean;
   scheduleEnabled: boolean;
   scheduleStart: string;
   scheduleEnd: string;
@@ -190,6 +192,7 @@ function createConversationSettingsEditor(
     personalContext: conversation.aiSettings.personalContext,
     maxLength: String(conversation.aiSettings.maxLength),
     blacklistWords: conversation.aiSettings.blacklistWords.join(", "),
+    adminAccessEnabled: Boolean(conversation.adminAccessEnabled),
     scheduleEnabled: conversation.aiSettings.scheduleEnabled,
     scheduleStart: conversation.aiSettings.scheduleStart,
     scheduleEnd: conversation.aiSettings.scheduleEnd,
@@ -2079,6 +2082,10 @@ export default function OwnerMessagingDashboard() {
         Intl.DateTimeFormat().resolvedOptions().timeZone ||
         "UTC",
     });
+    setConversationAdminAccessEnabled(
+      selectedConversation.id,
+      settingsEditor.adminAccessEnabled,
+    );
 
     const refreshedSnapshot = getConversationSnapshot(selectedConversation.id);
 
@@ -2193,7 +2200,7 @@ export default function OwnerMessagingDashboard() {
   > = [
     { id: "all", label: "Toutes" },
     { id: "unread", label: "Non lues" },
-    { label: "Statuts", href: "/dashboard/statuses" },
+    { label: "Status", href: "/dashboard/statuses" },
     { id: "drafts", label: "Brouillons" },
   ];
   const showInboxLoader =

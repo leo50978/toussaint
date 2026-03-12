@@ -235,7 +235,7 @@ export default function StatusesViewer() {
       });
 
       if (!response.ok) {
-        throw new Error("Chargement des statuts impossible.");
+        throw new Error("Chargement des status impossible.");
       }
 
       const payload = (await response.json()) as StatusListResponse;
@@ -645,7 +645,7 @@ export default function StatusesViewer() {
           <div className="flex min-h-dvh flex-1 items-center justify-center px-6">
             <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/88 backdrop-blur-xl">
               <LoaderCircle className="size-4 animate-spin" />
-              Chargement des statuts...
+              Chargement des status...
             </div>
           </div>
         ) : errorMessage ? (
@@ -860,10 +860,10 @@ export default function StatusesViewer() {
           <div className="flex min-h-dvh flex-1 items-center justify-center px-6">
             <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/6 px-6 py-7 text-center backdrop-blur-2xl">
               <p className="text-xl font-semibold text-white">
-                Aucun statut actif pour le moment.
+                Aucun status actif pour le moment.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-white/68">
-                Quand {ownerProfile.displayName} publiera un nouveau statut, il
+                Quand {ownerProfile.displayName} publiera un nouveau status, il
                 apparaitra ici automatiquement.
               </p>
               <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
