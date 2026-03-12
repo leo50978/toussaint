@@ -9,9 +9,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LoaderCircle,
-  MessageSquareMore,
-  MoreVertical,
-  SendHorizontal,
   X,
 } from "lucide-react";
 
@@ -726,22 +723,13 @@ export default function StatusesViewer() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex size-10 items-center justify-center rounded-full bg-black/25 text-white/92 backdrop-blur-xl"
-                      aria-label="Plus d options"
-                    >
-                      <MoreVertical className="size-5" />
-                    </button>
-                    <Link
-                      href="/chat"
-                      className="inline-flex size-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-xl transition-colors hover:bg-black/35"
-                      aria-label="Fermer"
-                    >
-                      <X className="size-5" />
-                    </Link>
-                  </div>
+                  <Link
+                    href="/chat"
+                    className="inline-flex size-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-xl transition-colors hover:bg-black/35"
+                    aria-label="Fermer"
+                  >
+                    <X className="size-5" />
+                  </Link>
                 </div>
               </div>
             </header>
@@ -825,36 +813,6 @@ export default function StatusesViewer() {
                 ) : null}
               </div>
             </div>
-
-            <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-20 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:px-6 md:pb-[calc(1rem+env(safe-area-inset-bottom))]">
-              <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
-                <button
-                  type="button"
-                  className="pointer-events-auto inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-black/28 text-white/88 backdrop-blur-xl"
-                  aria-label="Reagir"
-                >
-                  <MessageSquareMore className="size-5" />
-                </button>
-
-                <Link
-                  href="/chat"
-                  className="pointer-events-auto flex min-h-14 flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/28 px-5 text-sm font-medium text-white/82 backdrop-blur-xl transition-colors hover:bg-black/36"
-                >
-                  <span className="truncate">Taper une reponse...</span>
-                  <span className="ml-auto text-xs text-white/55">
-                    Retourner au chat
-                  </span>
-                </Link>
-
-                <Link
-                  href="/chat"
-                  className="pointer-events-auto inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-[#0b1118] shadow-[0_12px_34px_rgba(0,0,0,0.35)]"
-                  aria-label="Repondre dans le chat"
-                >
-                  <SendHorizontal className="size-5" />
-                </Link>
-              </div>
-            </footer>
           </>
         ) : (
           <div className="flex min-h-dvh flex-1 items-center justify-center px-6">
