@@ -22,6 +22,7 @@ import {
   getClientConversationState,
   patchConversation,
 } from "@/lib/chat/persistence";
+import type { ChatMessageReplyReference } from "@/lib/chat/types";
 import { getOpenAiRuntime } from "@/lib/config/bootstrap";
 import { recordMonitoringEvent } from "@/lib/monitoring/logger";
 import { getOwnerProfile } from "@/lib/owner-profile";
@@ -154,7 +155,7 @@ async function finalizeAutoReplyConversation(
   clientName: string,
   triggeringMessageId: string,
   content: string,
-  replyTo?: NonNullable<ReturnType<typeof buildPersistedAutoReplyMessage>["replyTo"]>,
+  replyTo?: ChatMessageReplyReference,
 ) {
   const appendedConversation = content
     ? await appendConversationMessage({
