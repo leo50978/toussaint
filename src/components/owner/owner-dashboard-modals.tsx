@@ -227,7 +227,7 @@ export default function OwnerDashboardModals({
                 onClick={onOpenStatuses}
                 className="rounded-xl border border-white/8 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.07]"
               >
-                Status
+                Statues
               </button>
               <a
                 href="/api/owner/system/hardening-report"

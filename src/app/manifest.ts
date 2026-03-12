@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Vichly Messenger",
     short_name: "Vichly",
     description:
-      "Messagerie business intelligente, installable, avec IA, status et brouillons.",
+      "Messagerie business intelligente, installable, avec IA, statues et brouillons.",
     start_url: "/",
     scope: "/",
     display: "standalone",

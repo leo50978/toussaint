@@ -206,7 +206,7 @@ export default function PwaInstallPrompt() {
           </p>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">
             {installTarget === "owner"
-              ? "Pour piloter tes conversations et tes status plus facilement sur mobile, installe la version PWA du dashboard owner."
+              ? "Pour piloter tes conversations et tes statues plus facilement sur mobile, installe la version PWA du dashboard owner."
               : "Pour profiter pleinement de l application sur mobile, installe la version PWA. Tu auras un acces plus direct, une experience plus fluide en plein ecran et un usage plus proche d une vraie app."}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">

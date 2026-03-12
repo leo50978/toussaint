@@ -232,7 +232,7 @@ export default function StatusesViewer() {
       });
 
       if (!response.ok) {
-        throw new Error("Chargement des status impossible.");
+        throw new Error("Chargement des statues impossible.");
       }
 
       const payload = (await response.json()) as StatusListResponse;
@@ -614,7 +614,7 @@ export default function StatusesViewer() {
       {activeStatus?.type === "image" ? (
         <Image
           src={activeImageSource || activeStatus.storageUrl}
-          alt={activeStatus.content || "Statut image"}
+          alt={activeStatus.content || "Statue image"}
           fill
           priority
           unoptimized
@@ -642,7 +642,7 @@ export default function StatusesViewer() {
           <div className="flex min-h-dvh flex-1 items-center justify-center px-6">
             <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/88 backdrop-blur-xl">
               <LoaderCircle className="size-4 animate-spin" />
-              Chargement des status...
+              Chargement des statues...
             </div>
           </div>
         ) : errorMessage ? (
@@ -740,7 +740,7 @@ export default function StatusesViewer() {
                 onClick={handlePrevious}
                 disabled={activeIndex === 0}
                 className="absolute left-3 top-1/2 z-20 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-xl transition-colors hover:bg-black/45 disabled:cursor-not-allowed disabled:opacity-35 md:inline-flex"
-                aria-label="Statut precedent"
+                aria-label="Statue precedente"
               >
                 <ChevronLeft className="size-6" />
               </button>
@@ -750,7 +750,7 @@ export default function StatusesViewer() {
                 onClick={handleNext}
                 disabled={activeIndex === statuses.length - 1}
                 className="absolute right-3 top-1/2 z-20 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-xl transition-colors hover:bg-black/45 disabled:cursor-not-allowed disabled:opacity-35 md:inline-flex"
-                aria-label="Statut suivant"
+                aria-label="Statue suivante"
               >
                 <ChevronRight className="size-6" />
               </button>
@@ -785,7 +785,7 @@ export default function StatusesViewer() {
                 {activeStatus.type === "image" ? (
                   <Image
                     src={activeImageSource || activeStatus.storageUrl}
-                    alt={activeStatus.content || "Statut image"}
+                    alt={activeStatus.content || "Statue image"}
                     width={1280}
                     height={1920}
                     priority
@@ -818,10 +818,10 @@ export default function StatusesViewer() {
           <div className="flex min-h-dvh flex-1 items-center justify-center px-6">
             <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/6 px-6 py-7 text-center backdrop-blur-2xl">
               <p className="text-xl font-semibold text-white">
-                Aucun status actif pour le moment.
+                Aucune statue active pour le moment.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-white/68">
-                Quand {ownerProfile.displayName} publiera un nouveau status, il
+                Quand {ownerProfile.displayName} publiera une nouvelle statue, elle
                 apparaitra ici automatiquement.
               </p>
               <div className="mt-5 flex flex-wrap items-center justify-center gap-3">

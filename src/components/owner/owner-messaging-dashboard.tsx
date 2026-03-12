@@ -2200,7 +2200,7 @@ export default function OwnerMessagingDashboard() {
   > = [
     { id: "all", label: "Toutes" },
     { id: "unread", label: "Non lues" },
-    { label: "Status", href: "/dashboard/statuses" },
+    { label: "Statues", href: "/dashboard/statuses" },
     { id: "drafts", label: "Brouillons" },
   ];
   const showInboxLoader =

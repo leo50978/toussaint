@@ -9,7 +9,7 @@ const StatusesManager = dynamic(
   {
     ssr: false,
     loading: () => (
-      <ModuleLoadingShell label="Chargement des status..." />
+      <ModuleLoadingShell label="Chargement des statues..." />
     ),
   },
 );

@@ -1018,8 +1018,8 @@ export default function ClientMessenger() {
     const suffix = newUnseenStatusIds.length > 1 ? "s" : "";
 
     void showBrowserNotification(
-      `${ownerProfile.displayName} a publie un status`,
-      `${newUnseenStatusIds.length} nouveau${suffix} status disponible${suffix}.`,
+      `${ownerProfile.displayName} a publie une statue`,
+      `${newUnseenStatusIds.length} nouvelle${suffix} statue${suffix} disponible${suffix}.`,
       "/status",
       "status-update",
     );
@@ -1772,7 +1772,7 @@ export default function ClientMessenger() {
                   : "bg-white/[0.04]"
               }`}
             >
-              Status
+              Statues
             </Link>
             <div ref={headerMenuRef} className="relative">
               <button
@@ -2218,7 +2218,7 @@ export default function ClientMessenger() {
                 </form>
 
                 <Link
-                  href="/portfolio/"
+                  href="/portfolio"
                   className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/16 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-400/14"
                 >
                   Visiter le portfolio
@@ -2309,7 +2309,7 @@ export default function ClientMessenger() {
                 </form>
 
                 <Link
-                  href="/portfolio/"
+                  href="/portfolio"
                   className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-300/16 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-400/14"
                 >
                   Visiter le portfolio
@@ -2456,7 +2456,7 @@ export default function ClientMessenger() {
             </div>
 
             <Link
-              href="/portfolio/"
+              href="/portfolio"
               className="mt-4 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1]"
             >
               Visiter le portfolio
