@@ -141,6 +141,8 @@ export async function POST(request: Request) {
     typeof rawPayload.conversationId === "string" ? rawPayload.conversationId : "";
   const clientKey =
     typeof rawPayload.clientKey === "string" ? rawPayload.clientKey : "";
+  const securityCode =
+    typeof rawPayload.securityCode === "string" ? rawPayload.securityCode : "";
   const normalizedMessage = normalizeMessage(rawPayload.message);
 
   if (!ownerId || !conversationId || !clientKey || !normalizedMessage) {
@@ -155,6 +157,7 @@ export async function POST(request: Request) {
       ownerId,
       conversationId,
       clientKey,
+      securityCode,
     });
 
     if (!validation.valid || !validation.session) {

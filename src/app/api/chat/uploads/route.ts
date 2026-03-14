@@ -98,6 +98,7 @@ export async function POST(request: Request) {
     const conversationId = normalizeTextValue(formData.get("conversationId"), 120);
     const actor = normalizeActor(formData.get("actor"));
     const clientKey = normalizeTextValue(formData.get("clientKey"), 180);
+    const securityCode = normalizeTextValue(formData.get("securityCode"), 180);
 
     if (!isUploadedFile(fileValue)) {
       return NextResponse.json(
@@ -188,6 +189,7 @@ export async function POST(request: Request) {
         ownerId,
         conversationId,
         clientKey,
+        securityCode,
       });
 
       if (!validation.valid) {

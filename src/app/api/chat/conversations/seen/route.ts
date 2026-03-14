@@ -35,12 +35,15 @@ export async function POST(request: Request) {
     typeof rawPayload.conversationId === "string" ? rawPayload.conversationId : "";
   const clientKey =
     typeof rawPayload.clientKey === "string" ? rawPayload.clientKey : "";
+  const securityCode =
+    typeof rawPayload.securityCode === "string" ? rawPayload.securityCode : "";
 
   try {
     const validation = await validateClientAccessSession({
       ownerId,
       conversationId,
       clientKey,
+      securityCode,
     });
 
     if (!validation.valid) {

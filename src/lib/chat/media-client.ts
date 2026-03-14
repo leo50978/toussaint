@@ -57,6 +57,7 @@ export async function uploadChatAttachment(
     conversationId?: string;
     actor?: "client" | "owner";
     clientKey?: string;
+    securityCode?: string;
   },
 ) {
   const fileToUpload = await optimizeChatUploadFile(file);
@@ -85,6 +86,10 @@ export async function uploadChatAttachment(
 
   if (options?.clientKey) {
     formData.append("clientKey", options.clientKey);
+  }
+
+  if (options?.securityCode) {
+    formData.append("securityCode", options.securityCode);
   }
 
   const response = await fetch("/api/chat/uploads", {

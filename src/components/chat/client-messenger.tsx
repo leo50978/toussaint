@@ -1429,6 +1429,7 @@ export default function ClientMessenger() {
         conversationId: activeSession.conversationId,
         actor: "client",
         clientKey: activeSession.clientKey,
+        securityCode: activeSession.securityCode || undefined,
       });
 
       await sendClientMessage(

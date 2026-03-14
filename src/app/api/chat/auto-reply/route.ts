@@ -227,6 +227,8 @@ export async function POST(request: Request) {
       : [],
   };
   const ownerId = typeof rawPayload.ownerId === "string" ? rawPayload.ownerId.trim() : "";
+  const securityCode =
+    typeof rawPayload.securityCode === "string" ? rawPayload.securityCode : "";
   const actor = normalizeActor(rawPayload.actor);
   const clientKey =
     typeof rawPayload.clientKey === "string" ? rawPayload.clientKey.trim() : "";
@@ -318,6 +320,7 @@ export async function POST(request: Request) {
         ownerId,
         conversationId: payload.conversationId,
         clientKey,
+        securityCode,
       });
     } catch (error) {
       return NextResponse.json(

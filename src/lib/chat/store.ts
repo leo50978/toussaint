@@ -948,6 +948,12 @@ function buildClientSession(
       typeof input.serverSessionId === "string" ? input.serverSessionId : null,
     lastValidatedAt:
       typeof input.lastValidatedAt === "string" ? input.lastValidatedAt : null,
+    securityCode:
+      typeof input.securityCode === "string"
+        ? input.securityCode
+        : input.securityCode === null
+          ? null
+          : null,
   };
 }
 
@@ -1685,6 +1691,7 @@ async function requestClientConversationStateFromServer(
         ownerId: session.ownerId,
         conversationId: session.conversationId,
         clientKey: session.clientKey,
+        securityCode: session.securityCode || "",
         updatedAfter:
           options?.forceFullSync || currentSnapshot?.conversation.threadHydrated === false
             ? ""
@@ -1729,6 +1736,7 @@ async function requestPersistClientMessageToServer(
         ownerId: session.ownerId,
         conversationId: session.conversationId,
         clientKey: session.clientKey,
+        securityCode: session.securityCode || "",
         message,
       }),
     });
@@ -1895,6 +1903,7 @@ async function requestPersistSeenStateToServer(
   ownerId: string,
   conversationId: string,
   clientKey?: string,
+  securityCode?: string,
 ) {
   const browserWindow = safeWindow();
 
@@ -1930,6 +1939,7 @@ async function requestPersistSeenStateToServer(
         ownerId,
         conversationId,
         clientKey,
+        securityCode: securityCode || "",
       }),
     });
   } catch {
@@ -2191,6 +2201,7 @@ export async function recoverClientConversation(
     createdAt: validatedSession.createdAt,
     serverSessionId: validatedSession.id,
     lastValidatedAt: validatedSession.lastValidatedAt,
+    securityCode: securityCode?.trim() || null,
   });
 
   upsertConversationFromSession(session);
@@ -2219,7 +2230,20 @@ export async function setClientConversationSecurityCode(
     throw new Error("Aucune discussion active a securiser.");
   }
 
-  return requestSetClientSecurityCode(ownerId, session.clientKey, securityCode);
+  const normalizedSecurityCode = securityCode.trim();
+  const result = await requestSetClientSecurityCode(
+    ownerId,
+    session.clientKey,
+    normalizedSecurityCode,
+  );
+
+  const nextSession = buildClientSession({
+    ...session,
+    securityCode: result.hasSecurityCode ? normalizedSecurityCode : null,
+  });
+  persistClientChatSession(nextSession);
+
+  return result;
 }
 
 export async function validateClientSessionAccess(ownerId: string) {
@@ -2236,7 +2260,7 @@ export async function validateClientSessionAccess(ownerId: string) {
   const validatedSession = await requestValidatedClientAccess(
     ownerId,
     session.clientKey,
-    undefined,
+    session.securityCode || undefined,
     session.conversationId,
   );
 
@@ -2669,6 +2693,7 @@ export async function requestAutoReplyIfNeeded(conversationId: string) {
         ownerId: conversation.ownerId,
         actor: isClientActor ? "client" : "owner",
         clientKey: isClientActor ? activeClientSession?.clientKey : "",
+        securityCode: isClientActor ? activeClientSession?.securityCode || "" : "",
         conversationId: conversation.id,
         clientName: conversation.clientName,
         aiMode: "auto",
@@ -2866,6 +2891,7 @@ export function markConversationSeen(
 ) {
   let ownerId = "";
   let clientKey = "";
+  let securityCode = "";
 
   mutateStore((store) => ({
     ...store,
@@ -2889,6 +2915,9 @@ export function markConversationSeen(
       if (viewer === "client" && !clientKey) {
         const session = getClientChatSession(conversation.ownerId);
         clientKey = session?.clientKey || "";
+        if (!securityCode) {
+          securityCode = session?.securityCode || "";
+        }
       }
 
       return {
@@ -2909,6 +2938,7 @@ export function markConversationSeen(
     ownerId,
     conversationId,
     clientKey || undefined,
+    securityCode || undefined,
   );
 }
 

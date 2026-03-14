@@ -84,6 +84,7 @@ export type ClientChatSession = {
   createdAt: string;
   serverSessionId: string | null;
   lastValidatedAt: string | null;
+  securityCode?: string | null;
 };
 
 export type ChatConversationSummary = {
