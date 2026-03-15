@@ -675,6 +675,9 @@ export default function OwnerMessagingDashboard() {
   const [profileErrorMessage, setProfileErrorMessage] = useState("");
   const [profileStatusMessage, setProfileStatusMessage] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
   const [isInboxSyncing, setIsInboxSyncing] = useState(false);
   const [hasCompletedInitialInboxSync, setHasCompletedInitialInboxSync] = useState(false);
   const [isThreadSyncing, setIsThreadSyncing] = useState(false);
@@ -696,6 +699,7 @@ export default function OwnerMessagingDashboard() {
   const [manualGuidanceDrafts, setManualGuidanceDrafts] = useState<Record<string, string>>({});
   const [submittingManualTaskId, setSubmittingManualTaskId] = useState("");
   const notifiedManualTaskIdsRef = useRef<Record<string, boolean>>({});
+  const notifiedConversationUpdatesRef = useRef<Record<string, string>>({});
   const conversationMenuRef = useRef<HTMLDivElement | null>(null);
   const swipeStateRef = useRef<{
     messageId: string;
@@ -703,6 +707,62 @@ export default function OwnerMessagingDashboard() {
     startY: number;
     offsetX: number;
   } | null>(null);
+
+  async function showBrowserNotification(
+    title: string,
+    body: string,
+    url: string,
+    tag: string,
+  ) {
+    if (typeof window === "undefined" || document.visibilityState === "visible") {
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      return;
+    }
+
+    if (window.Notification.permission !== "granted") {
+      return;
+    }
+
+    try {
+      if ("serviceWorker" in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon: "/pwa/icon.svg",
+          badge: "/pwa/icon.svg",
+          tag,
+          data: {
+            url,
+          },
+        });
+        return;
+      }
+    } catch {
+      // Fallback to page-level notification below.
+    }
+
+    new window.Notification(title, {
+      body,
+      tag,
+    });
+  }
+
+  async function handleEnableNotifications() {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotificationPermission("unsupported");
+      return;
+    }
+
+    try {
+      const permission = await window.Notification.requestPermission();
+      setNotificationPermission(permission);
+    } catch {
+      setNotificationPermission("default");
+    }
+  }
 
   function runThreadSync(conversationId: string) {
     const requestId = threadSyncRequestRef.current + 1;
@@ -715,6 +775,15 @@ export default function OwnerMessagingDashboard() {
       }
     });
   }
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotificationPermission("unsupported");
+      return;
+    }
+
+    setNotificationPermission(window.Notification.permission);
+  }, []);
 
   useEffect(() => {
     const refreshInbox = () => {
@@ -1022,6 +1091,37 @@ export default function OwnerMessagingDashboard() {
           body: `${conversation.clientName} attend un contexte manuel pour ${conversation.pendingManualTaskCount} element${pluralSuffix}.`,
         });
       }
+    });
+  }, [conversations]);
+
+  useEffect(() => {
+    if (!conversations.length) {
+      return;
+    }
+
+    conversations.forEach((conversation) => {
+      if (conversation.lastMessageSender !== "client") {
+        return;
+      }
+
+      if (!conversation.unreadOwnerCount) {
+        return;
+      }
+
+      const lastNotifiedAt = notifiedConversationUpdatesRef.current[conversation.id];
+
+      if (lastNotifiedAt === conversation.updatedAt) {
+        return;
+      }
+
+      notifiedConversationUpdatesRef.current[conversation.id] = conversation.updatedAt;
+
+      void showBrowserNotification(
+        conversation.clientName || "Nouveau message",
+        conversation.lastMessagePreview || "Nouveau message",
+        "/owner",
+        `owner-message:${conversation.id}`,
+      );
     });
   }, [conversations]);
 
@@ -2960,6 +3060,7 @@ export default function OwnerMessagingDashboard() {
           profileErrorMessage={profileErrorMessage}
           profileStatusMessage={profileStatusMessage}
           isSavingProfile={isSavingProfile}
+          notificationPermission={notificationPermission}
           inboxStats={inboxStats}
           onCloseGeneralSettings={() => setShowGeneralSettings(false)}
           onOpenDrafts={() => {
@@ -2970,6 +3071,7 @@ export default function OwnerMessagingDashboard() {
             setShowGeneralSettings(false);
             router.push("/dashboard/statuses");
           }}
+          onEnableNotifications={() => void handleEnableNotifications()}
           onProfileFieldChange={handleProfileFieldChange}
           onProfileImageUpload={handleProfileImageUpload}
           onSaveOwnerProfile={() => void handleSaveOwnerProfile()}

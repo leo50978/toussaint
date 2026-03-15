@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import { LoaderCircle, MoreVertical, ShieldCheck } from "lucide-react";
+import { Bell, LoaderCircle, MoreVertical, ShieldCheck } from "lucide-react";
 
 import OwnerLogoutButton from "@/components/owner/owner-logout-button";
 import type { ChatConversationRecord, ChatMessageRecord } from "@/lib/chat";
@@ -62,6 +62,7 @@ type OwnerDashboardModalsProps = {
   profileErrorMessage: string;
   profileStatusMessage: string;
   isSavingProfile: boolean;
+  notificationPermission: NotificationPermission | "unsupported";
   inboxStats: {
     threadCount: number;
     unreadMessages: number;
@@ -69,6 +70,7 @@ type OwnerDashboardModalsProps = {
   onCloseGeneralSettings: () => void;
   onOpenDrafts: () => void;
   onOpenStatuses: () => void;
+  onEnableNotifications: () => void;
   onProfileFieldChange: (
     field: keyof OwnerProfileDraft,
     value: string,
@@ -158,10 +160,12 @@ export default function OwnerDashboardModals({
   profileErrorMessage,
   profileStatusMessage,
   isSavingProfile,
+  notificationPermission,
   inboxStats,
   onCloseGeneralSettings,
   onOpenDrafts,
   onOpenStatuses,
+  onEnableNotifications,
   onProfileFieldChange,
   onProfileImageUpload,
   onSaveOwnerProfile,
@@ -215,6 +219,21 @@ export default function OwnerDashboardModals({
             </div>
 
             <div className="mt-5 grid gap-3">
+              <button
+                type="button"
+                onClick={onEnableNotifications}
+                disabled={notificationPermission === "unsupported"}
+                className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Bell className="size-4 text-slate-300" />
+                  {notificationPermission === "granted"
+                    ? "Notifications actives"
+                    : notificationPermission === "unsupported"
+                      ? "Notifications indisponibles"
+                      : "Activer les notifications"}
+                </span>
+              </button>
               <button
                 type="button"
                 onClick={onOpenDrafts}
